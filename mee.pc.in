@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+datarootdir=@datarootdir@
+datadir=@datadir@
+
+Name: LibMee
+Description: library written in Vala
+Version: 1.0
+Requires: glib-2.0 gobject-2.0 gee-0.8
+Libs: -L${libdir} -lmee
+Cflags: -I${includedir}
