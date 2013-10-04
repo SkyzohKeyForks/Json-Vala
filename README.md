@@ -1,4 +1,4 @@
 Json-Vala
 =========
 
-a Json library written in Vaal
+a Json library written in Vala.
