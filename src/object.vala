@@ -1,4 +1,4 @@
-namespace JsonVala
+namespace Json
 {
 	public class Object : GLib.Object
 	{
@@ -8,17 +8,17 @@ namespace JsonVala
 			table = new Gee.HashMap<string,string>();
 		}
 		
-		public Object(string data) throws JsonVala.Error
+		public Object(string data) throws GLib.Error
 		{
 			var str = data.replace ("\t","").replace ("\r","").replace ("\n","").strip ();
 			this.parse(ref str);
 		}
 		
-		internal Object.parse(ref string data) throws JsonVala.Error
+		internal Object.parse(ref string data) throws GLib.Error
 		{
 			this.empty();
 			if(data[0] != '{')
-				throw new JsonVala.Error.Start("invalid character (%s)".printf(data));
+				throw new Json.Error.Start("invalid character (%c)".printf(data[0]));
 			data = data.substring (1).chug ();
 			if(data[0] == '}')
 				data = data.substring (1).chug ();
@@ -27,10 +27,10 @@ namespace JsonVala
 				string str = valid_string(data);
 				data = data.substring (str.length+2).chug ();
 				if(data[0] != ':')
-					throw new JsonVala.Error.NotFound("':' char not found");
+					throw new Json.Error.NotFound("':' char not found");
 				data = data.substring (1).chug ();
 				if(data[0] == ',' || data[0] == '}')
-					throw new JsonVala.Error.NotFound("value not found");
+					throw new Json.Error.NotFound("value not found");
 				if(data[0] == '{'){
 					var object = new Object.parse(ref data);
 					table[str] = object.to_string();
@@ -49,18 +49,18 @@ namespace JsonVala
 							(a > b) ? b : 
 							(b > a) ? a : -1 ;
 					if(c == -1)
-						throw new JsonVala.Error.NotFound("end of member not found");
+						throw new Json.Error.NotFound("end of member not found");
 					var val = data.substring(0,c).strip();
 					if(val != "false" && val != "true" && val != "null"){
 						double d = -1;
 						if(double.try_parse (val,out d) == false)
-							throw new JsonVala.Error.Type("invalid value");
+							throw new Json.Error.Type("invalid value");
 					}
 					table[str] = val;
 					data = data.substring(val.length).chug();
 				}
 				if(data[0] != ',' && data[0] != '}')
-					throw new JsonVala.Error.Type("invalid end of section");
+					throw new Json.Error.Type("invalid end of section");
 				bool end = (data[0] == '}') ? true : false;
 				data = data.substring(1).chug();
 				if(end)break;
@@ -116,6 +116,10 @@ namespace JsonVala
 				func((string)entry.key,new Node((string)entry.value));
 				return true;
 			});
+		}
+		
+		public Json.Node as_node () {
+			return new Node (to_string ());
 		}
 
 		public string to_string(){

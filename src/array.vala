@@ -1,10 +1,10 @@
-namespace JsonVala
+namespace Json
 {
 	public class Array : GLib.Object
 	{
 		Gee.ArrayList<string> list;
 
-		public Array(string data) throws JsonVala.Error
+		public Array(string data) throws GLib.Error
 		{
 			var str = data.strip ();
 			this.parse (ref str);
@@ -12,11 +12,11 @@ namespace JsonVala
 		
 		public Array.empty(){ list = new Gee.ArrayList<string>(); }
 		
-		internal Array.parse(ref string data) throws JsonVala.Error
+		internal Array.parse(ref string data) throws GLib.Error
 		{
 			this.empty();
 			if(data[0] != '[')
-				throw new JsonVala.Error.Start("invalid character");
+				throw new Json.Error.Start("invalid character");
 			data = data.substring (1).chug ();
 			if(data[0] == ']')
 				data = data.substring (1).chug ();
@@ -41,18 +41,18 @@ namespace JsonVala
 							(a > b) ? b : 
 							(b > a) ? a : -1 ;
 					if(c == -1)
-						throw new JsonVala.Error.NotFound("end of element not found");
+						throw new Json.Error.NotFound("end of element not found");
 					var val = data.substring(0,c).strip();
 					if(val != "false" && val != "true" && val != "null"){
 						double d = -1;
 						if(double.try_parse (val,out d) == false)
-							throw new JsonVala.Error.Type("invalid value");
+							throw new Json.Error.Type("invalid value");
 					}
 					list.add(val);
 					data = data.substring(val.length).chug();
 				}
 				if(data[0] != ',' && data[0] != ']')
-						throw new JsonVala.Error.Type("invalid end of element");
+						throw new Json.Error.Type("invalid end of element");
 					bool end = (data[0] == ']') ? true : false;
 					data = data.substring(1).chug();
 					if(end)break;
@@ -64,6 +64,8 @@ namespace JsonVala
 				return null;
 			return new Node(list[index]);
 		}
+		public new Node? get (int index){ return get_element (index); }
+		
 		public Array? get_array_element(int index){ return get_element(index).as_array(); }
 		public Object? get_object_element(int index){ return get_element(index).as_object(); }
 		public double get_double_element(int index){ return get_element(index).as_double(); }
@@ -71,6 +73,51 @@ namespace JsonVala
 		public int64 get_int_element(int index){ return get_element(index).as_int(); }
 		public bool get_null_element(int index){ return list[index] == "null"; }
 		public string get_string_element(int index){ return get_element(index).as_string(); }
+		
+		public void set (int index, Node node){
+			if(index < 0 || index >= list.size)
+				return;
+			list[index] = node.str;
+		}
+		public void set_array_element (int index, Array array) {
+			if (index >= 0 && index < list.size)
+				list[index] = array.to_string ();
+		}
+		public void set_object_element (int index, Object object) {
+			if (index >= 0 && index < list.size)
+				list[index] = object.to_string ();
+		}
+		public void set_double_element (int index, double val) {
+			if (index >= 0 && index < list.size)
+				list[index] = val.to_string ();
+		}
+		public void set_boolean_element (int index, bool val) {
+			if (index >= 0 && index < list.size)
+				list[index] = val.to_string ();
+		}
+		public void set_int_element (int index, int64 val) {
+			if (index >= 0 && index < list.size)
+				list[index] = val.to_string ();
+		}
+		public void set_null_element (int index) {
+			if (index >= 0 && index < list.size)
+				list[index] = "null";
+		}
+		public void set_string_element (int index, string str) {
+			if (index >= 0 && index < list.size)
+				try {
+					string s = valid_string("\""+str+"\"");
+					list[index] = "\""+str+"\"";
+				}catch{}
+		}
+		
+		public Json.Array slice (int start, int stop)
+		{
+			var array = new Json.Array.empty ();
+			foreach (var elem in list.slice (start, stop))
+				array.add_element (new Json.Node (elem));
+			return array;
+		}
 		
 		public void add_element(Node node){ list.add(node.str); }
 		public void add_array_element(Array array){ list.add(array.to_string()); }
@@ -86,25 +133,21 @@ namespace JsonVala
 			}catch{}
 		}
 		public void remove_element(int index){
-			if(index < 0 || index >= length)
+			if(index < 0 || index >= size)
 				return;
 			list.remove_at(index);
 		}
 		
-		public Gee.List<Node> get_elements(){
+		public Json.Node[] get_elements(){
 			var nlist = new Gee.ArrayList<Node>();
-			this.foreach((u,node) => { nlist.add(node); });
-			return nlist;
+			foreach (Json.Node node in this)
+				nlist.add (node);
+			return nlist.to_array ();
 		}
 		
-		public void foreach(ArrayForeach func){
-			for(int i = 0; i < list.size; i++){
-				var node = new Node(list[i]);
-				func(i,node);
-			}
+		public Json.Node as_node () {
+			return new Node (to_string ());
 		}
-		
-		public delegate void ArrayForeach(int index, Node node);
 
 		public string to_string(){
 			if(list.size == 0)return "[]";
@@ -127,7 +170,7 @@ namespace JsonVala
 			return s;
 		}
 		
-		public int length {
+		public int size {
 			get {
 				return list.size;
 			}

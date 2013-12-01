@@ -1,6 +1,6 @@
-namespace JsonVala
+namespace Json
 {
-	public errordomain Error
+	internal errordomain Error
 	{
 		Null,
 		NotFound,
@@ -8,20 +8,20 @@ namespace JsonVala
 		Type
 	}
 
-	internal static string valid_string(string data) throws JsonVala.Error
+	internal static string valid_string(string data) throws GLib.Error
 	{
 		if(data[0] == '"' && data.index_of("\"",1) == -1 ||
 		   data[0] == '\'' && data.index_of("'",1) == -1 ||
 		   data.index_of("'") == -1 && data.index_of("\"") == -1 ||
 		   data[0] != '"' && data[0] != '\'')
-			throw new JsonVala.Error.Type("invalid string : "+data);
+			throw new Json.Error.Type("invalid string : "+data);
 			
 		int ind = data.index_of(data[0].to_string(),1);
 		string str = data.substring(1,ind-1);
 		while(str[str.length-1] == '\\'){
 			ind = data.index_of(data[0].to_string(),1+ind);
 			if(ind == -1)
-				throw new JsonVala.Error.NotFound("end not found");
+				throw new Json.Error.NotFound("end not found");
 			str = data.substring(1,ind-1);
 		}
 		return str;
@@ -58,50 +58,50 @@ namespace JsonVala
 	{
 		public signal void parse_start();
 		public signal void parse_end();
+		
+		public Node root { get; private set; }
 
 		public Parser(){}
 
-		public Node parse_stream(Mee.IO.Stream file) throws JsonVala.Error
+		public void parse_stream(Mee.IO.Stream file) throws GLib.Error
 		{
 			file.seek(0);
 			uint8[] data = file.read((int)file.size);
-			return parse_data((string)data);
+			parse_data((string)data);
 		}
 
-		public Node parse_file(string path) throws JsonVala.Error
+		public void parse_file(string path) throws GLib.Error
 		{
 			string data;
-			try{
-				FileUtils.get_contents(path,out data);
-			}catch{
-				return null;
-			}
-				return parse_data (data);
+			FileUtils.get_contents(path,out data);
+			parse_data (data);
 		}
 
-		public Node parse_data(string data) throws JsonVala.Error
+		public void parse_data(string data) throws GLib.Error
 		{
 			parse_start();
-			var n = new Node(new Object(data).to_string());
+			if(data[0] == '[')
+				root = new Node (new Array (data).to_string ());
+			else
+				root = new Node (new Object (data).to_string ());
 			parse_end();
-			return n;
 		}
 		
 	}
 	
 	public static string gobject_to_data(GLib.Object o){
 		var klass = (ObjectClass)o.get_type().class_ref();
-		var obj = new JsonVala.Object.empty();
+		var obj = new Json.Object.empty();
 		foreach(ParamSpec spec in klass.list_properties()){
 			GLib.Value val = GLib.Value(spec.value_type);
 			o.get_property(spec.name, ref val);
 			if(spec.value_type.is_object())
-				obj.set_member(spec.name,new JsonVala.Node(gobject_to_data(val.get_object())));
+				obj.set_member(spec.name,new Json.Node(gobject_to_data(val.get_object())));
 			else if(spec.value_type == typeof(string))
 				obj.set_string_member(spec.name,val.get_string());
 			else {
 				Mee.Value mval = new Mee.Value.from_gval(val);
-				obj.set_member(spec.name,new JsonVala.Node(mval.val));
+				obj.set_member(spec.name,new Json.Node(mval.val));
 			}
 		}
 		return obj.dump(0);

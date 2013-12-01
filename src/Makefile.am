@@ -14,7 +14,7 @@ dist_vapi_DATA = json-vala.vapi
 json_valaincludedir = $(includedir)
 json_valainclude_HEADERS = json-vala.h 
 
-libjson_vala_la_VALASOURCES = array.vala json.vala node.vala object.vala
+libjson_vala_la_VALASOURCES = array.vala json.vala node.vala object.vala path.vala
 
 AM_VALAFLAGS = \
 	-H json-vala.h --vapi json-vala.vapi --pkg mee --pkg gee-0.8 \
