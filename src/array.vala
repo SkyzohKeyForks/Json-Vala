@@ -16,7 +16,7 @@ namespace Json
 		{
 			this.empty();
 			if(data[0] != '[')
-				throw new Json.Error.Start("invalid character");
+				throw new Mee.Error.Start("invalid character");
 			data = data.substring (1).chug ();
 			if(data[0] == ']')
 				data = data.substring (1).chug ();
@@ -41,18 +41,18 @@ namespace Json
 							(a > b) ? b : 
 							(b > a) ? a : -1 ;
 					if(c == -1)
-						throw new Json.Error.NotFound("end of element not found");
+						throw new Mee.Error.NotFound("end of element not found");
 					var val = data.substring(0,c).strip();
 					if(val != "false" && val != "true" && val != "null"){
 						double d = -1;
 						if(double.try_parse (val,out d) == false)
-							throw new Json.Error.Type("invalid value");
+							throw new Mee.Error.Type("invalid value");
 					}
 					list.add(val);
 					data = data.substring(val.length).chug();
 				}
 				if(data[0] != ',' && data[0] != ']')
-						throw new Json.Error.Type("invalid end of element");
+						throw new Mee.Error.Type("invalid end of element");
 					bool end = (data[0] == ']') ? true : false;
 					data = data.substring(1).chug();
 					if(end)break;

@@ -369,7 +369,7 @@ INTROSPECTION_SCANNER_ARGS = \
 
 INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 @HAVE_INTROSPECTION_TRUE@introspection_sources = $(libjson_vala_la_SOURCES) json-vala.h
-@HAVE_INTROSPECTION_TRUE@JsonVala_0_1_gir_INCLUDES = Mee-0.1 Gee-0.8
+@HAVE_INTROSPECTION_TRUE@JsonVala_0_1_gir_INCLUDES = Gee-0.8
 @HAVE_INTROSPECTION_TRUE@JsonVala_0_1_gir_CFLAGS = $(INCLUDES)
 @HAVE_INTROSPECTION_TRUE@JsonVala_0_1_gir_LIBS = libjson-vala.la
 @HAVE_INTROSPECTION_TRUE@JsonVala_0_1_gir_FILES = $(introspection_sources)

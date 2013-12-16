@@ -49,7 +49,7 @@ if HAVE_INTROSPECTION
 introspection_sources = $(libjson_vala_la_SOURCES) json-vala.h
 
 JsonVala-0.1.gir: libjson-vala.la
-JsonVala_0_1_gir_INCLUDES = Mee-0.1 Gee-0.8
+JsonVala_0_1_gir_INCLUDES = Gee-0.8
 JsonVala_0_1_gir_CFLAGS = $(INCLUDES)
 JsonVala_0_1_gir_LIBS = libjson-vala.la
 JsonVala_0_1_gir_FILES = $(introspection_sources)

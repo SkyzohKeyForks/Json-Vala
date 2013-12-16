@@ -18,7 +18,7 @@ namespace Json
 		{
 			this.empty();
 			if(data[0] != '{')
-				throw new Json.Error.Start("invalid character (%c)".printf(data[0]));
+				throw new Mee.Error.Start("invalid character (%c)".printf(data[0]));
 			data = data.substring (1).chug ();
 			if(data[0] == '}')
 				data = data.substring (1).chug ();
@@ -27,10 +27,10 @@ namespace Json
 				string str = valid_string(data);
 				data = data.substring (str.length+2).chug ();
 				if(data[0] != ':')
-					throw new Json.Error.NotFound("':' char not found");
+					throw new Mee.Error.NotFound("':' char not found");
 				data = data.substring (1).chug ();
 				if(data[0] == ',' || data[0] == '}')
-					throw new Json.Error.NotFound("value not found");
+					throw new Mee.Error.NotFound("value not found");
 				if(data[0] == '{'){
 					var object = new Object.parse(ref data);
 					table[str] = object.to_string();
@@ -49,18 +49,18 @@ namespace Json
 							(a > b) ? b : 
 							(b > a) ? a : -1 ;
 					if(c == -1)
-						throw new Json.Error.NotFound("end of member not found");
+						throw new Mee.Error.NotFound("end of member not found");
 					var val = data.substring(0,c).strip();
 					if(val != "false" && val != "true" && val != "null"){
 						double d = -1;
 						if(double.try_parse (val,out d) == false)
-							throw new Json.Error.Type("invalid value");
+							throw new Mee.Error.Type("invalid value");
 					}
 					table[str] = val;
 					data = data.substring(val.length).chug();
 				}
 				if(data[0] != ',' && data[0] != '}')
-					throw new Json.Error.Type("invalid end of section");
+					throw new Mee.Error.Type("invalid end of section");
 				bool end = (data[0] == '}') ? true : false;
 				data = data.substring(1).chug();
 				if(end)break;

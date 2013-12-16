@@ -1,27 +1,19 @@
 namespace Json
 {
-	internal errordomain Error
-	{
-		Null,
-		NotFound,
-		Start,
-		Type
-	}
-
 	internal static string valid_string(string data) throws GLib.Error
 	{
 		if(data[0] == '"' && data.index_of("\"",1) == -1 ||
 		   data[0] == '\'' && data.index_of("'",1) == -1 ||
 		   data.index_of("'") == -1 && data.index_of("\"") == -1 ||
 		   data[0] != '"' && data[0] != '\'')
-			throw new Json.Error.Type("invalid string : "+data);
+			throw new Mee.Error.Type("invalid string : "+data);
 			
 		int ind = data.index_of(data[0].to_string(),1);
 		string str = data.substring(1,ind-1);
 		while(str[str.length-1] == '\\'){
 			ind = data.index_of(data[0].to_string(),1+ind);
 			if(ind == -1)
-				throw new Json.Error.NotFound("end not found");
+				throw new Mee.Error.NotFound("end not found");
 			str = data.substring(1,ind-1);
 		}
 		return str;
@@ -62,19 +54,34 @@ namespace Json
 		public Node root { get; private set; }
 
 		public Parser(){}
-
-		public void parse_stream(Mee.IO.Stream file) throws GLib.Error
+		
+		public void parse_uri (string uri) throws GLib.Error
 		{
-			file.seek(0);
-			uint8[] data = file.read((int)file.size);
-			parse_data((string)data);
+			var stream = new Mee.IO.NetStream (uri);
+			uint8[] buffer;
+			stream.load_contents (out buffer);
+			parse_buffer (buffer);
+		}
+
+		public void parse_stream(Mee.IO.Stream stream) throws GLib.Error
+		{	
+			uint8[] buffer;
+			stream.load_contents (out buffer);
+			parse_buffer (buffer);
 		}
 
 		public void parse_file(string path) throws GLib.Error
 		{
-			string data;
-			FileUtils.get_contents(path,out data);
-			parse_data (data);
+			var stream = new Mee.IO.FileStream (path);
+			parse_stream (stream);
+		}
+		
+		public void parse_buffer (uint8[] data) throws GLib.Error
+		{
+			var encoding = Mee.Text.Encoding.correct_encoding (data);
+			if (encoding == null)
+				encoding = Mee.Text.Encoding.utf8;
+			parse_data (encoding.get_string (data));
 		}
 
 		public void parse_data(string data) throws GLib.Error
