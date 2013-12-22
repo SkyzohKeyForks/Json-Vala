@@ -6,46 +6,40 @@ namespace Json
 		   data[0] == '\'' && data.index_of("'",1) == -1 ||
 		   data.index_of("'") == -1 && data.index_of("\"") == -1 ||
 		   data[0] != '"' && data[0] != '\'')
-			throw new Mee.Error.Type("invalid string : "+data);
+			throw new JsonError.INVALID ("invalid string : "+data);
 			
 		int ind = data.index_of(data[0].to_string(),1);
 		string str = data.substring(1,ind-1);
 		while(str[str.length-1] == '\\'){
 			ind = data.index_of(data[0].to_string(),1+ind);
 			if(ind == -1)
-				throw new Mee.Error.NotFound("end not found");
+				throw new JsonError.NOT_FOUND ("end not found");
 			str = data.substring(1,ind-1);
 		}
 		return str;
 	}
 	
-	public class Generator : GLib.Object
-	{
-		public Generator(){
-			indent = 0;
-		}
-		
-		public string to_data(){
-			return root.dump(indent);
-		}
-		public bool to_stream(Mee.IO.Stream file){
-			file.seek(0);
-			try{
-				file.write(to_data().data);
-				return true;
-			}catch{
-				return false;
-			}
-		}
-		public void to_file(string path){
-			var file = new Mee.IO.FileStream(path,Mee.IO.FileMode.Write);
-			to_stream(file);
-		}
-		
-		public Node root { get; set; }
-		public int indent { get; set; }
+	internal static bool is_valid_id(string id){
+		double d;
+		if(double.try_parse(id, out d))
+			return false;
+		if(id.contains("/") || id.contains("\\") ||
+		   id.contains("[") || id.contains("]") ||
+		   id.contains("{") || id.contains("}") ||
+		   id.contains("(") || id.contains(")") ||
+		   id.contains("'") || id.contains("\"") ||
+		   id.contains("&") || id.contains("~") ||
+		   id.contains("#") || id.contains("|") ||
+		   id.contains("`") || id.contains("^") ||
+		   id.contains("@") || id.contains("°") ||
+		   id.contains("+") || id.contains(";") ||
+		   id.contains("=") || id.contains("*") ||
+		   id.contains("%") || id.contains("<") || 
+		   id.contains(">"))
+			return false;
+		return true;
 	}
-
+	
 	public class Parser : GLib.Object
 	{
 		public signal void parse_start();
@@ -53,38 +47,79 @@ namespace Json
 		
 		public Node root { get; private set; }
 
-		public Parser(){}
-		
-		public void parse_uri (string uri) throws GLib.Error
+		public void load_from_uri (string uri) throws GLib.Error
 		{
-			var stream = new Mee.IO.NetStream (uri);
 			uint8[] buffer;
-			stream.load_contents (out buffer);
-			parse_buffer (buffer);
+			File.new_for_uri (uri).load_contents (null, out buffer, null);
+			load_from_buffer (buffer);
+		}
+		
+		public void load_from_file (GLib.File file) throws GLib.Error
+		{
+			load_from_stream (file.read());
 		}
 
-		public void parse_stream(Mee.IO.Stream stream) throws GLib.Error
+		public void load_from_stream (GLib.InputStream stream) throws GLib.Error
 		{	
-			uint8[] buffer;
-			stream.load_contents (out buffer);
-			parse_buffer (buffer);
-		}
-
-		public void parse_file(string path) throws GLib.Error
-		{
-			var stream = new Mee.IO.FileStream (path);
-			parse_stream (stream);
+			size_t br;
+			uint8[] buffer = new uint8[1024];
+			var list = new Gee.ArrayList<uint8>();
+			stream.read_all (buffer, out br);
+			while (br == 1024)
+			{
+				list.add_all_array (buffer);
+				stream.read_all (buffer, out br);
+			}
+			if (br > 0)
+			{
+				buffer.resize ((int)br);
+				list.add_all_array (buffer);
+			}
+			load_from_buffer (buffer);
 		}
 		
-		public void parse_buffer (uint8[] data) throws GLib.Error
+		public async void load_from_stream_async (GLib.InputStream stream, GLib.Cancellable? cancellable = null) throws GLib.Error
+		{
+			SourceFunc cb = load_from_stream_async.callback;
+			ThreadFunc<void*> run = () => {
+				size_t br;
+				uint8[] buffer = new uint8[1024];
+				var list = new Gee.ArrayList<uint8>();
+				stream.read_all (buffer, out br);
+				while (br == 1024)
+				{
+					list.add_all_array (buffer);
+					stream.read_all (buffer, out br);
+				}
+				if (br > 0)
+				{
+					buffer.resize ((int)br);
+					list.add_all_array (buffer);
+				}
+				load_from_buffer (buffer);
+				Idle.add ((owned)cb);
+				return null;
+			};
+			Thread.create<void*>(run, false);
+			yield;
+		}
+
+		public void load_from_path(string path) throws GLib.Error
+		{
+			uint8[] buffer;
+			File.new_for_path (path).load_contents (null, out buffer, null);
+			load_from_buffer (buffer);
+		}
+		
+		public void load_from_buffer (uint8[] data) throws GLib.Error
 		{
 			var encoding = Mee.Text.Encoding.correct_encoding (data);
 			if (encoding == null)
 				encoding = Mee.Text.Encoding.utf8;
-			parse_data (encoding.get_string (data));
+			load_from_data (encoding.get_string (data));
 		}
 
-		public void parse_data(string data) throws GLib.Error
+		public void load_from_data (string data) throws GLib.Error
 		{
 			parse_start();
 			if(data[0] == '[')
@@ -94,6 +129,17 @@ namespace Json
 			parse_end();
 		}
 		
+	}
+	
+	public errordomain JsonError
+	{
+		NULL,
+		START,
+		END,
+		NOT_FOUND,
+		LENGTH,
+		TYPE,
+		INVALID
 	}
 	
 	public static string gobject_to_data(GLib.Object o){

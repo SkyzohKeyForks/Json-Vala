@@ -14,14 +14,12 @@ AC_PROG_CC
 AM_PROG_VALAC
 
 pkg_modules="glib-2.0 >= 2.24.1
-             gobject-2.0 >= 2.24.1"
-PKG_CHECK_MODULES(GLIB, [$pkg_modules])
-AC_SUBST(GLIB_CFLAGS)
-AC_SUBST(GLIB_LIBS)
-PKG_CHECK_MODULES(DEPS, ["gee-0.8 mee"])
-AC_SUBST(DEPS_CFLAGS)
-AC_SUBST(DEPS_LIBS)
-
+             gobject-2.0 >= 2.24.1
+             gio-2.0 >= 2.24.1
+             gee-0.8
+             mee"
+             
+PKG_CHECK_MODULES(JSON, [$pkg_modules])
 AC_SUBST(JSON_CFLAGS)
 AC_SUBST(JSON_LIBS)
 

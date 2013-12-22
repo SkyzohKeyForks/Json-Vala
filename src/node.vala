@@ -2,10 +2,10 @@ namespace Json
 {
 	public enum NodeType
 	{
-		Null,
-		Array,
-		Object,
-		Value
+		NULL,
+		ARRAY,
+		OBJECT,
+		VALUE
 	}
 	
 	public class Node : GLib.Object
@@ -13,21 +13,29 @@ namespace Json
 		internal string str;
 		
 		public NodeType node_type { get; private set; }
+		public Node parent { get; set; }
 
 		public Node(string val){ 
 			str = val; 
-			node_type = (is_array()) ? NodeType.Array : 
-						(is_object()) ? NodeType.Object : 
-						(str == "null") ? NodeType.Null : NodeType.Value;
+			node_type = (is_array()) ? NodeType.ARRAY : 
+						(is_object()) ? NodeType.OBJECT : 
+						(str == "null") ? NodeType.NULL : NodeType.VALUE;
 		}
 
 		public Object? as_object() throws GLib.Error
 		{
-			return new Object(str);
+			var object = new Object(str);
+			object.foreach ((key, node) => {
+				node.parent = this;
+			});
+			return object;
 		}
 		public Array? as_array() throws GLib.Error
 		{
-			return new Array(str);
+			var array = new Array(str);
+			foreach (var child in array)
+				child.parent = this;
+			return array;
 		}
 		public int64 as_int(){ return int64.parse(str); }
 		public double as_double(){ return double.parse(str); }
