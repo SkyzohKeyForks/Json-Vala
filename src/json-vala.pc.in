@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+datarootdir=@datarootdir@
+datadir=@datadir@
+includedir=@includedir@/libjson_vala-0.1
+
+Name: libjson_vala
+Description: Sample library created by Anjuta project wizard.
+Version: @VERSION@
+Requires: gobject-2.0 gio-2.0 mee-1.0 gee-0.8
+Libs: -L${libdir} -ljson_vala
+Cflags: -I${includedir}

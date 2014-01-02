@@ -1,55 +1,51 @@
-AM_CFLAGS = $(JSON_CFLAGS)
+## Process this file with automake to produce Makefile.in
 
-NULL = 
+## Created by Anjuta
+
+AM_CPPFLAGS = \
+	-DPACKAGE_LOCALE_DIR=\""$(localedir)"\" \
+	-DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
+	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
+	$(JSON_VALA_CFLAGS)
+
+AM_CFLAGS =\
+	 -Wall\
+	 -g
 
 lib_LTLIBRARIES = libjson-vala.la
 
 vapidir = $(datadir)/vala/vapi
-dist_vapi_DATA = json-vala.vapi
+dist_vapi_DATA = json-vala.vapi json-vala.deps
 
-json_valaincludedir = $(includedir)
-json_valainclude_HEADERS = json-vala.h 
+libjson_vala_la_SOURCES = node.vala \
+	object.vala \
+	json.vala \
+	array.vala \
+	parser.vala \
+	path.vala \
+	generator.vala \
+	builder.vala \
+	reader.vala \
+	serialize.vala
 
-libjson_vala_la_SOURCES = array.vala json.vala node.vala object.vala path.vala generator.vala builder.vala reader.vala
-
-libjson_vala_la_VALAFLAGS = \
-	-H json-vala.h --vapi json-vala.vapi --pkg mee --pkg gee-0.8 --pkg gio-2.0 \
-	--library json-vala --disable-warnings --gir JsonVala-0.1.gir
-
-libjson_vala_la_LIBADD = $(JSON_LIBS)
-
-libjson_vala_la_LDFLAGS = -version-info "2:0:0" -no-undefined
+libjson_vala_la_LDFLAGS = 
 	
-EXTRA_DIST = $(libjson_vala_la_SOURCES) json-vala.vapi json.vala.stamp
+libjson_vala_la_VALAFLAGS =  --pkg gio-2.0 --pkg mee-1.0 --pkg gee-0.8 \
+	--library json-vala --vapi json-vala.vapi -H json-vala.h
 
-CLEANFILES = json-vala.vapi *.h *.c *.vala~ *.stamp* *.gir *.typelib
+libjson_vala_la_LIBADD = $(JSON_VALA_LIBS)
 
--include $(INTROSPECTION_MAKEFILE)
-INTROSPECTION_GIRS =
-INTROSPECTION_SCANNER_ARGS = \
-	--add-include-path=$(srcdir) \
-	--identifier-prefix=Json \
-	--symbol-prefix=json \
-	--nsversion=0.1 \
-	--pkg=mee -I../ -I$(srcdir)/..
 
-INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
+json_valaincludedir = $(includedir)/libjson-vala-0.1
+json_valainclude_HEADERS = \
+	json-vala.h
 
-if HAVE_INTROSPECTION
-introspection_sources = $(libjson_vala_la_SOURCES) json-vala.h
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = json-vala.pc
 
-JsonVala-0.1.gir: libjson-vala.la
-JsonVala_0_1_gir_INCLUDES = Gee-0.8
-JsonVala_0_1_gir_CFLAGS = $(INCLUDES)
-JsonVala_0_1_gir_LIBS = libjson-vala.la
-JsonVala_0_1_gir_FILES = $(introspection_sources)
-INTROSPECTION_GIRS += JsonVala-0.1.gir
+EXTRA_DIST = \
+	json-vala.pc.in
+	
+CLEANFILES = *.c *.stamp json-vala.h json-vala.vapi
 
-girdir = $(datadir)/gir-1.0
-gir_DATA = $(INTROSPECTION_GIRS)
-
-typelibdir = $(libdir)/girepository-1.0
-typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
-
-CLEANFILES += $(gir_DATA) $(typelib_DATA)
-endif
+DISTCLEANFILES = $(CLEANFILES) Makefile json-vala.pc

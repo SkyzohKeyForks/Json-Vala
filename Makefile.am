@@ -1,9 +1,24 @@
-ACLOCAL_AMFLAGS = -I m4
-    SUBDIRS = src
-    EXTRA_DIST = autogen.sh
+## Process this file with automake to produce Makefile.in
+## Created by Anjuta
 
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = json-vala.pc
+if ENABLE_DOC
+DOC_SUBDIR = \
+	doc \
+	$(NULL)
+endif
 
-vapidir = $(datadir)/vala/vapi
-dist_vapi_DATA = json-vala.deps
+SUBDIRS = src $(DOC_SUBDIR)
+
+dist_doc_DATA = \
+	README \
+	COPYING \
+	AUTHORS \
+	ChangeLog \
+	INSTALL \
+	NEWS
+
+
+
+# Remove doc directory on uninstall
+uninstall-local:
+	-rm -r $(docdir)

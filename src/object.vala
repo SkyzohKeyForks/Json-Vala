@@ -1,153 +1,306 @@
-namespace Json
-{
+using Mee.Text;
+
+namespace Json {
 	public class Object : GLib.Object
 	{
-		Gee.HashMap<string,Json.Node> table;
-		string str_node;
+		public delegate void ForeachFunc (string key, Node node);
 		
-		public Object.empty(){
-			table = new Gee.HashMap<string,Json.Node>();
-		}
-		
-		public Object(string data) throws GLib.Error
-		{
-			var str = data.replace ("\t","").replace ("\r","").replace ("\n","").strip ();
-			this.parse(ref str);
-		}
-		
-		internal Object.parse(ref string data) throws GLib.Error
-		{
-			this.empty();
-			if(data[0] != '{')
-				throw new JsonError.START ("invalid character (%c)".printf(data[0]));
-			data = data.substring (1).chug ();
-			if(data[0] == '}')
-				data = data.substring (1).chug ();
-			else
-			while(data.length > 0){
-				string str = valid_string(data);
-				data = data.substring (str.length+2).chug ();
-				if(data[0] != ':')
-					throw new JsonError.NOT_FOUND ("':' char not found");
-				data = data.substring (1).chug ();
-				if(data[0] == ',' || data[0] == '}')
-					throw new JsonError.NOT_FOUND ("value not found");
-				if(data[0] == '{'){
-					var object = new Object.parse(ref data);
-					table[str] = new Node (object.to_string());
-				}else if(data[0] == '['){
-					var array = new Array.parse (ref data);
-					table[str] = new Node(array.to_string());
-				}else if(data[0] == '"' || data[0] == '\''){
-					var s = valid_string (data);
-					data = data.substring (s.length+2).chug ();
-					table[str] = new Node ("\"%s\"".printf(s));
-				}else{
-					int a = data.index_of ("}");
-					int b = data.index_of (",");
-					int c = (a == -1 && b != -1) ? b : 
-							(a != -1 && b == -1) ? a : 
-							(a > b) ? b : 
-							(b > a) ? a : -1 ;
-					if(c == -1)
-						throw new JsonError.NOT_FOUND ("end of member not found");
-					var val = data.substring(0,c).strip();
-					if(val != "false" && val != "true" && val != "null"){
-						double d = -1;
-						if(double.try_parse (val,out d) == false)
-							throw new JsonError.TYPE ("invalid value");
-					}
-					table[str] = new Node (val);
-					data = data.substring(val.length).chug();
-				}
-				if(data[0] != ',' && data[0] != '}')
-					throw new Mee.MeeError.Type("invalid end of section : "+data);
-				bool end = (data[0] == '}') ? true : false;
-				data = data.substring(1).chug();
-				if(end)break;
-			}
+		Gee.HashMap<string, Node> map;
+
+		construct {
+			map = new Gee.HashMap<string, Node>();
 		}
 
-		public Node? get_member(string id){
-			if(!table.has_key (id))
-				return null;
-			return table[id];
-		}
-		public Gee.Collection<Node> get_members(){
-			return table.values;
-		}
-		public Gee.Set<string> get_keys(){
-			return table.keys;
-		}
-		
-		public Array? get_array_member(string id){ return get_member(id).as_array(); }
-		public double get_double_member(string id){ return get_member(id).as_double(); }
-		public Object? get_object_member(string id){ return get_member(id).as_object(); }
-		public bool get_boolean_member(string id){ return get_member(id).as_bool(); }
-		public double get_int_member(string id){ return get_member(id).as_int(); }
-		public bool get_null_member(string id){ return (table[id] == null || table[id].to_string() == "null") ? true : false; }
-		public string get_string_member(string id){ return get_member(id).as_string(); }
-		
-		public void remove_member(string id){ table.unset(id); }
-
-		public void set_member(string id, Node node){
-			table[id] = node;
-		}
-		public void set_null_member(string id){ table[id] = new Node ("null"); }
-		public void set_array_member(string id, Array array){ table[id] = new Node (array.to_string()); }
-		public void set_boolean_member(string id, bool value){ table[id] = new Node (value.to_string()); }
-		public void set_double_member(string id, double value){ table[id] = new Node (value.to_string()); }
-		public void set_int_member(string id, int64 value){ table[id] = new Node (value.to_string()); }
-		public void set_object_member(string id, Object value){ table[id] = new Node (value.to_string()); }
-		public void set_string_member(string id, string value){
-			try{
-				string s = valid_string("\""+value+"\"");
-				table[id] = new Node ("\""+value+"\"");
-			}catch{}
-		}
-		
-		public bool has_member(string id){
-			return table[id] != null;
-		}
-
-		public delegate void ObjectForeach(string name, Node node);
-		
-		public void foreach(ObjectForeach func){
-			for (var i = 0; i < size; i++)
-				func(table.keys.to_array()[i], table.values.to_array()[i]);
-		}
-		
-		public Json.Node as_node () {
-			return new Node (str_node);
-		}
-
-		public string to_string(){
-			if(table.keys.size == 0)
-				return "{}";
-			string s = "{ ";
-			for(int i = 0; i < table.size - 1; i++) {
-				s += "\""+table.keys.to_array()[i]+"\" : "+table.values.to_array()[i].to_string()+" , ";
-			}
-			s += "\""+table.keys.to_array()[table.size-1]+"\" : "
-			+table.values.to_array()[table.size - 1].to_string()+" }";
-			return s;
-		}
 		public string dump(int indent = 0){
-			if(table.keys.size == 0)
+			if(size == 0)
 				return "{}";
 			string ind = "";
 			for(var i = 0; i < indent; i++)
 				ind += "\t";
 			string s = "{"+ind+"\n";
-			for(int i = 0; i < table.size - 1; i++) {
-				s += ind+"\t\""+table.keys.to_array()[i]+"\" : "+table.values.to_array()[i].dump(indent+1)+" ,\n";
+			for(int i = 0; i < size - 1; i++) {
+				s += ind+"\t\""+map.keys.to_array()[i]+"\" : "+map.values.to_array()[i].dump(indent+1)+" ,\n";
 			}
-			s += ind+"\t\""+table.keys.to_array()[table.size-1]+"\" : "
-			+table.values.to_array()[table.size - 1].dump(indent+1)+"\n";
+			s += ind+"\t\""+map.keys.to_array()[size-1]+"\" : "
+			+map.values.to_array()[size - 1].dump(indent+1)+"\n";
 			s += ind+"}";
 			return s;
 		}
+
+		public void foreach (ForeachFunc func)
+		{
+			map.foreach (e => {
+				func (e.key, e.value);
+				return false;
+			});
+		}
+
+		public new Node? get (string key)
+		{
+			if (!map.has_key (key))
+				return null;
+			return map[key];
+		}
 		
-		public int size { get{ return table.size; } }
+		public Array? get_array_member (string key)
+		{
+			var node = get_member (key);
+			if (node == null)
+				return null;
+			return node.as_array();
+		}
+
+		public bool get_boolean_member (string key)
+		{
+			var node = get_member (key);
+			if (node == null)
+				return false;
+			return node.as_boolean();
+		}
+
+		public DateTime? get_datetime_member (string key)
+		{
+			var node = get_member (key);
+			if (node == null)
+				return null;
+			return node.as_datetime();
+		}
+
+		public double get_double_member (string key)
+		{
+			var node = get_member (key);
+			if (node == null)
+				return -1;
+			return node.as_double();
+		}
+
+		public int64 get_int_member (string key)
+		{
+			var node = get_member (key);
+			if (node == null)
+				return -1;
+			return node.as_int();
+		}
+
+		public Node? get_member (string key)
+		{
+			if (!map.has_key (key))
+				return null;
+			return map[key];
+		}
+
+		public bool get_null_member (string key)
+		{
+			var node = get_member (key);
+			if (node == null)
+				return true;
+			return node.to_string () == "null";
+		}
+
+		public Object? get_object_member (string key)
+		{
+			var node = get_member (key);
+			if (node == null)
+				return null;
+			return node.as_object();
+		}
+
+		public string? get_string_member (string key)
+		{
+			var node = get_member (key);
+			if (node == null)
+				return null;
+			return node.as_string();
+		}
+
+		public new void set (string key, Value val)
+		{
+			if (val.type().is_a(typeof(Node)))	
+				set_member (key, (Node)val.get_object());
+			else if (val.type().is_a(typeof(Object)))
+				set_object_member (key, (Object)val.get_object());
+			else if (val.type().is_a(typeof(Array)))
+				set_array_member (key, (Array)val.get_object());
+			else if (val.type() == typeof(DateTime))
+				set_datetime_member (key, (DateTime)val.get_boxed());
+			else if (val.type() == typeof(bool))
+				set_boolean_member (key, val.get_boolean());
+			else if (val.type() == typeof(double))
+				set_double_member (key, val.get_double());
+			else if (val.type() == typeof(int64))
+				set_int_member (key, val.get_int64());
+			else if (val.type() == typeof(uint64))
+				set_int_member (key, (int64)val.get_uint64());
+			else if (val.type() == typeof(long))
+				set_int_member (key, (int64)val.get_long());
+			else if (val.type() == typeof(ulong))
+				set_int_member (key, (int64)val.get_ulong());
+			else if (val.type() == typeof(int))
+				set_int_member (key, (int64)val.get_int());
+			else if (val.type() == typeof(uint))
+				set_int_member (key, (int64)val.get_uint());
+			else if (val.type() == typeof(string))
+				set_string_member (key, val.get_string());
+			else
+				set_null_member (key);
+		}
+
+		public void set_array_member (string key, Array array)
+		{
+			set_member (key, new Node (array.to_string()));
+		}
+
+		public void set_boolean_member (string key, bool val)
+		{
+			set_member (key, new Node (val.to_string()));
+		}
+
+		public void set_datetime_member (string key, DateTime val)
+		{
+			TimeVal tv;
+			val.to_timeval (out tv);
+			set_string_member (key, tv.to_iso8601());
+		}
+		
+		public void set_double_member (string key, double val)
+		{
+			set_member (key, new Node (val.to_string()));
+		}
+
+		public void set_int_member (string key, int64 val)
+		{
+			set_member (key, new Node (val.to_string()));
+		}
+
+		public void set_member (string key, Node node)
+		{
+			try {
+				var str = new Mee.Text.String ("'"+key+"'");
+				get_valid_id (str);
+				map[key] = node;
+			} catch {
+				print (@"error: $key\n");
+			}
+		}
+
+		public void set_null_member (string key)
+		{
+			if (!is_valid_id (key))
+				return;
+			map[key] = new Node ("null");
+		}
+
+		public void set_object_member (string key, Object object)
+		{
+			set_member (key, new Node (object.to_string()));
+		}
+
+		public void set_string_member (string key, string val)
+		{
+			if (!is_valid_id (key))
+				return;
+			try {
+				get_valid_id (new String (val));
+				this[key] = new Node (val);
+			} catch {
+				try {
+					get_valid_id (new String ("\""+val+"\""));
+					this[key] = new Node ("\""+val+"\"");
+				} catch {
+					set_null_member (key);
+				}
+			}
+		}
+
+		public string to_string()
+		{
+			if (map.keys.size == 0)
+				return "{}";
+			string s = "{ ";
+			for (var i = 0; i < map.size - 1; i++)
+				s += "\""+map.keys.to_array ()[i]+"\" : "+map.values.to_array ()[i].to_string ()+", ";
+			s += "\""+map.keys.to_array ()[map.size - 1]+"\" : "+map.values.to_array ()[map.size - 1].to_string ()+" }";
+			return s;
+		}
+
+		public string[] keys {
+			owned get {
+				return map.keys.to_array ();
+			}
+		}
+
+		public Node[] values {
+			owned get {
+				return map.values.to_array ();
+			}
+		}
+		
+		public int size {
+			get {
+				return map.size;
+			}
+		}
+
+		public static Object parse (string data) throws GLib.Error
+		{
+			var str = new String (data);
+			return parse_internal (ref str);
+		}
+
+		internal static Object parse_internal (ref String str) throws GLib.Error
+		{
+			var o = new Object();
+			str = str.strip ({'\t','\r','\n',' '});
+			if (str[0] != '{')
+				throw new JsonError.NOT_FOUND ("'{' character can't be found.");
+			str = str.substring (1).chug ({'\t','\r','\n',' '});
+			if (str[0] == '}'){
+				str = str.substring (1).chug ({'\t','\r','\n',' '});
+				return o;
+			}
+			while (str.size > 0)
+			{
+				string id = get_valid_id (str);
+				str = str.substring (id.length+2).chug ({'\t','\r','\n',' '});
+				if (str[0] != ':')
+					throw new JsonError.NOT_FOUND ("':' char not found");
+				str = str.substring (1).chug ({'\t','\r','\n',' '});
+				if (str[0] == ',' || str[0] == '}')
+					throw new JsonError.NOT_FOUND ("value not found");
+				if (str[0] == '{')
+					o[id] = new Node (Object.parse_internal (ref str).to_string ());
+				else if (str[0] == '[')
+					o[id] = new Node (Array.parse_internal (ref str).to_string ());
+				else if (str[0] == '"' || str[0] == '\'')
+				{
+					var vid = get_valid_id (str);
+					str = str.substring (vid.length+2).chug ({'\t','\r','\n',' '});
+					o[id] = new Node ("\"%s\"".printf(vid));
+				}
+				else
+				{
+					int a = str.index_of ("}");
+					int b = str.index_of (",");
+					int c = b < a && b != -1 ? b : a;
+					if(c == -1)
+						throw new JsonError.NOT_FOUND ("end of member not found");
+					var val = str.substring (0,c).strip ({'\t','\r','\n',' '}).str;
+					if(val != "false" && val != "true" && val != "null"){
+						double d = -1;
+						if(double.try_parse (val,out d) == false)
+							throw new JsonError.TYPE ("invalid value");
+					}
+					o[id] = new Node (val);
+					str = str.substring (val.length).chug ({'\t','\r','\n',' '});
+				}
+				if(str[0] != ',' && str[0] != '}')
+					throw new JsonError.TYPE ("invalid end of section");
+				bool end = str[0] == '}' ? true : false;
+				str = str.substring (1).chug ({'\t','\r','\n',' '});
+				if(end)
+					break;
+			}
+			return o;
+		}
 	}
 }

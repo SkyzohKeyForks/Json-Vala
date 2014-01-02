@@ -6,14 +6,14 @@ namespace Json {
 		public signal void evaluation_stopped ();
 		public signal void evaluation_finished ();
 		
-		public Path (Json.Object object)
+		public Path (Json.Node node)
 		{
-			GLib.Object (object: object);
+			GLib.Object (root: node);
 		}
 		
 		public void eval (string path)
 		{
-			result = new Json.Array.empty ();
+			result = new Json.Array ();
 			evaluation_started ();
 			if (path[0] != '$')
 			{
@@ -21,13 +21,13 @@ namespace Json {
 				return;
 			}
 			string tmp = path.substring (1);
-			result = process (ref tmp, new Node (object.to_string ()));
+			result = process (ref tmp, root);
 			evaluation_finished ();
 		}
 		
 		Array process (ref string query, Node node)
 		{
-			Array res = new Array.empty ();
+			Array res = new Array ();
 					string sub = null;
 			
 			if (query[0] == '.')
@@ -60,7 +60,7 @@ namespace Json {
 					if (query.length == 0)
 						return res;
 					string new_query = query;
-					array = new Array.empty ();
+					array = new Array();
 					foreach (var nsub in res)
 						foreach (var nnsub in process (ref new_query, nsub))
 							array.add_element (nnsub);
@@ -77,18 +77,18 @@ namespace Json {
 						sub = query.substring (1, query.index_of ("]") - 1);
 						query = query.substring (query.index_of ("]")+1);
 					}
-					var array = new Array.empty ();
+					var array = new Array();
 					if (node.is_object ())
 					{
 						if (node.as_object ().get_member (q) == null)
-							return new Array.empty ();
+							return new Array();
 						array.add_element (node.as_object ().get_member (q));
 					}
 					else if (node.is_array ())
 					{
 						int64 i;
 						if (!int64.try_parse (q, out i))
-							return new Array.empty ();
+							return new Array();
 						array.add_element (node.as_array ()[(int)i]);
 					}
 					if (sub != null)
@@ -107,7 +107,7 @@ namespace Json {
 			return res;
 		}
 		
-		public Object object { get; construct; }
+		public Node root { private get; construct; }
 		
 		public Array result { get; private set; }
 	}

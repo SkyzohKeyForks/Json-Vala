@@ -56,76 +56,92 @@ namespace Json {
 		
 		public bool set_member_name (string name)
 		{
-			if (!is_valid_id (name))
+			try {
+				var id = get_valid_id (new Mee.Text.String(name));
+				member = id;
+				return true;
+			}
+			catch {
 				return false;
-			member = name;
-			return true;
+			}
 		}
 		
-		bool add (Mee.Value value)
+		public bool add (Value val)
+		{
+			if (val.type().is_a(typeof(Node)))	
+				return add_node ((Node)val.get_object());
+			if (val.type().is_a(typeof(Object)))
+				return add_object ((Object)val.get_object());
+			if (val.type().is_a(typeof(Array)))
+				return add_array ((Array)val.get_object());
+			if (val.type() == typeof(bool))
+				return add_boolean (val.get_boolean());
+			if (val.type() == typeof(double))
+				return add_double (val.get_double());
+			if (val.type() == typeof(int64))
+				return add_int (val.get_int64());
+			if (val.type() == typeof(uint64))
+				return add_int ((int64)val.get_uint64());
+			if (val.type() == typeof(long))
+				return add_int ((int64)val.get_long());
+			if (val.type() == typeof(ulong))
+				return add_int ((int64)val.get_ulong());
+			if (val.type() == typeof(int))
+				return add_int ((int64)val.get_int());
+			if (val.type() == typeof(uint))
+				return add_int ((int64)val.get_uint());
+			if (val.type() == typeof(string))
+				return add_string (val.get_string());
+			return add_null ();
+		}
+
+		public bool add_node (Node node)
 		{
 			if (levels.size == 0)
 				return false;
 			if (levels[levels.size - 1] == "array"){
-				str += value.val+",";
+				str += node.to_string()+",";
 				return true;
 			}
 			if (member == null)
 				return false;
-			str += """"%s":%s,""".printf(member,value.val);
+			str += @"'$member' : '$node',";
 			return true;
 		}
-		
-		public bool add_boolean (bool value)
+
+		public bool add_array (Array array)
 		{
-			return add (new Mee.Value (value.to_string()));
+			return add_node ( new Node (@"$array"));
 		}
-		
-		public bool add_double (double value)
+
+		public bool add_object (Object object)
 		{
-			return add (new Mee.Value (((float)value).to_string()));	
+			return add_node ( new Node (@"$object"));
 		}
-		
-		public bool add_int (int64 value)
+
+		public bool add_boolean (bool val)
 		{
-			return add (new Mee.Value (value.to_string()));
+			return add_node ( new Node (@"$val"));
 		}
-		
+
+		public bool add_double (double val)
+		{
+			return add_node ( new Node (@"$((float)val)"));
+		}
+
+		public bool add_int (int64 val)
+		{
+			return add_node ( new Node (@"$val"));
+		}
+
 		public bool add_null ()
 		{
-			return add (new Mee.Value ("null"));
+			return add_node ( new Node ("null"));
 		}
-		
-		public bool add_string (string value)
+
+		public bool add_string (string val)
 		{
-			try {
-				valid_string (""""%s"""".printf(value));
-				return add (new Mee.Value (""""%s"""".printf(value)));
-			} catch {
-				return false;
-			}
-		}
-		
-		public bool add_value (GLib.Value value)
-		{
-			var mval = new Mee.Value.from_gval (value);
-			if (value.type() == typeof(string))
-				return add_string (mval.val);
-			return add (mval);
-		}
-		
-		public bool add_node (Node value)
-		{
-			return add (new Mee.Value (value.to_string()));
-		}
-		
-		public Node? root {
-			owned get {
-				var node = new Node (str.substring(0, str.length-1));
-				if (!node.is_object() && !node.is_array())
-					return null;
-				return node;
-			}
+			return add_node ( new Node (@"$val"));
 		}
 	}
 }

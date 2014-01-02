@@ -1,121 +1,180 @@
-namespace Json
-{
+namespace Json {
 	public enum NodeType
 	{
 		NULL,
 		ARRAY,
+		BOOLEAN,
+		DATETIME,
+		DOUBLE,
+		INTEGER,
 		OBJECT,
-		VALUE
+		STRING
 	}
 	
 	public class Node : GLib.Object
 	{
-		internal string str;
-		
-		public NodeType node_type { get; private set; }
-		public Node parent { get; set; }
-
-		public Node(string val){ 
-			str = val; 
-			node_type = (is_array()) ? NodeType.ARRAY : 
-						(is_object()) ? NodeType.OBJECT : 
-						(str == "null") ? NodeType.NULL : NodeType.VALUE;
-		}
-
-		public Object? as_object() throws GLib.Error
+		public Node (Value value)
 		{
-			var object = new Object(str);
-			object.foreach ((key, node) => {
-				node.parent = this;
-			});
-			return object;
+			this.value = value;
+			if (as_array() != null)
+				node_type = NodeType.ARRAY;
+			else if (as_object() != null)
+				node_type = NodeType.OBJECT;
+			else if (as_datetime() != null)
+				node_type = NodeType.DATETIME;
+			else if (as_string() != null)
+				node_type = NodeType.STRING;
+			else if (data == "true" || data == "false")
+				node_type = NodeType.BOOLEAN;
+			else if (int64.try_parse(data))
+				node_type = NodeType.INTEGER;
+			else if (double.try_parse(data))
+				node_type = NodeType.DOUBLE;
+			else
+				node_type = NodeType.NULL;
+			
 		}
-		public Array? as_array() throws GLib.Error
+
+		public Array? as_array()
 		{
-			var array = new Array(str);
-			foreach (var child in array)
-				child.parent = this;
-			return array;
-		}
-		public int64 as_int(){ return int64.parse(str); }
-		public double as_double(){ return double.parse(str); }
-		public bool as_bool(){ return (str == "true") ? true : false; }
-		public string? as_string(){
-			try{ return valid_string(str); }
-			catch(GLib.Error e){ return null; }
-		}
-		public GLib.Value? as_value (){
-			GLib.Value? val = null;
 			try {
-				var obj = as_object ();
-				val = GLib.Value (typeof (Json.Object));
-				val.set_object (obj);
-				return val;
+				return Array.parse (data);
+			} catch {
+				return null;
 			}
-			catch {
-				try {
-					var array = as_array ();
-					val = GLib.Value (typeof (Json.Array));
-					val.set_object (array);
-					return val;
-				}
-				catch {
-					int64 i;
-					if (int64.try_parse (str, out i)){
-						val = GLib.Value (typeof (int64));
-						val.set_int64 (i);
-						return val;
-					}else{
-						double d;
-						if (double.try_parse (str, out d)){
-							val = GLib.Value (typeof (double));
-							val.set_double (d);
-							return val;
-						}else{
-							if(as_string () != null){
-								val = GLib.Value (typeof (string));
-								val.set_string (as_string ());
-								return val;
-							}else{
-								if(str == "true" || str == "false"){
-									val = GLib.Value (typeof (bool));
-									val.set_boolean (bool.parse (str));
-									return val;
-								}
-							}
-						}
-					}
-				}
-			}
-			return val;
 		}
 
-		public bool is_null(){ return (str == "null") ? true : false; }
-		public bool is_bool(){ return (str == "true" || str == "false") ? true : false; }
-		public bool is_double(){ double d; return double.try_parse (str, out d); }
-		public bool is_int(){ int64 i; return int64.try_parse (str, out i); }
-		public bool is_array(){
-			try { var a = as_array(); return true; }
-			catch { return false; }
-		}
-		public bool is_object(){ 
-			try { var o = as_object(); return true; }
-			catch { return false; }
-		}
-		public bool is_string(){ return (as_string () == null) ? false : true; }
-		
-		public Node? get(string id) throws GLib.Error
+		public bool as_boolean()
 		{
-			if(is_object ())
-				return as_object ().get_member (id);
-			if(is_array ())
-				return as_array ().get_element (int.parse (id));
+			return data == "true";
+		}
+
+		public DateTime? as_datetime()
+		{
+			if (as_string() == null)
+				return null;
+			var tv = TimeVal();
+			var res = tv.from_iso8601 (as_string().replace (" ",""));
+			if (!res)
+				return null;
+			return new DateTime.from_timeval_utc (tv);
+		}
+
+		public int64 as_int()
+		{
+			int64 res;
+			if (int64.try_parse (data, out res))
+				return res;
+			return -1;
+		}
+
+		public double as_double()
+		{
+			double res;
+			if (double.try_parse (data, out res))
+				return res;
+			return -1;
+		}
+
+		public Object? as_object()
+		{
+			try {
+				return Object.parse (data);
+			} catch {
+				return null;
+			}
+		}
+
+		public string? as_string()
+		{
+			try {
+				return get_valid_id (new Mee.Text.String (data));
+			} catch {
+				return null;
+			}
+		}
+
+		public string dump(int indent = 0){ 
+			if (is_object())
+				return as_object().dump (indent);
+			if (is_array())
+				return as_array().dump (indent);
+			return data; 
+		}
+
+		public new Node? get (string id)
+		{
+			if (is_array ())
+				return as_array()[int.parse (id)];
+			if (is_object ())
+				return as_object()[id];
 			return null;
 		}
-		
+
+		public bool is_array()
+		{
+			return node_type == NodeType.ARRAY;
+		}
+
+		public bool is_datetime()
+		{
+			return node_type == NodeType.DATETIME;
+		}
+
+		public bool is_boolean()
+		{
+			return node_type == NodeType.BOOLEAN;
+		}
+
+		public bool is_double()
+		{
+			return node_type == NodeType.DOUBLE;
+		}
+
+		public bool is_int()
+		{
+			return node_type == NodeType.INTEGER;
+		}
+
+		public bool is_null()
+		{
+			return node_type == NodeType.NULL;
+		}
+
+		public bool is_object()
+		{
+			return node_type == NodeType.OBJECT;
+		}
+
+		public bool is_string()
+		{
+			return node_type == NodeType.STRING;
+		}
+
+		public string to_string ()
+		{
+			return data;
+		}
+
+		public new void set (string id, Value val)
+		{
+			if (is_object () && is_valid_id (id))
+			{
+				var o = as_object();
+				o[id] = val;
+				data = o.to_string();
+			}
+			if (is_array ())
+			{
+				var a = as_array();
+				a[int.parse (id)] = val;
+				data = a.to_string();
+			}
+		}
+
 		internal Array get_nodes (string name)
 		{
-			var array = new Array.empty ();
+			var array = new Array ();
 			if (is_object ())
 			{
 				as_object ().foreach ((n, node) => {
@@ -134,30 +193,58 @@ namespace Json
 			}
 			return array;
 		}
+
+		string data;
 		
-		public void set (string id, Node node) throws GLib.Error
-		{
-			if (is_object ())
-			{
-				var o = as_object ();
-				o.set_member (id, node);
-				str = o.to_string ();
+		public NodeType node_type { get; private set; }
+		public Value? value {
+			owned get {
+				if (is_int ())
+					return as_int ();
+				if (is_double ())
+					return as_double ();
+				if (is_object ())
+					return as_object ();
+				if (is_array ())
+					return as_array ();
+				if (is_boolean ())
+					return as_boolean ();
+				if (is_datetime())
+					return as_datetime ();
+				if (is_null ())
+					return true;
+				return as_string() == null ? null : as_string();
 			}
-			if (is_array ())
-			{
-				var a = as_array ();
-				a[int.parse(id)] = node;
-				str = a.to_string ();
+			set {
+				if (value.type().is_a(typeof(Node)))	
+					data = ((Node)value).to_string ();
+				else if (value.type().is_a(typeof(Object)))
+					data = ((Object)value).to_string ();
+				else if (value.type().is_a(typeof(Array)))
+					data = ((Array)value).to_string ();
+				else if (value.type() == typeof(DateTime))
+					data = ((DateTime)value).to_string ();
+				else if (value.type() == typeof(bool))
+					data = ((bool)value).to_string ();
+				else if (value.type() == typeof(double))
+					data = ((double)value).to_string ();
+				else if (value.type() == typeof(int64))
+					data = ((int64)value).to_string ();
+				else if (value.type() == typeof(uint64))
+					data = ((uint64)value).to_string ();
+				else if (value.type() == typeof(long))
+					data = ((long)value).to_string ();
+				else if (value.type() == typeof(ulong))
+					data = ((ulong)value).to_string ();
+				else if (value.type() == typeof(int))
+					data = ((int)value).to_string ();
+				else if (value.type() == typeof(uint))
+					data = ((uint)value).to_string ();
+				else if (value.type() == typeof(string))
+					data = (string)value;
+				else
+					data = "null";
 			}
 		}
-		
-		public string dump(int indent = 0){ 
-			if(is_object())
-				return as_object().dump(indent);
-			if(is_array())
-				return as_array().dump(indent);
-			return str; 
-		}
-		public string to_string(){ return str; }
 	}
 }

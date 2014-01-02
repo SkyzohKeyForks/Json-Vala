@@ -1,28 +1,43 @@
-AC_INIT([json-vala], [0.1], [inizan.yannick@gmail.com], [libjson-vala])
-AC_CONFIG_SRCDIR([Makefile.am])
-AC_CONFIG_HEADERS(config.h)
-AC_CONFIG_MACRO_DIR([m4])
-AM_INIT_AUTOMAKE([check-news dist-bzip2 subdir-objects])
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
-AC_CONFIG_FILES([Makefile
-		src/Makefile
-		json-vala.pc])
+dnl Process this file with autoconf to produce a configure script.
+dnl Created by Anjuta application wizard.
+
+AC_INIT(json_vala, 0.1)
+
+AC_CONFIG_HEADERS([config.h])
+
+AM_INIT_AUTOMAKE([1.11])
+
+AM_SILENT_RULES([yes])
+
+AC_PROG_CC
 
 AM_PROG_AR
-LT_INIT
-AC_PROG_CC
+
 AM_PROG_VALAC
 
-pkg_modules="glib-2.0 >= 2.24.1
-             gobject-2.0 >= 2.24.1
-             gio-2.0 >= 2.24.1
-             gee-0.8
-             mee"
-             
-PKG_CHECK_MODULES(JSON, [$pkg_modules])
-AC_SUBST(JSON_CFLAGS)
-AC_SUBST(JSON_LIBS)
 
-GOBJECT_INTROSPECTION_CHECK([0.9.0])
+AC_ARG_ENABLE(doc, AS_HELP_STRING([--enable-doc], [Enable documentation generation]), enable_doc=$enableval, enable_doc=no)
+AM_CONDITIONAL(ENABLE_DOC, test x$enable_doc = xyes)
 
-AC_OUTPUT
+AS_IF([test "x$enable_doc" != xno],
+	[AC_PATH_PROG(VALADOC, valadoc, :)
+	 AC_SUBST(VALADOC)
+	 AS_IF([test "$VALADOC" = :],
+		[AC_MSG_ERROR([valadoc not found])])])
+
+
+
+LT_INIT
+
+pkg_modules="gobject-2.0
+	gio-2.0
+	mee-1.0
+	gee-0.8"
+PKG_CHECK_MODULES(JSON_VALA, [$pkg_modules])
+
+AC_OUTPUT([
+Makefile
+src/json-vala.pc
+src/Makefile
+doc/Makefile
+])

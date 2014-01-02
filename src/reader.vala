@@ -1,11 +1,13 @@
 namespace Json {
 	public class Reader : GLib.Object
 	{
-		Node root;
 		int pos;
 		
 		construct {
 			pos = 0;
+			notify["root"].connect(() => {
+				pos = 0;
+			});
 		}
 		
 		public bool is_array ()
@@ -27,11 +29,6 @@ namespace Json {
 			return is_array() == false && is_object() == false;
 		}
 		
-		public void set_root (Node node)
-		{
-			root = node;
-		}
-		
 		public bool read_element (int position)
 		{
 			if (is_value())
@@ -39,8 +36,9 @@ namespace Json {
 			if (is_array())
 				if (position < 0 || position >= root.as_array().size)
 					return false;
-			if (position < 0 || position >= root.as_object().get_keys().size)
-				return false;
+			if (is_object())
+				if (position < 0 || position >= root.as_object().size)
+					return false;
 			pos = position;
 			return true;
 		}
@@ -52,8 +50,8 @@ namespace Json {
 			var member = root.as_object().get_member (name);
 			if (member == null)
 				return false;
-			for (var i = 0; i < root.as_object().get_keys().size; i++)
-				if (root.as_object().get_keys().to_array()[i] == name)
+			for (var i = 0; i < root.as_object().size; i++)
+				if (root.as_object().keys[i] == name)
 					pos = i;
 			return true;
 		}
@@ -61,11 +59,11 @@ namespace Json {
 		public string[] list_members()
 		{
 			if (!is_object())
-				return null;
-			return root.as_object().get_keys().to_array();
+				return new string[0];
+			return root.as_object().keys;
 		}
 		
-		public string get_member_name ()
+		public string? get_member_name ()
 		{
 			if (!is_object())
 				return null;
@@ -75,7 +73,7 @@ namespace Json {
 		public Node get_value ()
 		{
 			if (is_object())
-				return root.as_object().get_members().to_array()[pos];
+				return root.as_object().values[pos];
 			if (is_array())
 				return root.as_array()[pos];
 			return root;
@@ -103,7 +101,9 @@ namespace Json {
 		
 		public bool get_boolean_value()
 		{
-			return get_value().as_bool();
+			return get_value().as_boolean ();
 		}
+
+		public Node root { private get; set; }
 	}
 }

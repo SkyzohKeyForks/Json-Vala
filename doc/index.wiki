@@ -1,0 +1,1 @@
+a library written with Vala without dependencies who contains utilities.
