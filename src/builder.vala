@@ -10,6 +10,18 @@ namespace Json {
 			levels = new Gee.ArrayList<string>();
 		}
 		
+		public Json.Node? root {
+			owned get {
+				var parser = new Parser();
+				try {
+					parser.load_from_data (str);
+					return parser.root;
+				} catch {
+					return null;
+				}
+			}
+		}
+		
 		public void begin_array ()
 		{
 			if (levels.size > 0 && levels[levels.size - 1] == "object")
