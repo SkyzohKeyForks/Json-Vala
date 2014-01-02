@@ -16,7 +16,7 @@ Discussion and support on IRC channel [#canaldev](http://webchat.freenode.net/?c
  * gio-2.0
  * gee-0.8 (>= 0.10.5)
  * at least libvala-0.24 (recommended) or libvala-0.22
- * mee-1.0
+ * mee-1.0 [Mee](https://github.com/inizan-yannick/mee)
 
 On Debian based systems install following packages:
 
