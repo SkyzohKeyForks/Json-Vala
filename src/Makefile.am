@@ -36,7 +36,7 @@ libjson_vala_la_VALAFLAGS =  --pkg gio-2.0 --pkg mee-1.0 --pkg gee-0.8 \
 libjson_vala_la_LIBADD = $(JSON_VALA_LIBS)
 
 
-json_valaincludedir = $(includedir)/libjson-vala-0.1
+json_valaincludedir = $(includedir)/json-vala-0.1
 json_valainclude_HEADERS = \
 	json-vala.h
 

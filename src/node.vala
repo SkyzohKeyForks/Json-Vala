@@ -102,12 +102,38 @@ namespace Json {
 			return data; 
 		}
 
-		public new Node? get (string id)
+		public new Node? get (Value val)
 		{
-			if (is_array ())
-				return as_array()[int.parse (id)];
-			if (is_object ())
-				return as_object()[id];
+			if (is_array ()) {
+				int v = -1;
+				if (val.type() == typeof(int64))
+					v = (int)(int64)val;
+				if (val.type() == typeof(uint64))
+					v = (int)(uint64)val;
+				if (val.type() == typeof(long))
+					v = (int)(long)val;
+				if (val.type() == typeof(ulong))
+					v = (int)(ulong)val;
+				if (val.type() == typeof(int))
+					v = (int)val;
+				if (val.type() == typeof(uint))
+					v = (int)(uint)val;
+				var a = as_array();
+				if (v < 0 || v >= a.size)
+					return null;
+				return a[v];
+			}
+			if (is_object () && val.type() == typeof(string))
+			{
+				var str = new Mee.Text.String("\""+(string)val+"\"");
+				try {
+					string id = get_valid_id (str);
+					var o = as_object();
+					return o[id];
+				} catch{
+					print (@"$((string)val)\n");
+				}
+			}
 			return null;
 		}
 
@@ -156,18 +182,39 @@ namespace Json {
 			return data;
 		}
 
-		public new void set (string id, Value val)
+		public new void set (Value key, Value val)
 		{
-			if (is_object () && is_valid_id (id))
+			if (is_object () && key.type() == typeof(string))
 			{
-				var o = as_object();
-				o[id] = val;
-				data = o.to_string();
+				var str = new Mee.Text.String("\""+(string)key+"\"");
+				try {
+					string id = get_valid_id (str);
+					var o = as_object();
+					o[id] = val;
+					data = o.to_string();
+				} catch {
+					
+				}
 			}
 			if (is_array ())
 			{
+				int v = -1;
+				if (val.type() == typeof(int64))
+					v = (int)(int64)val;
+				if (val.type() == typeof(uint64))
+					v = (int)(uint64)val;
+				if (val.type() == typeof(long))
+					v = (int)(long)val;
+				if (val.type() == typeof(ulong))
+					v = (int)(ulong)val;
+				if (val.type() == typeof(int))
+					v = (int)val;
+				if (val.type() == typeof(uint))
+					v = (int)(uint)val;
 				var a = as_array();
-				a[int.parse (id)] = val;
+				if (v < 0 || v > a.size)
+					return;
+				a[v] = val;
 				data = a.to_string();
 			}
 		}

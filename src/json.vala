@@ -28,11 +28,11 @@ namespace Json {
 		    data[0] == '\'' && data.str.index_of ("'", 1) == -1 ||
 		    data.str.index_of("'") == -1 && data.str.index_of("\"") == -1 ||
 		    data[0] != '"' && data[0] != '\'')
-			throw new JsonError.INVALID ("invalid id string. %s".printf (data[0].to_string()));
+			throw new JsonError.INVALID (@"invalid id string : $data");
 
 		int index = data.str.index_of (data[0].to_string(), 1);
 		if (!is_valid_id (data.substring (1, index - 1).str))
-			throw new JsonError.INVALID ("invalid id string.");
+			throw new JsonError.INVALID (@"invalid id string : $data");
 		return data.substring (1, index - 1).str;
 	}
 

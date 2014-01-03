@@ -35,14 +35,33 @@ namespace Json {
 			});
 		}
 
-		public new Node? get (string key)
+		public new Node? get (Value val)
 		{
-			if (!map.has_key (key))
+			if (val.type() == typeof(string))
+			{
+				if (!map.has_key ((string)val))
+					return null;
+				return map[(string)val];
+			}
+			int v = -1;
+			if (val.type() == typeof(int64))
+				v = (int)(int64)val;
+			if (val.type() == typeof(uint64))
+				v = (int)(uint64)val;
+			if (val.type() == typeof(long))
+				v = (int)(long)val;
+			if (val.type() == typeof(ulong))
+				v = (int)(ulong)val;
+			if (val.type() == typeof(int))
+				v = (int)val;
+			if (val.type() == typeof(uint))
+				v = (int)(uint)val;
+			if (v < 0 || v >= map.size)
 				return null;
-			return map[key];
+			return map[map.keys.to_array()[v]];
 		}
 		
-		public Array? get_array_member (string key)
+		public Array? get_array_member (Value key)
 		{
 			var node = get_member (key);
 			if (node == null)
@@ -50,7 +69,7 @@ namespace Json {
 			return node.as_array();
 		}
 
-		public bool get_boolean_member (string key)
+		public bool get_boolean_member (Value key)
 		{
 			var node = get_member (key);
 			if (node == null)
@@ -58,7 +77,7 @@ namespace Json {
 			return node.as_boolean();
 		}
 
-		public DateTime? get_datetime_member (string key)
+		public DateTime? get_datetime_member (Value key)
 		{
 			var node = get_member (key);
 			if (node == null)
@@ -66,7 +85,7 @@ namespace Json {
 			return node.as_datetime();
 		}
 
-		public double get_double_member (string key)
+		public double get_double_member (Value key)
 		{
 			var node = get_member (key);
 			if (node == null)
@@ -74,7 +93,7 @@ namespace Json {
 			return node.as_double();
 		}
 
-		public int64 get_int_member (string key)
+		public int64 get_int_member (Value key)
 		{
 			var node = get_member (key);
 			if (node == null)
@@ -82,14 +101,12 @@ namespace Json {
 			return node.as_int();
 		}
 
-		public Node? get_member (string key)
+		public Node? get_member (Value key)
 		{
-			if (!map.has_key (key))
-				return null;
-			return map[key];
+			return this[key];
 		}
 
-		public bool get_null_member (string key)
+		public bool get_null_member (Value key)
 		{
 			var node = get_member (key);
 			if (node == null)
@@ -97,7 +114,7 @@ namespace Json {
 			return node.to_string () == "null";
 		}
 
-		public Object? get_object_member (string key)
+		public Object? get_object_member (Value key)
 		{
 			var node = get_member (key);
 			if (node == null)
@@ -105,7 +122,7 @@ namespace Json {
 			return node.as_object();
 		}
 
-		public string? get_string_member (string key)
+		public string? get_string_member (Value key)
 		{
 			var node = get_member (key);
 			if (node == null)
@@ -113,7 +130,7 @@ namespace Json {
 			return node.as_string();
 		}
 
-		public new void set (string key, Value val)
+		public new void set (Value key, Value val)
 		{
 			if (val.type().is_a(typeof(Node)))	
 				set_member (key, (Node)val.get_object());
@@ -145,71 +162,88 @@ namespace Json {
 				set_null_member (key);
 		}
 
-		public void set_array_member (string key, Array array)
+		public void set_array_member (Value key, Array array)
 		{
 			set_member (key, new Node (array.to_string()));
 		}
 
-		public void set_boolean_member (string key, bool val)
+		public void set_boolean_member (Value key, bool val)
 		{
 			set_member (key, new Node (val.to_string()));
 		}
 
-		public void set_datetime_member (string key, DateTime val)
+		public void set_datetime_member (Value key, DateTime val)
 		{
 			TimeVal tv;
 			val.to_timeval (out tv);
 			set_string_member (key, tv.to_iso8601());
 		}
 		
-		public void set_double_member (string key, double val)
+		public void set_double_member (Value key, double val)
 		{
 			set_member (key, new Node (val.to_string()));
 		}
 
-		public void set_int_member (string key, int64 val)
+		public void set_int_member (Value key, int64 val)
 		{
 			set_member (key, new Node (val.to_string()));
 		}
 
-		public void set_member (string key, Node node)
+		public void set_member (Value key, Node node)
 		{
-			try {
-				var str = new Mee.Text.String ("'"+key+"'");
-				get_valid_id (str);
-				map[key] = node;
-			} catch {
-				print (@"error: $key\n");
+			int v = -1;
+			if (key.type() == typeof(string))
+				{
+				try {
+					var str = new Mee.Text.String ("'"+(string)key+"'");
+					get_valid_id (str);
+					map[(string)key] = node;
+				} catch {
+					
+				}
 			}
-		}
-
-		public void set_null_member (string key)
-		{
-			if (!is_valid_id (key))
+			else if (key.type() == typeof(int64))
+					v = (int)(int64)key;
+			else if (key.type() == typeof(uint64))
+					v = (int)(uint64)key;
+			else if (key.type() == typeof(long))
+					v = (int)(long)key;
+			else if (key.type() == typeof(ulong))
+					v = (int)(ulong)key;
+			else if (key.type() == typeof(int))
+					v = (int)key;
+			else if (key.type() == typeof(uint))
+					v = (int)(uint)key;
+			else
 				return;
-			map[key] = new Node ("null");
+			if (v < 0 || v >= map.size)
+				return;
+			map[map.keys.to_array()[v]] = node;
 		}
 
-		public void set_object_member (string key, Object object)
+		public void set_null_member (Value key)
+		{
+			set_member (key, new Node ("null"));
+		}
+
+		public void set_object_member (Value key, Object object)
 		{
 			set_member (key, new Node (object.to_string()));
 		}
 
-		public void set_string_member (string key, string val)
+		public void set_string_member (Value key, string val)
 		{
-			if (!is_valid_id (key))
-				return;
 			try {
 				get_valid_id (new String (val));
-				this[key] = new Node (val);
+				set_member (key, new Node (val));
 			} catch {
 				try {
 					get_valid_id (new String ("\""+val+"\""));
-					this[key] = new Node ("\""+val+"\"");
+					set_member (key, new Node ("\""+val+"\""));
 				} catch {
 					set_null_member (key);
 				}
-			}
+			}	
 		}
 
 		public string to_string()
