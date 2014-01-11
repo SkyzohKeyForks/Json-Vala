@@ -96,7 +96,7 @@ namespace Json {
 			foreach (string str in (t as Gee.Iterable<string>))
 			{
 				try {
-					get_valid_id (new Mee.Text.String("'"+str+"'"));
+					get_valid_id ("'"+str+"'");
 					s += "'"+str+"'" + ", ";
 				} catch {
 					s += "null, ";

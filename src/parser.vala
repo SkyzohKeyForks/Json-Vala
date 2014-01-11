@@ -20,7 +20,7 @@ namespace Json {
 		
 		public void load_from_buffer (uint8[] buffer) throws GLib.Error
 		{
-			var encoding = Mee.Text.Encoding.correct_encoding (buffer);
+			var encoding = Mee.Text.Encoding.from_buffer (buffer);
 			if (encoding == null)
 				encoding = Mee.Text.Encoding.utf8;
 			load_from_data (encoding.get_string (buffer));
@@ -28,12 +28,20 @@ namespace Json {
 		
 		public void load_from_data (string data) throws GLib.Error
 		{
+			start = new DateTime.now_local();
+			parsing_start();
 			if (data[0] == '[')
 				root = new Node (Array.parse (data).to_string ());
 			else
 				root = new Node (Object.parse (data).to_string ());
+			parsing_end (new DateTime.now_local().difference (start));
 		}
 		
 		public Node root { get; private set; }
+		
+		DateTime start;
+		
+		public signal void parsing_start();
+		public signal void parsing_end (TimeSpan delay);
 	}
 }

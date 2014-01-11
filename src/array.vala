@@ -148,7 +148,7 @@ namespace Json {
 		public void add_string_element (string val)
 		{
 			try {
-				get_valid_id (new Mee.Text.String ("\""+val+"\""));
+				get_valid_id ("\""+val+"\"");
 				add_element (new Node ("\""+val+"\""));
 			} catch {
 
@@ -334,7 +334,7 @@ namespace Json {
 		public void set_string_element (int index, string val)
 		{
 			try {
-				get_valid_id (new Mee.Text.String ("\""+val+"\""));
+				get_valid_id ("\""+val+"\"");
 				set_element (index, new Node (val.to_string()));
 			} catch {}
 		}
@@ -363,57 +363,72 @@ namespace Json {
 				return list.size;
 			}
 		}
+		
+		static char[] chars = {'\t','\r','\n',' '};
 
 		public static Array parse (string data) throws GLib.Error
 		{
-			var str = new Mee.Text.String (data);
-			return parse_internal (ref str);
+			int pos = 0;
+			return parse_internal (data, ref pos);
 		}
 
-		internal static Array parse_internal (ref Mee.Text.String str) throws GLib.Error
+		internal static Array parse_internal (string str, ref int position) throws GLib.Error
 		{
 			var array = new Array();
-			str = str.strip ({'\t','\r','\n',' '});
-			if (str[0] != '[')
+			while (str[position] in chars)
+				position++;
+			if (str[position] != '[')
 				throw new JsonError.NOT_FOUND ("'[' character can't be found.");
-			str = str.substring (1).chug ({'\t','\r','\n',' '});
-			if (str[0] == ']')
+			position++;
+			while (str[position] in chars)
+				position++;
+			if (str[position] == ']')
 			{
-				str = str.substring (1).chug ({'\t','\r','\n',' '});
+				position++;
+				while (str[position] in chars)
+					position++;
 				return array;
 			}
-			while (str.size > 0)
+			while (position < str.length)
 			{
-				if (str[0] == '[')
-					array.add (new Node (Array.parse_internal (ref str).to_string ()));
-				else if (str[0] == '{')
-					array.add (new Node (Object.parse_internal (ref str).to_string ()));
-				else if (str[0] == '"' || str[0] == '\'')
+				if (str[position] == '[')
+					array.add (new Node (Array.parse_internal (str, ref position).to_string ()));
+				else if (str[position] == '{')
+					array.add (new Node (Object.parse_internal (str, ref position).to_string ()));
+				else if (str[position] == '"' || str[position] == '\'')
 				{
-					var id = get_valid_id (str);
-					str = str.substring (id.length+2).chug ({'\t','\r','\n',' '});
+					var id = get_valid_id (str, position);
+					position += id.length + 2;
+					while (str[position] in chars)
+						position++;
 					array.add (new Node ("\"%s\"".printf (id)));
 				}
 				else
 				{
-					int a = str.index_of ("]");
-					int b = str.index_of (",");
+					int a = str.index_of ("]", position);
+					int b = str.index_of (",", position);
 					int c = b < a && b != -1 ? b : a;
 					if(c == -1)
 						throw new JsonError.NOT_FOUND ("end of element not found");
-					var val = str.substring (0, c).strip ({'\t','\r','\n',' '}).str;
+					while (str[position] in chars)
+						position++;
+					var val = str.substring (position, c - position);
 					if(val != "false" && val != "true" && val != "null"){
 						double d = -1;
 						if(double.try_parse (val,out d) == false)
 							throw new JsonError.TYPE ("invalid value");
 					}
 					array.add(new Node (val));
-					str = str.substring(val.length).chug({'\t','\r','\n',' '});
+					position += val.length;
+					while (str[position] in chars)
+						position++;
 				}
-				if(str[0] != ',' && str[0] != ']')
-					throw new JsonError.TYPE ("invalid end of element : "+str.str);
-					bool end = (str[0] == ']') ? true : false;
-					str = str.substring (1).chug ({'\t','\r','\n',' '});
+				if(str[position] != ',' && str[position] != ']')
+					throw new JsonError.TYPE ("invalid end of element : "+str);
+					bool end = (str[position] == ']') ? true : false;
+					position ++;
+					while (str[position] in chars)
+						position++;
 					if (end)
 						break;
 			}

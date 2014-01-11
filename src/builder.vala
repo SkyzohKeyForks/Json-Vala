@@ -69,7 +69,7 @@ namespace Json {
 		public bool set_member_name (string name)
 		{
 			try {
-				var id = get_valid_id (new Mee.Text.String(name));
+				var id = get_valid_id (name);
 				member = id;
 				return true;
 			}

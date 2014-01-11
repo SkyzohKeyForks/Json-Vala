@@ -88,7 +88,7 @@ namespace Json {
 		public string? as_string()
 		{
 			try {
-				return get_valid_id (new Mee.Text.String (data));
+				return get_valid_id (data);
 			} catch {
 				return null;
 			}
@@ -125,9 +125,8 @@ namespace Json {
 			}
 			if (is_object () && val.type() == typeof(string))
 			{
-				var str = new Mee.Text.String("\""+(string)val+"\"");
 				try {
-					string id = get_valid_id (str);
+					string id = get_valid_id ("\""+(string)val+"\"");
 					var o = as_object();
 					return o[id];
 				} catch{
@@ -186,9 +185,8 @@ namespace Json {
 		{
 			if (is_object () && key.type() == typeof(string))
 			{
-				var str = new Mee.Text.String("\""+(string)key+"\"");
 				try {
-					string id = get_valid_id (str);
+					string id = get_valid_id ("\""+(string)key+"\"");
 					var o = as_object();
 					o[id] = val;
 					data = o.to_string();

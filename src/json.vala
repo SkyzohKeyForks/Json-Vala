@@ -22,18 +22,16 @@ namespace Json {
 	}
 
 
-	internal static string get_valid_id (Mee.Text.String data) throws GLib.Error
+	internal static string get_valid_id (string data, int start = 0) throws GLib.Error
 	{
-		if (data[0] == '"' && data.str.index_of ("\"", 1) == -1 ||
-		    data[0] == '\'' && data.str.index_of ("'", 1) == -1 ||
-		    data.str.index_of("'") == -1 && data.str.index_of("\"") == -1 ||
-		    data[0] != '"' && data[0] != '\'')
+		if (data[start] == '"' && data.index_of ("\"", start + 1) == -1 ||
+		    data[start] == '\'' && data.index_of ("'", start + 1) == -1 ||
+		    data.index_of("'", start) == -1 && data.index_of("\"", start) == -1 ||
+		    data[start] != '"' && data[start] != '\'')
 			throw new JsonError.INVALID (@"invalid id string : $data");
 
-		int index = data.str.index_of (data[0].to_string(), 1);
-		if (!is_valid_id (data.substring (1, index - 1).str))
-			throw new JsonError.INVALID (@"invalid id string : $data");
-		return data.substring (1, index - 1).str;
+		int index = data.index_of (data[start].to_string(), start + 1);
+		return data.substring (start + 1, index - start - 1);
 	}
 
 	internal static bool is_valid_id(string id){
