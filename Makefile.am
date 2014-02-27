@@ -7,7 +7,7 @@ DOC_SUBDIR = \
 	$(NULL)
 endif
 
-SUBDIRS = src $(DOC_SUBDIR)
+SUBDIRS = mee src $(DOC_SUBDIR)
 
 dist_doc_DATA = \
 	README \
@@ -22,3 +22,14 @@ dist_doc_DATA = \
 # Remove doc directory on uninstall
 uninstall-local:
 	-rm -r $(docdir)
+
+all:
+	if test -d ".git"; then \
+		git submodule update --init --recursive || exit 1; \
+	fi
+	for dir in $(SUBDIRS); do \
+		case $$dir in \
+		.) $(MAKE) $* ;;\
+		*) (cd $$dir && $(MAKE) $*) ;;\
+		esac \
+	done

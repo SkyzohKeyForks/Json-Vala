@@ -26,14 +26,15 @@ libjson_vala_la_SOURCES = node.vala \
 	generator.vala \
 	builder.vala \
 	reader.vala \
-	serialize.vala
+	serialize.vala \
+	../mee/src/mee-1.0.vapi
 
 libjson_vala_la_LDFLAGS = 
 	
-libjson_vala_la_VALAFLAGS =  --pkg gio-2.0 --pkg mee-1.0 --pkg gee-0.8 \
+libjson_vala_la_VALAFLAGS =  --pkg gio-2.0 --pkg gee-0.8 \
 	--library json-vala --vapi json-vala.vapi -H json-vala.h
 
-libjson_vala_la_LIBADD = $(JSON_VALA_LIBS)
+libjson_vala_la_LIBADD = $(JSON_VALA_LIBS) ../mee/src/libmee.la
 
 
 json_valaincludedir = $(includedir)/json-vala-0.1

@@ -126,7 +126,8 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(vapidir)" \
 	"$(DESTDIR)$(pkgconfigdir)" "$(DESTDIR)$(json_valaincludedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
-libjson_vala_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
+libjson_vala_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	../mee/src/libmee.la
 am_libjson_vala_la_OBJECTS = node.lo object.lo json.lo array.lo \
 	parser.lo path.lo generator.lo builder.lo reader.lo \
 	serialize.lo
@@ -353,13 +354,14 @@ libjson_vala_la_SOURCES = node.vala \
 	generator.vala \
 	builder.vala \
 	reader.vala \
-	serialize.vala
+	serialize.vala \
+	../mee/src/mee-1.0.vapi
 
 libjson_vala_la_LDFLAGS = 
-libjson_vala_la_VALAFLAGS = --pkg gio-2.0 --pkg mee-1.0 --pkg gee-0.8 \
+libjson_vala_la_VALAFLAGS = --pkg gio-2.0 --pkg gee-0.8 \
 	--library json-vala --vapi json-vala.vapi -H json-vala.h
 
-libjson_vala_la_LIBADD = $(JSON_VALA_LIBS)
+libjson_vala_la_LIBADD = $(JSON_VALA_LIBS) ../mee/src/libmee.la
 json_valaincludedir = $(includedir)/json-vala-0.1
 json_valainclude_HEADERS = \
 	json-vala.h
@@ -543,9 +545,9 @@ $(srcdir)/json-vala.h: $(srcdir)/libjson_vala_la_vala.stamp
 	@if test -f $@; then :; else \
 	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/libjson_vala_la_vala.stamp; \
 	fi
-$(srcdir)/libjson_vala_la_vala.stamp: node.vala object.vala json.vala array.vala parser.vala path.vala generator.vala builder.vala reader.vala serialize.vala
+$(srcdir)/libjson_vala_la_vala.stamp: node.vala object.vala json.vala array.vala parser.vala path.vala generator.vala builder.vala reader.vala serialize.vala ../mee/src/mee-1.0.vapi
 	$(AM_V_at)rm -f $@ && echo stamp > $@-t
-	$(AM_V_VALAC)$(am__cd) $(srcdir) && $(VALAC) $(libjson_vala_la_VALAFLAGS) $(VALAFLAGS) -C node.vala object.vala json.vala array.vala parser.vala path.vala generator.vala builder.vala reader.vala serialize.vala
+	$(AM_V_VALAC)$(am__cd) $(srcdir) && $(VALAC) $(libjson_vala_la_VALAFLAGS) $(VALAFLAGS) -C node.vala object.vala json.vala array.vala parser.vala path.vala generator.vala builder.vala reader.vala serialize.vala ../mee/src/mee-1.0.vapi
 	$(AM_V_at)mv -f $@-t $@
 
 mostlyclean-libtool:
