@@ -8,7 +8,7 @@ AM_CPPFLAGS = \
 	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
 	$(JSON_VALA_CFLAGS)
 
-AM_CFLAGS =\
+AM_CFLAGS = -I ../mee/src\
 	 -Wall\
 	 -g
 

@@ -437,7 +437,7 @@ Copyright (C) 2012 Free Software Foundation, Inc.
 This config.status script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it."
 
-ac_pwd='/home/yannick/Documents/test_git/Json-Vala'
+ac_pwd='/home/yannick/Projets/Json-Vala'
 srcdir='.'
 INSTALL='/usr/bin/install -c'
 MKDIR_P='/bin/mkdir -p'
@@ -675,7 +675,7 @@ finish_cmds='PATH="\$PATH:/sbin" ldconfig -n $libdir'
 finish_eval=''
 hardcode_into_libs='yes'
 sys_lib_search_path_spec='/usr/lib/gcc/x86_64-linux-gnu/4.8 /usr/lib/x86_64-linux-gnu /usr/lib /lib/x86_64-linux-gnu /lib '
-sys_lib_dlsearch_path_spec='/lib /usr/lib /usr/lib/x86_64-linux-gnu/libfakeroot /usr/lib/i386-linux-gnu/mesa /lib/i386-linux-gnu /usr/lib/i386-linux-gnu /lib/i686-linux-gnu /usr/lib/i686-linux-gnu /usr/local/lib /lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu/mesa-egl /usr/lib/x86_64-linux-gnu/mesa '
+sys_lib_dlsearch_path_spec='/lib /usr/lib /usr/lib/x86_64-linux-gnu/libfakeroot /usr/local/lib /lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu/mesa-egl /usr/lib/x86_64-linux-gnu/mesa '
 hardcode_action='immediate'
 enable_dlopen='unknown'
 enable_dlopen_self='unknown'
@@ -820,8 +820,8 @@ S["am__EXEEXT_FALSE"]=""
 S["am__EXEEXT_TRUE"]="#"
 S["LTLIBOBJS"]=""
 S["LIBOBJS"]=""
-S["JSON_VALA_LIBS"]="-L/usr/local/lib -lgio-2.0 -lmee -lmagic -lgee-0.8 -lgobject-2.0 -lglib-2.0  "
-S["JSON_VALA_CFLAGS"]="-pthread -I/usr/local/include/mee-1.0 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/gee-0.8  "
+S["JSON_VALA_LIBS"]="-lgio-2.0 -lgee-0.8 -lgobject-2.0 -lglib-2.0  "
+S["JSON_VALA_CFLAGS"]="-pthread -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/gee-0.8  "
 S["PKG_CONFIG_LIBDIR"]=""
 S["PKG_CONFIG_PATH"]=""
 S["PKG_CONFIG"]="/usr/bin/pkg-config"
@@ -890,12 +890,12 @@ S["mkdir_p"]="$(MKDIR_P)"
 S["MKDIR_P"]="/bin/mkdir -p"
 S["INSTALL_STRIP_PROGRAM"]="$(install_sh) -c -s"
 S["STRIP"]="strip"
-S["install_sh"]="${SHELL} /home/yannick/Documents/test_git/Json-Vala/install-sh"
-S["MAKEINFO"]="${SHELL} /home/yannick/Documents/test_git/Json-Vala/missing makeinfo"
-S["AUTOHEADER"]="${SHELL} /home/yannick/Documents/test_git/Json-Vala/missing autoheader"
-S["AUTOMAKE"]="${SHELL} /home/yannick/Documents/test_git/Json-Vala/missing automake-1.14"
-S["AUTOCONF"]="${SHELL} /home/yannick/Documents/test_git/Json-Vala/missing autoconf"
-S["ACLOCAL"]="${SHELL} /home/yannick/Documents/test_git/Json-Vala/missing aclocal-1.14"
+S["install_sh"]="${SHELL} /home/yannick/Projets/Json-Vala/install-sh"
+S["MAKEINFO"]="${SHELL} /home/yannick/Projets/Json-Vala/missing makeinfo"
+S["AUTOHEADER"]="${SHELL} /home/yannick/Projets/Json-Vala/missing autoheader"
+S["AUTOMAKE"]="${SHELL} /home/yannick/Projets/Json-Vala/missing automake-1.14"
+S["AUTOCONF"]="${SHELL} /home/yannick/Projets/Json-Vala/missing autoconf"
+S["ACLOCAL"]="${SHELL} /home/yannick/Projets/Json-Vala/missing aclocal-1.14"
 S["VERSION"]="0.1"
 S["PACKAGE"]="json-vala"
 S["CYGPATH_W"]="echo"

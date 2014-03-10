@@ -285,16 +285,16 @@ namespace Json {
 		internal static Object parse_internal (string data, ref int position) throws GLib.Error
 		{
 			var o = new Object();
-			while (data[position] in chars)
+			while (data[position].isspace())
 				position++;
 			if (data[position] != '{')
 				throw new JsonError.NOT_FOUND ("'{' character can't be found.");
 			position++;
-			while (data[position] in chars)
+			while (data[position].isspace())
 				position++;
 			if (data[position] == '}'){
 				position++;
-				while (data[position] in chars)
+				while (data[position].isspace())
 					position++;
 				return o;
 			}
@@ -302,12 +302,12 @@ namespace Json {
 			{
 				string id = get_valid_id (data, position);
 				position += 2 + id.length;
-				while (data[position] in chars)
+				while (data[position].isspace())
 					position++;
 				if (data[position] != ':')
 					throw new JsonError.NOT_FOUND ("':' char not found");
 				position++;
-				while (data[position] in chars)
+				while (data[position].isspace())
 					position++;
 				if (data[position] == ',' || data[position] == '}')
 					throw new JsonError.NOT_FOUND ("value not found");
@@ -319,7 +319,7 @@ namespace Json {
 				{
 					var vid = get_valid_id (data, position);
 					position += 2 + vid.length;
-					while (data[position] in chars)
+					while (data[position].isspace())
 						position++;
 					o[id] = new Node ("\"%s\"".printf(vid));
 				}
@@ -330,24 +330,26 @@ namespace Json {
 					int c = b < a && b != -1 ? b : a;
 					if(c == -1)
 						throw new JsonError.NOT_FOUND ("end of member not found");
-					while (data[position] in chars)
+					while (data[position].isspace())
 						position++;
 					var val = data.substring (position, c - position);
+					position += val.length;
+					while (val[val.length - 1].isspace())
+						val = val.substring (0, val.length - 1);
 					if(val != "false" && val != "true" && val != "null"){
 						double d = -1;
 						if(double.try_parse (val,out d) == false)
 							throw new JsonError.TYPE ("invalid value");
 					}
 					o[id] = new Node (val);
-					position += val.length;
-					while (data[position] in chars)
+					while (data[position].isspace())
 						position++;
 				}
 				if (data[position] != ',' && data[position] != '}')
 					throw new JsonError.TYPE (@"invalid end of section '$(data[position])'");
 				bool end = data[position] == '}' ? true : false;
 				position++;
-				while (data[position] in chars)
+				while (data[position].isspace())
 					position++;
 				if(end)
 					break;

@@ -363,8 +363,6 @@ namespace Json {
 				return list.size;
 			}
 		}
-		
-		static char[] chars = {'\t','\r','\n',' '};
 
 		public static Array parse (string data) throws GLib.Error
 		{
@@ -375,17 +373,17 @@ namespace Json {
 		internal static Array parse_internal (string str, ref int position) throws GLib.Error
 		{
 			var array = new Array();
-			while (str[position] in chars)
+			while (str[position].isspace())
 				position++;
 			if (str[position] != '[')
 				throw new JsonError.NOT_FOUND ("'[' character can't be found.");
 			position++;
-			while (str[position] in chars)
+			while (str[position].isspace())
 				position++;
 			if (str[position] == ']')
 			{
 				position++;
-				while (str[position] in chars)
+				while (str[position].isspace())
 					position++;
 				return array;
 			}
@@ -399,7 +397,7 @@ namespace Json {
 				{
 					var id = get_valid_id (str, position);
 					position += id.length + 2;
-					while (str[position] in chars)
+					while (str[position].isspace())
 						position++;
 					array.add (new Node ("\"%s\"".printf (id)));
 				}
@@ -410,24 +408,28 @@ namespace Json {
 					int c = b < a && b != -1 ? b : a;
 					if(c == -1)
 						throw new JsonError.NOT_FOUND ("end of element not found");
-					while (str[position] in chars)
+					while (str[position].isspace())
 						position++;
 					var val = str.substring (position, c - position);
+					position += val.length;
+					while (val[val.length - 1].isspace())
+						val = val.substring (0, val.length - 1);
 					if(val != "false" && val != "true" && val != "null"){
 						double d = -1;
-						if(double.try_parse (val,out d) == false)
-							throw new JsonError.TYPE ("invalid value");
+						if(double.try_parse (val,out d) == false){
+							print ("pos: %lld / %lld\n", position, str.length);
+							throw new JsonError.TYPE ("invalid value (%s)".printf (str.substring (position)));
+						}
 					}
 					array.add(new Node (val));
-					position += val.length;
-					while (str[position] in chars)
+					while (str[position].isspace())
 						position++;
 				}
 				if(str[position] != ',' && str[position] != ']')
 					throw new JsonError.TYPE ("invalid end of element : "+str);
 					bool end = (str[position] == ']') ? true : false;
 					position ++;
-					while (str[position] in chars)
+					while (str[position].isspace())
 						position++;
 					if (end)
 						break;
