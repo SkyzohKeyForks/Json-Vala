@@ -5,12 +5,12 @@ namespace Json {
 		public signal void evaluation_started ();
 		public signal void evaluation_stopped ();
 		public signal void evaluation_finished ();
-		
+
 		public Path (Json.Node node)
 		{
 			GLib.Object (root: node);
 		}
-		
+
 		public void eval (string path)
 		{
 			result = new Json.Array ();
@@ -24,12 +24,12 @@ namespace Json {
 			result = process (ref tmp, root);
 			evaluation_finished ();
 		}
-		
+
 		Array process (ref string query, Node node)
 		{
 			Array res = new Array ();
 					string sub = null;
-			
+
 			if (query[0] == '.')
 			{
 				if (query.length > 2 && query[1] == '.')
@@ -106,9 +106,9 @@ namespace Json {
 			}
 			return res;
 		}
-		
+
 		public Node root { private get; construct; }
-		
+
 		public Array result { get; private set; }
 	}
 }

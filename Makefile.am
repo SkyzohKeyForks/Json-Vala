@@ -7,7 +7,7 @@ DOC_SUBDIR = \
 	$(NULL)
 endif
 
-SUBDIRS = mee src $(DOC_SUBDIR)
+SUBDIRS = src $(DOC_SUBDIR)
 
 dist_doc_DATA = \
 	README \
@@ -17,7 +17,7 @@ dist_doc_DATA = \
 	INSTALL \
 	NEWS
 
-all: update_submodules all-recursive
+all: all-recursive
 
 # Remove doc directory on uninstall
 uninstall-local:

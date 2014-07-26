@@ -1,30 +1,21 @@
 namespace Json {
-	public class Generator : GLib.Object
-	{
-		public string? to_data()
-		{
-			if (root == null)
-				return null;
-			return pretty ? root.dump ((int)indent) : root.to_string();
+	public class Generator {
+		public uint indent { set; get; }
+		public char indent_char { set; get; }
+		public bool pretty { set; get; }
+		public Json.Node root { set; get; }
+
+		public string to_data() {
+			return root.to_data (indent, indent_char, pretty);
 		}
 
-		public bool to_file (File file) throws GLib.Error
-		{
-			var stream = file.create (FileCreateFlags.REPLACE_DESTINATION);
-			return to_stream (stream);
+		public void to_stream (GLib.OutputStream stream, GLib.Cancellable? cancellable = null) throws GLib.Error {
+			stream.write (to_data().data, cancellable);
 		}
 
-		public bool to_stream (OutputStream stream) throws GLib.Error
-		{
-			var data = to_data();
-			if (data == null)
-				return false;
-			stream.write (data.data);
-			return true;
+		public void to_file (string path) throws GLib.Error {
+			var stream = File.new_for_path (path).create (FileCreateFlags.NONE);
+			to_stream (stream);
 		}
-		
-		public uint indent { get; set; }
-		public bool pretty { get; set; }
-		public Node root { get; set; }
 	}
 }

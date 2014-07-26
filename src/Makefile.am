@@ -8,8 +8,7 @@ AM_CPPFLAGS = \
 	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
 	$(JSON_VALA_CFLAGS)
 
-AM_CFLAGS = -I ../mee/src\
-	 -Wall\
+AM_CFLAGS = -Wall\
 	 -g
 
 lib_LTLIBRARIES = libjson-vala.la
@@ -17,27 +16,26 @@ lib_LTLIBRARIES = libjson-vala.la
 vapidir = $(datadir)/vala/vapi
 dist_vapi_DATA = json-vala.vapi json-vala.deps
 
-libjson_vala_la_SOURCES = node.vala \
-	object.vala \
-	json.vala \
-	array.vala \
-	parser.vala \
-	path.vala \
+libjson_vala_la_SOURCES = array.vala \
+	error.vala \
 	generator.vala \
-	builder.vala \
-	reader.vala \
-	serialize.vala \
-	../mee/src/mee-1.0.vapi
+	node.vala \
+	object.vala \
+	parser.vala \
+	property.vala \
+	scanner.vala \
+	serializer.vala \
+	path.vala
 
 libjson_vala_la_LDFLAGS = 
 	
 libjson_vala_la_VALAFLAGS =  --pkg gio-2.0 --pkg gee-0.8 \
 	--library json-vala --vapi json-vala.vapi -H json-vala.h
 
-libjson_vala_la_LIBADD = $(JSON_VALA_LIBS) ../mee/src/libmee.la
+libjson_vala_la_LIBADD = $(JSON_VALA_LIBS)
 
 
-json_valaincludedir = $(includedir)/json-vala-0.1
+json_valaincludedir = $(includedir)/json-vala-1.0
 json_valainclude_HEADERS = \
 	json-vala.h
 

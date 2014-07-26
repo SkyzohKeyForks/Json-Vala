@@ -1,440 +1,285 @@
 namespace Json {
-	/**
-	 * An object which collect nodes
-	 */
-	public class Array : GLib.Object
-	{
-		Gee.ArrayList<Node> list;
+	public class Array {
+		Gee.ArrayList<Json.Node> list;
 
-		construct {
-			list = new Gee.ArrayList<Node>();
-		}
+		public signal void list_changed (int index, int size, Json.Node val);
 
-		/**
-		 * Constructs a new Json Array , fed with an array of {@link GLib.Value}
-		 */
-		public Array.wrap (Value[] values)
-		{
-			this();
-			add_all (values);
-		}
-
-		internal Array.from_nodes (Node[] nodes)
-		{
-			list = new Gee.ArrayList<Node>.wrap(nodes);
-		}
-
-		/**
-		 * Add an anonymous {@link GLib.Value} to this array.
-		 * @param val a {@link GLib.Value} to be put into array
-		 */
-		public void add (Value val)
-		{
-			if (val.type().is_a(typeof(Node)))	
-				add_element ((Node)val.get_object());
-			else if (val.type().is_a(typeof(Object)))
-				add_object_element ((Object)val.get_object());
-			else if (val.type().is_a(typeof(Array)))
-				add_array_element ((Array)val.get_object());
-			else if (val.type() == typeof(DateTime))
-				add_datetime_element ((DateTime)val.get_boxed());
-			else if (val.type() == typeof(bool))
-				add_boolean_element (val.get_boolean());
-			else if (val.type() == typeof(double))
-				add_double_element (val.get_double());
-			else if (val.type() == typeof(int64))
-				add_int_element (val.get_int64());
-			else if (val.type() == typeof(uint64))
-				add_int_element ((int64)val.get_uint64());
-			else if (val.type() == typeof(long))
-				add_int_element ((int64)val.get_long());
-			else if (val.type() == typeof(ulong))
-				add_int_element ((int64)val.get_ulong());
-			else if (val.type() == typeof(int))
-				add_int_element ((int64)val.get_int());
-			else if (val.type() == typeof(uint))
-				add_int_element ((int64)val.get_uint());
-			else if (val.type() == typeof(string))
-				add_string_element (val.get_string());
-			else
-				add_null_element ();
-		}
-
-		/**
-		 * Add an array of {@link GLib.Value} to this array.
-		 * @param values an array of {@link GLib.Value} to be put into array
-		 */
-		public void add_all (Value[] values)
-		{
-			foreach (var gval in values)
-				add (gval);
-		}
-
-		/**
-		 * Add an {@link Array} to this array.
-		 * @param val an {@link Array} to be put into array
-		 */
-		public void add_array_element (Array val)
-		{
-			add_element (new Node (val.to_string()));
-		}
-
-		/**
-		 * Add a {@link bool} to this array. 
-		 * @param val a {@link bool} to be put into array
-		 */
-		public void add_boolean_element (bool val)
-		{
-			add_element (new Node (val.to_string()));
-		}
-
-		/**
-		 * Add a {@link GLib.DateTime} to this array.
-		 * @param val a {@link GLib.DateTime} to be put into array
-		 */
-		public void add_datetime_element (DateTime val)
-		{
-			TimeVal tv;
-			val.to_timeval (out tv);
-			add_string_element (tv.to_iso8601());
-		}
-
-		/**
-		 * Add a {@link double} to this array.
-		 * @param val a {@link double} to be put into array
-		 */
-		public void add_double_element (double val)
-		{
-			add_element (new Node (val.to_string()));
+		public Array() {
+			list = new Gee.ArrayList<Json.Node>();
 		}
 		
-		/**
-		 * Add an {@link int64} to this array.
-		 * @param val an {@link int64} to be put into array
-		 */
-		public void add_int_element (int64 val)
-		{
-			var n = new Node (val.to_string());
-			add_element (n);
+		public static Array parse (string json) throws GLib.Error {
+			var parser = new Parser();
+			parser.load_from_string (json);
+			if (parser.root.node_type != NodeType.ARRAY)
+				throw new Json.Error.TYPE ("provided data isn't an array.\n");
+			return parser.root.array;
+		}
+		
+		public static Array from_values (GLib.Value[] values) throws GLib.Error {
+			var array = new Array();
+			array.add_values (values);
+			return array;
 		}
 
-		/**
-		 * Add a {@link Node} to this array.
-		 * @param node a {@link Node} to be put into array
-		 */
-		public void add_element (Node node)
-		{
-			list.add (node);
+		public void add_element (Json.Node val) {
+			list.add (val);
+			list_changed (size - 1, size, val);
 		}
-		/**
-		 * Add a null element to this array.
-		 */
-		public void add_null_element ()
-		{
-			add_element (new Node ("null"));
-		}
-		/**
-		 * Add an {@link Object} to this array.
-		 * @param val an {@link Object} to be put into array
-		 */
-		public void add_object_element (Object val)
-		{
-			add_element (new Node (val.to_string()));
-		}
-		/**
-		 * Add a {@link string} to this array.
-		 * @param val a {@link string} to be put into array
-		 */
-		public void add_string_element (string val)
-		{
-			try {
-				get_valid_id ("\""+val+"\"");
-				add_element (new Node ("\""+val+"\""));
-			} catch {
-
+		
+		public void add (GLib.Value val) throws GLib.Error {
+			var jval = new Json.Node();
+			if (val.type() == typeof (bool))
+				jval.boolean = (bool)val;
+			else if (val.type() == typeof (int64))
+				jval.integer = (int64)val;
+			else if (val.type() == typeof (uint64))
+				jval.integer = (int64)((uint64)val);
+			else if (val.type() == typeof (int))
+				jval.integer = (int64)((int)val);
+			else if (val.type() == typeof (uint))
+				jval.integer = (int64)((uint)val);
+			else if (val.type() == typeof (long))
+				jval.integer = (int64)((long)val);
+			else if (val.type() == typeof (ulong))
+				jval.integer = (int64)((long)val);
+			else if (val.type() == typeof (double))
+				jval.number = (double)val;
+			else if (val.type() == typeof (float))
+				jval.number = (double)((float)val);
+			else if (val.type() == typeof (DateTime)) {
+				jval.str = "\"" + ((DateTime)val).to_string() + "\"";
 			}
-		}
-		/**
-		 * pretty print of current array.
-		 * @param indent level of indentation.
-		 * 
-		 * @return the string representation of current array.
-		 */
-		public string dump(int indent = 0){
-			if(list.size == 0)
-				return "[]";
-			string ind = "";
-			for(var i = 0; i < indent; i++)
-				ind += "\t";
-			string s = "["+ind+"\n";
-			for (var i = 0; i < list.size - 1; i++)
-				s += ind+"\t"+list[i].dump (indent+1) + " ,\n";
-			s += ind+"\t"+list[list.size - 1].dump (indent+1)+"\n";
-			s += ind+"]";
-			return s;
+			else if (val.type().is_a (typeof (Json.Node)))
+				jval = (Json.Node)val;
+			else if (val.type().is_a (typeof (Json.Object)))
+				jval.object = (Json.Object)val;
+			else if (val.type().is_a (typeof (Json.Array)))
+				jval.array = (Json.Array)val;
+			else if (val.type() == typeof (string)) {
+				string str = (string)val;
+				if (!is_valid_string (str))
+					throw new Json.Error.INVALID ("invalid string value.\n");
+				jval.str = "\"" + str + "\"";
+			}
+			else
+				jval.isnull = true;
+			list.add (jval);
+			list_changed (size - 1, size, jval);
 		}
 
-		public new Node get (int index)
-		{
-			if (index < 0 || index >= list.size)
-				return new Node("null");
+		public void add_values (GLib.Value[] values) throws GLib.Error {
+			foreach (GLib.Value val in values)
+				add (val);
+		}
+
+		public void add_datetime_element (DateTime date) throws GLib.Error {
+			add_string_element (date.to_string());
+		}
+		
+		public void add_string_element (string str) throws GLib.Error {
+			if (!is_valid_string (str))
+				throw new Json.Error.INVALID ("current string isn't valid.\n");
+			var val = new Json.Node();
+			val.str = "\"%s\"".printf (str);
+			add_element (val);
+		}
+
+		public void add_array_element (Json.Array array) {
+			var val = new Json.Node();
+			val.array = array;
+			add_element (val);
+		}
+
+		public void add_object_element (Json.Object object) {
+			var val = new Json.Node();
+			val.object = object;
+			add_element (val);
+		}
+
+		public void add_double_element (double number) {
+			var val = new Json.Node();
+			val.number = number;
+			add_element (val);
+		}
+
+		public void add_boolean_element (bool boolean) {
+			var val = new Json.Node();
+			val.boolean = boolean;
+			add_element (val);
+		}
+
+		public void add_null_element() {
+			var val = new Json.Node();
+			val.isnull = true;
+			add_element (val);
+		}
+
+		public delegate void ForeachFunc (Json.Node val);
+
+		public void foreach(ForeachFunc func) {
+			for (var i = 0; i < size; i++)
+				func (list[i]);
+		}
+
+		public int index_of (Json.Node val) {
+			return list.index_of (val);
+		}
+
+		public void insert (int index, Json.Node val) {
+			list.insert (index, val);
+			list_changed (index, size, val);
+		}
+
+		public Json.Node get (int index) throws GLib.Error {
+			if (index < 0 || index >= size)
+				throw new Json.Error.INVALID ("index is out of bounds.\n");
 			return list[index];
 		}
 
-		public Array? get_array_element (int index)
-		{
-			var node = get_element (index);
-			if (node == null)
-				return null;
-			return node.as_array();
+		public Json.Array get_array_element (int index) throws GLib.Error {
+			var val = this[index];
+			if (val.array == null)
+				throw new Json.Error.INVALID ("the element isn't an array.\n");
+			return val.array;
 		}
 
-		public bool get_boolean_element (int index)
-		{
-			var node = get_element (index);
-			if (node == null)
-				return false;
-			return node.as_boolean();
+		public Json.Object get_object_element (int index) throws GLib.Error {
+			var val = this[index];
+			if (val.object == null)
+				throw new Json.Error.INVALID ("the element isn't an object.\n");
+			return val.object;
 		}
 
-		public DateTime? get_datetime_element (int index)
-		{
-			var node = get_element (index);
-			if (node == null)
-				return null;
-			return node.as_datetime();
+		public double get_double_element (int index) throws GLib.Error {
+			var val = this[index];
+			if (val.number == null)
+				throw new Json.Error.INVALID ("the element isn't a double.\n");
+			return val.number;
 		}
 
-		public double get_double_element (int index)
-		{
-			var node = get_element (index);
-			if (node == null)
-				return -1;
-			return node.as_double();
+		public bool get_boolean_element (int index) throws GLib.Error {
+			var val = this[index];
+			if (val.boolean == null)
+				throw new Json.Error.INVALID ("the element isn't a boolean.\n");
+			return val.boolean;
 		}
 
-		public Node? get_element (int index)
-		{
-			return this[index];
+		public DateTime get_datetime_element (int index) throws GLib.Error {
+			var val = this[index];
+			var tv = TimeVal();
+			if (val.str == null || !tv.from_iso8601 (val.str))
+				throw new Json.Error.INVALID ("the element isn't a datetime.\n");
+			return new DateTime.from_timeval_utc (tv);
 		}
 
-		public int64 get_int_element (int index)
-		{
-			var node = get_element (index);
-			if (node == null)
-				return -1;
-			return node.as_int();
+		public string get_string_element (int index) throws GLib.Error {
+			var val = this[index];
+			if (val.str == null)
+				throw new Json.Error.INVALID ("the element isn't a string.\n");
+			return val.str;
 		}
 
-		public bool get_null_element (int index)
-		{
-			var node = get_element (index);
-			if (node == null)
-				return false;
-			return node.is_null();
+		public bool get_null_element (int index) throws GLib.Error {
+			var val = this[index];
+			if (val.isnull != true)
+				throw new Json.Error.INVALID ("the element isn't null.\n");
+			return true;
 		}
 
-		public Object? get_object_element (int index)
-		{
-			var node = get_element (index);
-			if (node == null)
-				return null;
-			return node.as_object();
+		public void remove_element (int index) {
+			var val = list.remove_at (index);
+			list_changed (index, size, val);
 		}
 
-		public string? get_string_element (int index)
-		{
-			var node = get_element (index);
-			if (node == null)
-				return null;
-			return node.as_string();
+		public void set_element (int index, Json.Node val) throws GLib.Error {
+			if (index < 0 || index >= size)
+				throw new Json.Error.INVALID ("index is out of bounds.\n");
+			list[index] = val;
+			list_changed (index, size, val);
 		}
 
-		public void remove_at (int index)
-		{
-			list.remove_at (index);
+		public void set_object_element (int index, Json.Object object) throws GLib.Error {
+			var val = new Json.Node();
+			val.object = object;
+			set_element (index, val);
 		}
 
-		public new void set (int index, Value val)
-		{
-			if (val.type().is_a(typeof(Node)))	
-				set_element (index, (Node)val.get_object());
-			else if (val.type().is_a(typeof(Object)))
-				set_object_element (index, (Object)val.get_object());
-			else if (val.type().is_a(typeof(Array)))
-				set_array_element (index, (Array)val.get_object());
-			else if (val.type() == typeof(DateTime))
-				set_datetime_element (index, (DateTime)val.get_boxed());
-			else if (val.type() == typeof(bool))
-				set_boolean_element (index, val.get_boolean());
-			else if (val.type() == typeof(double))
-				set_double_element (index, val.get_double());
-			else if (val.type() == typeof(int64))
-				set_int_element (index, val.get_int64());
-			else if (val.type() == typeof(uint64))
-				set_int_element (index, (int64)val.get_uint64());
-			else if (val.type() == typeof(long))
-				set_int_element (index, (int64)val.get_long());
-			else if (val.type() == typeof(ulong))
-				set_int_element (index, (int64)val.get_ulong());
-			else if (val.type() == typeof(int))
-				set_int_element (index, (int64)val.get_int());
-			else if (val.type() == typeof(uint))
-				set_int_element (index, (int64)val.get_uint());
-			else if (val.type() == typeof(string))
-				set_string_element (index, val.get_string());
-			else
-				set_null_element (index);
-		}
-
-		public void set_array_element (int index, Array val)
-		{
-			set_element (index, new Node (val.to_string()));
-		}
-
-		public void set_boolean_element (int index, bool val)
-		{
-			set_element (index, new Node (val.to_string()));
-		}
-
-		public void set_datetime_element (int index, DateTime val)
-		{
-			TimeVal tv;
-			val.to_timeval (out tv);
-			set_string_element (index, tv.to_iso8601());
-		}
-
-		public void set_double_element (int index, double val)
-		{
-			set_element (index, new Node (val.to_string()));
-		}
-
-		public void set_element (int index, Node node)
-		{
-			if (index < 0 || index >= list.size)
-				return;
-			list[index] = node;
-		}
-
-		public void set_int_element (int index, int64 val)
-		{
-			set_element (index, new Node (val.to_string()));
-		}
-
-		public void set_null_element (int index)
-		{
-			set_element (index, new Node ("null"));
-		}
-
-		public void set_object_element (int index, Object val)
-		{
-			set_element (index, new Node (val.to_string()));
-		}
-
-		public void set_string_element (int index, string val)
-		{
-			try {
-				get_valid_id ("\""+val+"\"");
-				set_element (index, new Node (val.to_string()));
-			} catch {}
-		}
-
-		public Array slice (int start, int stop)
-		{
-			var array = new Array();
-			foreach (Node node in list.slice (start, stop))
-				array.add_element (node);
-			return array;
+		public void set_array_element (int index, Json.Array array) throws GLib.Error {
+			var val = new Json.Node();
+			val.array = array;
+			set_element (index, val);
 		}
 		
-		public string to_string()
-		{
-			if (list.size == 0)
+		public void set_string_element (int index, string str) throws GLib.Error {
+			var val = new Json.Node();
+			if (!is_valid_string (str))
+				throw new Json.Error.INVALID ("string is invalid.\n");
+			val.str = "\"" + str + "\"";
+			set_element (index, val);
+		}
+
+		public void set_datetime_element (int index, DateTime date) throws GLib.Error {
+			set_string_element (index, date.to_string());
+		}
+
+		public void set_double_element (int index, double number) throws GLib.Error {
+			var val = new Json.Node();
+			val.number = number;
+			set_element (index, val);
+		}
+
+		public void set_integer_element (int index, int64 integer) throws GLib.Error {
+			var val = new Json.Node();
+			val.integer = integer;
+			set_element (index, val);
+		}
+
+		public void set_boolean_element (int index, bool boolean) throws GLib.Error {
+			var val = new Json.Node();
+			val.boolean = boolean;
+			set_element (index, val);
+		}
+
+		public void set_null_element (int index) throws GLib.Error {
+			var val = new Json.Node();
+			val.isnull = true;
+			set_element (index, val);
+		}
+
+		public string to_string() {
+			if (size == 0)
 				return "[]";
-			string s = "[ ";
-			for (var i = 0; i < list.size - 1; i++)
-				s += list[i].to_string()+", ";
-			s += list[list.size - 1].to_string()+" ]";
+			string s = "[";
+			for (var i = 0; i < size - 1; i++)
+				s += list[i].to_string() + ",";
+			s += list[size - 1].to_string() + "]";
 			return s;
+		}
+
+		internal string to_data (uint indent, char indent_char, bool pretty) {
+			if (size == 0)
+				return "[]";
+			var sb = new StringBuilder("[\n");
+			for (var i = 0; i < size - 1; i++) {
+				for (var j = 0; j < indent; j++)
+					sb.append_c (indent_char);
+				sb.append (list[i].to_data (indent + 1, indent_char, pretty));
+				sb.append (",\n");
+			}
+			for (var j = 0; j < indent; j++)
+				sb.append_c (indent_char);
+			sb.append (list[size - 1].to_data (indent + 1, indent_char, pretty) + "\n");
+			for (var j = 0; j < indent - 1; j++)
+				sb.append_c (indent_char);
+			sb.append ("]");
+			return sb.str;
 		}
 
 		public int size {
 			get {
 				return list.size;
 			}
-		}
-
-		public static Array parse (string data) throws GLib.Error
-		{
-			int pos = 0;
-			return parse_internal (data, ref pos);
-		}
-
-		internal static Array parse_internal (string str, ref int position) throws GLib.Error
-		{
-			var array = new Array();
-			while (str[position].isspace())
-				position++;
-			if (str[position] != '[')
-				throw new JsonError.NOT_FOUND ("'[' character can't be found.");
-			position++;
-			while (str[position].isspace())
-				position++;
-			if (str[position] == ']')
-			{
-				position++;
-				while (str[position].isspace())
-					position++;
-				return array;
-			}
-			while (position < str.length)
-			{
-				if (str[position] == '[')
-					array.add (new Node (Array.parse_internal (str, ref position).to_string ()));
-				else if (str[position] == '{')
-					array.add (new Node (Object.parse_internal (str, ref position).to_string ()));
-				else if (str[position] == '"' || str[position] == '\'')
-				{
-					var id = get_valid_id (str, position);
-					position += id.length + 2;
-					while (str[position].isspace())
-						position++;
-					array.add (new Node ("\"%s\"".printf (id)));
-				}
-				else
-				{
-					int a = str.index_of ("]", position);
-					int b = str.index_of (",", position);
-					int c = b < a && b != -1 ? b : a;
-					if(c == -1)
-						throw new JsonError.NOT_FOUND ("end of element not found");
-					while (str[position].isspace())
-						position++;
-					var val = str.substring (position, c - position);
-					position += val.length;
-					while (val[val.length - 1].isspace())
-						val = val.substring (0, val.length - 1);
-					if(val != "false" && val != "true" && val != "null"){
-						double d = -1;
-						if(double.try_parse (val,out d) == false){
-							print ("pos: %lld / %lld\n", position, str.length);
-							throw new JsonError.TYPE ("invalid value (%s)".printf (str.substring (position)));
-						}
-					}
-					array.add(new Node (val));
-					while (str[position].isspace())
-						position++;
-				}
-				if(str[position] != ',' && str[position] != ']')
-					throw new JsonError.TYPE ("invalid end of element : "+str);
-					bool end = (str[position] == ']') ? true : false;
-					position ++;
-					while (str[position].isspace())
-						position++;
-					if (end)
-						break;
-			}
-			return array;
 		}
 	}
 }

@@ -82,8 +82,8 @@ build_triplet = @build@
 host_triplet = @host@
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
-	$(srcdir)/json-vala.pc.in node.c object.c json.c array.c \
-	parser.c path.c generator.c builder.c reader.c serialize.c \
+	$(srcdir)/json-vala.pc.in array.c error.c generator.c node.c \
+	object.c parser.c property.c scanner.c serializer.c \
 	$(top_srcdir)/depcomp $(srcdir)/json-vala.vapi \
 	$(srcdir)/json-vala.h $(srcdir)/libjson_vala_la_vala.stamp \
 	$(dist_vapi_DATA) $(json_valainclude_HEADERS)
@@ -126,11 +126,9 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(vapidir)" \
 	"$(DESTDIR)$(pkgconfigdir)" "$(DESTDIR)$(json_valaincludedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
-libjson_vala_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	../mee/src/libmee.la
-am_libjson_vala_la_OBJECTS = node.lo object.lo json.lo array.lo \
-	parser.lo path.lo generator.lo builder.lo reader.lo \
-	serialize.lo
+libjson_vala_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
+am_libjson_vala_la_OBJECTS = array.lo error.lo generator.lo node.lo \
+	object.lo parser.lo property.lo scanner.lo serializer.lo
 libjson_vala_la_OBJECTS = $(am_libjson_vala_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -338,31 +336,28 @@ AM_CPPFLAGS = \
 	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
 	$(JSON_VALA_CFLAGS)
 
-AM_CFLAGS = -I ../mee/src\
-	 -Wall\
+AM_CFLAGS = -Wall\
 	 -g
 
 lib_LTLIBRARIES = libjson-vala.la
 vapidir = $(datadir)/vala/vapi
 dist_vapi_DATA = json-vala.vapi json-vala.deps
-libjson_vala_la_SOURCES = node.vala \
-	object.vala \
-	json.vala \
-	array.vala \
-	parser.vala \
-	path.vala \
+libjson_vala_la_SOURCES = array.vala \
+	error.vala \
 	generator.vala \
-	builder.vala \
-	reader.vala \
-	serialize.vala \
-	../mee/src/mee-1.0.vapi
+	node.vala \
+	object.vala \
+	parser.vala \
+	property.vala \
+	scanner.vala \
+	serializer.vala
 
 libjson_vala_la_LDFLAGS = 
 libjson_vala_la_VALAFLAGS = --pkg gio-2.0 --pkg gee-0.8 \
 	--library json-vala --vapi json-vala.vapi -H json-vala.h
 
-libjson_vala_la_LIBADD = $(JSON_VALA_LIBS) ../mee/src/libmee.la
-json_valaincludedir = $(includedir)/json-vala-0.1
+libjson_vala_la_LIBADD = $(JSON_VALA_LIBS)
+json_valaincludedir = $(includedir)/json-vala-1.0
 json_valainclude_HEADERS = \
 	json-vala.h
 
@@ -455,15 +450,14 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/array.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/builder.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/error.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/generator.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/json.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/node.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/object.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parser.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/path.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/reader.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/serialize.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/property.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scanner.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/serializer.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -485,6 +479,21 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+$(srcdir)/array.c: $(srcdir)/libjson_vala_la_vala.stamp
+	@if test -f $@; then :; else rm -f $(srcdir)/libjson_vala_la_vala.stamp; fi
+	@if test -f $@; then :; else \
+	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/libjson_vala_la_vala.stamp; \
+	fi
+$(srcdir)/error.c: $(srcdir)/libjson_vala_la_vala.stamp
+	@if test -f $@; then :; else rm -f $(srcdir)/libjson_vala_la_vala.stamp; fi
+	@if test -f $@; then :; else \
+	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/libjson_vala_la_vala.stamp; \
+	fi
+$(srcdir)/generator.c: $(srcdir)/libjson_vala_la_vala.stamp
+	@if test -f $@; then :; else rm -f $(srcdir)/libjson_vala_la_vala.stamp; fi
+	@if test -f $@; then :; else \
+	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/libjson_vala_la_vala.stamp; \
+	fi
 $(srcdir)/node.c: $(srcdir)/libjson_vala_la_vala.stamp
 	@if test -f $@; then :; else rm -f $(srcdir)/libjson_vala_la_vala.stamp; fi
 	@if test -f $@; then :; else \
@@ -495,42 +504,22 @@ $(srcdir)/object.c: $(srcdir)/libjson_vala_la_vala.stamp
 	@if test -f $@; then :; else \
 	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/libjson_vala_la_vala.stamp; \
 	fi
-$(srcdir)/json.c: $(srcdir)/libjson_vala_la_vala.stamp
-	@if test -f $@; then :; else rm -f $(srcdir)/libjson_vala_la_vala.stamp; fi
-	@if test -f $@; then :; else \
-	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/libjson_vala_la_vala.stamp; \
-	fi
-$(srcdir)/array.c: $(srcdir)/libjson_vala_la_vala.stamp
-	@if test -f $@; then :; else rm -f $(srcdir)/libjson_vala_la_vala.stamp; fi
-	@if test -f $@; then :; else \
-	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/libjson_vala_la_vala.stamp; \
-	fi
 $(srcdir)/parser.c: $(srcdir)/libjson_vala_la_vala.stamp
 	@if test -f $@; then :; else rm -f $(srcdir)/libjson_vala_la_vala.stamp; fi
 	@if test -f $@; then :; else \
 	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/libjson_vala_la_vala.stamp; \
 	fi
-$(srcdir)/path.c: $(srcdir)/libjson_vala_la_vala.stamp
+$(srcdir)/property.c: $(srcdir)/libjson_vala_la_vala.stamp
 	@if test -f $@; then :; else rm -f $(srcdir)/libjson_vala_la_vala.stamp; fi
 	@if test -f $@; then :; else \
 	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/libjson_vala_la_vala.stamp; \
 	fi
-$(srcdir)/generator.c: $(srcdir)/libjson_vala_la_vala.stamp
+$(srcdir)/scanner.c: $(srcdir)/libjson_vala_la_vala.stamp
 	@if test -f $@; then :; else rm -f $(srcdir)/libjson_vala_la_vala.stamp; fi
 	@if test -f $@; then :; else \
 	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/libjson_vala_la_vala.stamp; \
 	fi
-$(srcdir)/builder.c: $(srcdir)/libjson_vala_la_vala.stamp
-	@if test -f $@; then :; else rm -f $(srcdir)/libjson_vala_la_vala.stamp; fi
-	@if test -f $@; then :; else \
-	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/libjson_vala_la_vala.stamp; \
-	fi
-$(srcdir)/reader.c: $(srcdir)/libjson_vala_la_vala.stamp
-	@if test -f $@; then :; else rm -f $(srcdir)/libjson_vala_la_vala.stamp; fi
-	@if test -f $@; then :; else \
-	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/libjson_vala_la_vala.stamp; \
-	fi
-$(srcdir)/serialize.c: $(srcdir)/libjson_vala_la_vala.stamp
+$(srcdir)/serializer.c: $(srcdir)/libjson_vala_la_vala.stamp
 	@if test -f $@; then :; else rm -f $(srcdir)/libjson_vala_la_vala.stamp; fi
 	@if test -f $@; then :; else \
 	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/libjson_vala_la_vala.stamp; \
@@ -545,9 +534,9 @@ $(srcdir)/json-vala.h: $(srcdir)/libjson_vala_la_vala.stamp
 	@if test -f $@; then :; else \
 	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/libjson_vala_la_vala.stamp; \
 	fi
-$(srcdir)/libjson_vala_la_vala.stamp: node.vala object.vala json.vala array.vala parser.vala path.vala generator.vala builder.vala reader.vala serialize.vala ../mee/src/mee-1.0.vapi
+$(srcdir)/libjson_vala_la_vala.stamp: array.vala error.vala generator.vala node.vala object.vala parser.vala property.vala scanner.vala serializer.vala
 	$(AM_V_at)rm -f $@ && echo stamp > $@-t
-	$(AM_V_VALAC)$(am__cd) $(srcdir) && $(VALAC) $(libjson_vala_la_VALAFLAGS) $(VALAFLAGS) -C node.vala object.vala json.vala array.vala parser.vala path.vala generator.vala builder.vala reader.vala serialize.vala ../mee/src/mee-1.0.vapi
+	$(AM_V_VALAC)$(am__cd) $(srcdir) && $(VALAC) $(libjson_vala_la_VALAFLAGS) $(VALAFLAGS) -C array.vala error.vala generator.vala node.vala object.vala parser.vala property.vala scanner.vala serializer.vala
 	$(AM_V_at)mv -f $@-t $@
 
 mostlyclean-libtool:
@@ -741,28 +730,26 @@ maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 	-rm -f $(srcdir)/array.c
-	-rm -f $(srcdir)/builder.c
+	-rm -f $(srcdir)/error.c
 	-rm -f $(srcdir)/generator.c
 	-rm -f $(srcdir)/json-vala.h
 	-rm -f $(srcdir)/json-vala.vapi
-	-rm -f $(srcdir)/json.c
 	-rm -f $(srcdir)/libjson_vala_la_vala.stamp
 	-rm -f $(srcdir)/node.c
 	-rm -f $(srcdir)/object.c
 	-rm -f $(srcdir)/parser.c
-	-rm -f $(srcdir)/path.c
-	-rm -f $(srcdir)/reader.c
-	-rm -f $(srcdir)/serialize.c
+	-rm -f $(srcdir)/property.c
+	-rm -f $(srcdir)/scanner.c
+	-rm -f $(srcdir)/serializer.c
 	-rm -f array.c
-	-rm -f builder.c
+	-rm -f error.c
 	-rm -f generator.c
-	-rm -f json.c
 	-rm -f node.c
 	-rm -f object.c
 	-rm -f parser.c
-	-rm -f path.c
-	-rm -f reader.c
-	-rm -f serialize.c
+	-rm -f property.c
+	-rm -f scanner.c
+	-rm -f serializer.c
 clean: clean-am
 
 clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \

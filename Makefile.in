@@ -179,7 +179,7 @@ am__define_uniq_tagged_files = \
 ETAGS = etags
 CTAGS = ctags
 CSCOPE = cscope
-DIST_SUBDIRS = mee src doc
+DIST_SUBDIRS = src doc
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -347,7 +347,7 @@ top_srcdir = @top_srcdir@
 @ENABLE_DOC_TRUE@	doc \
 @ENABLE_DOC_TRUE@	$(NULL)
 
-SUBDIRS = mee src $(DOC_SUBDIR)
+SUBDIRS = src $(DOC_SUBDIR)
 dist_doc_DATA = \
 	README \
 	COPYING \
@@ -795,7 +795,7 @@ uninstall-am: uninstall-dist_docDATA uninstall-local
 	uninstall-am uninstall-dist_docDATA uninstall-local
 
 
-all: update_submodules all-recursive
+all: all-recursive
 
 # Remove doc directory on uninstall
 uninstall-local:
