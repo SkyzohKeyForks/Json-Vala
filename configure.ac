@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-dnl Created by Anjuta application wizard.
+dnl Created by Anjuta application wizard. 
 
 AC_INIT(json-vala, 1.0)
 
