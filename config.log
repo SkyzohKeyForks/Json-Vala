@@ -140,96 +140,95 @@ configure:4039: result: ar
 configure:4062: checking for valac
 configure:4080: found /usr/bin/valac
 configure:4093: result: /usr/bin/valac
-configure:4133: "Codename:	utopic"
-configure:4231: checking build system type
-configure:4245: result: i686-pc-linux-gnu
-configure:4265: checking host system type
-configure:4278: result: i686-pc-linux-gnu
-configure:4319: checking how to print strings
-configure:4346: result: printf
-configure:4367: checking for a sed that does not truncate output
-configure:4431: result: /bin/sed
-configure:4449: checking for grep that handles long lines and -e
-configure:4507: result: /bin/grep
-configure:4512: checking for egrep
-configure:4574: result: /bin/grep -E
-configure:4579: checking for fgrep
-configure:4641: result: /bin/grep -F
-configure:4676: checking for ld used by gcc
-configure:4743: result: /usr/bin/ld
-configure:4750: checking if the linker (/usr/bin/ld) is GNU ld
-configure:4765: result: yes
-configure:4777: checking for BSD- or MS-compatible name lister (nm)
-configure:4826: result: /usr/bin/nm -B
-configure:4956: checking the name lister (/usr/bin/nm -B) interface
-configure:4963: gcc -c -g -O2  conftest.c >&5
-configure:4966: /usr/bin/nm -B "conftest.o"
-configure:4969: output
+configure:4227: checking build system type
+configure:4241: result: i686-pc-linux-gnu
+configure:4261: checking host system type
+configure:4274: result: i686-pc-linux-gnu
+configure:4315: checking how to print strings
+configure:4342: result: printf
+configure:4363: checking for a sed that does not truncate output
+configure:4427: result: /bin/sed
+configure:4445: checking for grep that handles long lines and -e
+configure:4503: result: /bin/grep
+configure:4508: checking for egrep
+configure:4570: result: /bin/grep -E
+configure:4575: checking for fgrep
+configure:4637: result: /bin/grep -F
+configure:4672: checking for ld used by gcc
+configure:4739: result: /usr/bin/ld
+configure:4746: checking if the linker (/usr/bin/ld) is GNU ld
+configure:4761: result: yes
+configure:4773: checking for BSD- or MS-compatible name lister (nm)
+configure:4822: result: /usr/bin/nm -B
+configure:4952: checking the name lister (/usr/bin/nm -B) interface
+configure:4959: gcc -c -g -O2  conftest.c >&5
+configure:4962: /usr/bin/nm -B "conftest.o"
+configure:4965: output
 00000000 B some_variable
-configure:4976: result: BSD nm
-configure:4979: checking whether ln -s works
-configure:4983: result: yes
-configure:4991: checking the maximum length of command line arguments
-configure:5122: result: 1572864
-configure:5139: checking whether the shell understands some XSI constructs
-configure:5149: result: yes
-configure:5153: checking whether the shell understands "+="
-configure:5159: result: yes
-configure:5194: checking how to convert i686-pc-linux-gnu file names to i686-pc-linux-gnu format
-configure:5234: result: func_convert_file_noop
-configure:5241: checking how to convert i686-pc-linux-gnu file names to toolchain format
-configure:5261: result: func_convert_file_noop
-configure:5268: checking for /usr/bin/ld option to reload object files
-configure:5275: result: -r
-configure:5349: checking for objdump
-configure:5365: found /usr/bin/objdump
-configure:5376: result: objdump
-configure:5408: checking how to recognize dependent libraries
-configure:5606: result: pass_all
-configure:5691: checking for dlltool
-configure:5721: result: no
-configure:5751: checking how to associate runtime and link libraries
-configure:5778: result: printf %s\n
-configure:5902: checking for archiver @FILE support
-configure:5919: gcc -c -g -O2  conftest.c >&5
-configure:5919: $? = 0
-configure:5922: ar cru libconftest.a @conftest.lst >&5
-configure:5925: $? = 0
-configure:5930: ar cru libconftest.a @conftest.lst >&5
+configure:4972: result: BSD nm
+configure:4975: checking whether ln -s works
+configure:4979: result: yes
+configure:4987: checking the maximum length of command line arguments
+configure:5118: result: 1572864
+configure:5135: checking whether the shell understands some XSI constructs
+configure:5145: result: yes
+configure:5149: checking whether the shell understands "+="
+configure:5155: result: yes
+configure:5190: checking how to convert i686-pc-linux-gnu file names to i686-pc-linux-gnu format
+configure:5230: result: func_convert_file_noop
+configure:5237: checking how to convert i686-pc-linux-gnu file names to toolchain format
+configure:5257: result: func_convert_file_noop
+configure:5264: checking for /usr/bin/ld option to reload object files
+configure:5271: result: -r
+configure:5345: checking for objdump
+configure:5361: found /usr/bin/objdump
+configure:5372: result: objdump
+configure:5404: checking how to recognize dependent libraries
+configure:5602: result: pass_all
+configure:5687: checking for dlltool
+configure:5717: result: no
+configure:5747: checking how to associate runtime and link libraries
+configure:5774: result: printf %s\n
+configure:5898: checking for archiver @FILE support
+configure:5915: gcc -c -g -O2  conftest.c >&5
+configure:5915: $? = 0
+configure:5918: ar cru libconftest.a @conftest.lst >&5
+configure:5921: $? = 0
+configure:5926: ar cru libconftest.a @conftest.lst >&5
 ar: conftest.o: No such file or directory
-configure:5933: $? = 1
-configure:5945: result: @
-configure:6003: checking for strip
-configure:6019: found /usr/bin/strip
-configure:6030: result: strip
-configure:6102: checking for ranlib
-configure:6118: found /usr/bin/ranlib
-configure:6129: result: ranlib
-configure:6231: checking command to parse /usr/bin/nm -B output from gcc object
-configure:6351: gcc -c -g -O2  conftest.c >&5
-configure:6354: $? = 0
-configure:6358: /usr/bin/nm -B conftest.o \| sed -n -e 's/^.*[ ]\([ABCDGIRSTW][ABCDGIRSTW]*\)[ ][ ]*\([_A-Za-z][_A-Za-z0-9]*\)$/\1 \2 \2/p' | sed '/ __gnu_lto/d' \> conftest.nm
-configure:6361: $? = 0
-configure:6427: gcc -o conftest -g -O2   conftest.c conftstm.o >&5
-configure:6430: $? = 0
-configure:6468: result: ok
-configure:6505: checking for sysroot
-configure:6535: result: no
-configure:6804: checking for mt
-configure:6820: found /bin/mt
-configure:6831: result: mt
-configure:6854: checking if mt is a manifest tool
-configure:6860: mt '-?'
-configure:6868: result: no
-configure:7510: checking how to run the C preprocessor
-configure:7541: gcc -E  conftest.c
-configure:7541: $? = 0
-configure:7555: gcc -E  conftest.c
+configure:5929: $? = 1
+configure:5941: result: @
+configure:5999: checking for strip
+configure:6015: found /usr/bin/strip
+configure:6026: result: strip
+configure:6098: checking for ranlib
+configure:6114: found /usr/bin/ranlib
+configure:6125: result: ranlib
+configure:6227: checking command to parse /usr/bin/nm -B output from gcc object
+configure:6347: gcc -c -g -O2  conftest.c >&5
+configure:6350: $? = 0
+configure:6354: /usr/bin/nm -B conftest.o \| sed -n -e 's/^.*[ ]\([ABCDGIRSTW][ABCDGIRSTW]*\)[ ][ ]*\([_A-Za-z][_A-Za-z0-9]*\)$/\1 \2 \2/p' | sed '/ __gnu_lto/d' \> conftest.nm
+configure:6357: $? = 0
+configure:6423: gcc -o conftest -g -O2   conftest.c conftstm.o >&5
+configure:6426: $? = 0
+configure:6464: result: ok
+configure:6501: checking for sysroot
+configure:6531: result: no
+configure:6800: checking for mt
+configure:6816: found /bin/mt
+configure:6827: result: mt
+configure:6850: checking if mt is a manifest tool
+configure:6856: mt '-?'
+configure:6864: result: no
+configure:7506: checking how to run the C preprocessor
+configure:7537: gcc -E  conftest.c
+configure:7537: $? = 0
+configure:7551: gcc -E  conftest.c
 conftest.c:11:28: fatal error: ac_nonexistent.h: No such file or directory
  #include <ac_nonexistent.h>
                             ^
 compilation terminated.
-configure:7555: $? = 1
+configure:7551: $? = 1
 configure: failed program was:
 | /* confdefs.h */
 | #define PACKAGE_NAME "json-vala"
@@ -242,15 +241,15 @@ configure: failed program was:
 | #define VERSION "1.0"
 | /* end confdefs.h.  */
 | #include <ac_nonexistent.h>
-configure:7580: result: gcc -E
-configure:7600: gcc -E  conftest.c
-configure:7600: $? = 0
-configure:7614: gcc -E  conftest.c
+configure:7576: result: gcc -E
+configure:7596: gcc -E  conftest.c
+configure:7596: $? = 0
+configure:7610: gcc -E  conftest.c
 conftest.c:11:28: fatal error: ac_nonexistent.h: No such file or directory
  #include <ac_nonexistent.h>
                             ^
 compilation terminated.
-configure:7614: $? = 1
+configure:7610: $? = 1
 configure: failed program was:
 | /* confdefs.h */
 | #define PACKAGE_NAME "json-vala"
@@ -263,111 +262,111 @@ configure: failed program was:
 | #define VERSION "1.0"
 | /* end confdefs.h.  */
 | #include <ac_nonexistent.h>
-configure:7643: checking for ANSI C header files
-configure:7663: gcc -c -g -O2  conftest.c >&5
-configure:7663: $? = 0
-configure:7736: gcc -o conftest -g -O2   conftest.c  >&5
-configure:7736: $? = 0
-configure:7736: ./conftest
-configure:7736: $? = 0
-configure:7747: result: yes
-configure:7760: checking for sys/types.h
-configure:7760: gcc -c -g -O2  conftest.c >&5
-configure:7760: $? = 0
-configure:7760: result: yes
-configure:7760: checking for sys/stat.h
-configure:7760: gcc -c -g -O2  conftest.c >&5
-configure:7760: $? = 0
-configure:7760: result: yes
-configure:7760: checking for stdlib.h
-configure:7760: gcc -c -g -O2  conftest.c >&5
-configure:7760: $? = 0
-configure:7760: result: yes
-configure:7760: checking for string.h
-configure:7760: gcc -c -g -O2  conftest.c >&5
-configure:7760: $? = 0
-configure:7760: result: yes
-configure:7760: checking for memory.h
-configure:7760: gcc -c -g -O2  conftest.c >&5
-configure:7760: $? = 0
-configure:7760: result: yes
-configure:7760: checking for strings.h
-configure:7760: gcc -c -g -O2  conftest.c >&5
-configure:7760: $? = 0
-configure:7760: result: yes
-configure:7760: checking for inttypes.h
-configure:7760: gcc -c -g -O2  conftest.c >&5
-configure:7760: $? = 0
-configure:7760: result: yes
-configure:7760: checking for stdint.h
-configure:7760: gcc -c -g -O2  conftest.c >&5
-configure:7760: $? = 0
-configure:7760: result: yes
-configure:7760: checking for unistd.h
-configure:7760: gcc -c -g -O2  conftest.c >&5
-configure:7760: $? = 0
-configure:7760: result: yes
-configure:7774: checking for dlfcn.h
-configure:7774: gcc -c -g -O2  conftest.c >&5
-configure:7774: $? = 0
-configure:7774: result: yes
-configure:7980: checking for objdir
-configure:7995: result: .libs
-configure:8262: checking if gcc supports -fno-rtti -fno-exceptions
-configure:8280: gcc -c -g -O2  -fno-rtti -fno-exceptions conftest.c >&5
+configure:7639: checking for ANSI C header files
+configure:7659: gcc -c -g -O2  conftest.c >&5
+configure:7659: $? = 0
+configure:7732: gcc -o conftest -g -O2   conftest.c  >&5
+configure:7732: $? = 0
+configure:7732: ./conftest
+configure:7732: $? = 0
+configure:7743: result: yes
+configure:7756: checking for sys/types.h
+configure:7756: gcc -c -g -O2  conftest.c >&5
+configure:7756: $? = 0
+configure:7756: result: yes
+configure:7756: checking for sys/stat.h
+configure:7756: gcc -c -g -O2  conftest.c >&5
+configure:7756: $? = 0
+configure:7756: result: yes
+configure:7756: checking for stdlib.h
+configure:7756: gcc -c -g -O2  conftest.c >&5
+configure:7756: $? = 0
+configure:7756: result: yes
+configure:7756: checking for string.h
+configure:7756: gcc -c -g -O2  conftest.c >&5
+configure:7756: $? = 0
+configure:7756: result: yes
+configure:7756: checking for memory.h
+configure:7756: gcc -c -g -O2  conftest.c >&5
+configure:7756: $? = 0
+configure:7756: result: yes
+configure:7756: checking for strings.h
+configure:7756: gcc -c -g -O2  conftest.c >&5
+configure:7756: $? = 0
+configure:7756: result: yes
+configure:7756: checking for inttypes.h
+configure:7756: gcc -c -g -O2  conftest.c >&5
+configure:7756: $? = 0
+configure:7756: result: yes
+configure:7756: checking for stdint.h
+configure:7756: gcc -c -g -O2  conftest.c >&5
+configure:7756: $? = 0
+configure:7756: result: yes
+configure:7756: checking for unistd.h
+configure:7756: gcc -c -g -O2  conftest.c >&5
+configure:7756: $? = 0
+configure:7756: result: yes
+configure:7770: checking for dlfcn.h
+configure:7770: gcc -c -g -O2  conftest.c >&5
+configure:7770: $? = 0
+configure:7770: result: yes
+configure:7976: checking for objdir
+configure:7991: result: .libs
+configure:8258: checking if gcc supports -fno-rtti -fno-exceptions
+configure:8276: gcc -c -g -O2  -fno-rtti -fno-exceptions conftest.c >&5
 cc1: warning: command line option '-fno-rtti' is valid for C++/ObjC++ but not for C
-configure:8284: $? = 0
-configure:8297: result: no
-configure:8624: checking for gcc option to produce PIC
-configure:8631: result: -fPIC -DPIC
-configure:8639: checking if gcc PIC flag -fPIC -DPIC works
-configure:8657: gcc -c -g -O2  -fPIC -DPIC -DPIC conftest.c >&5
-configure:8661: $? = 0
-configure:8674: result: yes
-configure:8703: checking if gcc static flag -static works
-configure:8731: result: yes
-configure:8746: checking if gcc supports -c -o file.o
-configure:8767: gcc -c -g -O2  -o out/conftest2.o conftest.c >&5
-configure:8771: $? = 0
-configure:8793: result: yes
-configure:8801: checking if gcc supports -c -o file.o
-configure:8848: result: yes
-configure:8881: checking whether the gcc linker (/usr/bin/ld) supports shared libraries
-configure:10038: result: yes
-configure:10075: checking whether -lc should be explicitly linked in
-configure:10083: gcc -c -g -O2  conftest.c >&5
-configure:10086: $? = 0
-configure:10101: gcc -shared  -fPIC -DPIC conftest.o  -v -Wl,-soname -Wl,conftest -o conftest 2\>\&1 \| /bin/grep  -lc  \>/dev/null 2\>\&1
-configure:10104: $? = 0
-configure:10118: result: no
-configure:10278: checking dynamic linker characteristics
-configure:10778: gcc -o conftest -g -O2   -Wl,-rpath -Wl,/foo conftest.c  >&5
-configure:10778: $? = 0
-configure:11012: result: GNU/Linux ld.so
-configure:11119: checking how to hardcode library paths into programs
-configure:11144: result: immediate
-configure:11684: checking whether stripping libraries is possible
-configure:11689: result: yes
-configure:11724: checking if libtool supports shared libraries
-configure:11726: result: yes
-configure:11729: checking whether to build shared libraries
-configure:11750: result: yes
-configure:11753: checking whether to build static libraries
-configure:11757: result: yes
-configure:11852: checking for pkg-config
-configure:11870: found /usr/bin/pkg-config
-configure:11882: result: /usr/bin/pkg-config
-configure:11907: checking pkg-config is at least version 0.9.0
-configure:11910: result: yes
-configure:11920: checking for JSON_VALA
-configure:11927: $PKG_CONFIG --exists --print-errors "$pkg_modules"
-configure:11930: $? = 0
-configure:11944: $PKG_CONFIG --exists --print-errors "$pkg_modules"
-configure:11947: $? = 0
-configure:12005: result: yes
-configure:12121: checking that generated files are newer than configure
-configure:12127: result: done
-configure:12154: creating ./config.status
+configure:8280: $? = 0
+configure:8293: result: no
+configure:8620: checking for gcc option to produce PIC
+configure:8627: result: -fPIC -DPIC
+configure:8635: checking if gcc PIC flag -fPIC -DPIC works
+configure:8653: gcc -c -g -O2  -fPIC -DPIC -DPIC conftest.c >&5
+configure:8657: $? = 0
+configure:8670: result: yes
+configure:8699: checking if gcc static flag -static works
+configure:8727: result: yes
+configure:8742: checking if gcc supports -c -o file.o
+configure:8763: gcc -c -g -O2  -o out/conftest2.o conftest.c >&5
+configure:8767: $? = 0
+configure:8789: result: yes
+configure:8797: checking if gcc supports -c -o file.o
+configure:8844: result: yes
+configure:8877: checking whether the gcc linker (/usr/bin/ld) supports shared libraries
+configure:10034: result: yes
+configure:10071: checking whether -lc should be explicitly linked in
+configure:10079: gcc -c -g -O2  conftest.c >&5
+configure:10082: $? = 0
+configure:10097: gcc -shared  -fPIC -DPIC conftest.o  -v -Wl,-soname -Wl,conftest -o conftest 2\>\&1 \| /bin/grep  -lc  \>/dev/null 2\>\&1
+configure:10100: $? = 0
+configure:10114: result: no
+configure:10274: checking dynamic linker characteristics
+configure:10774: gcc -o conftest -g -O2   -Wl,-rpath -Wl,/foo conftest.c  >&5
+configure:10774: $? = 0
+configure:11008: result: GNU/Linux ld.so
+configure:11115: checking how to hardcode library paths into programs
+configure:11140: result: immediate
+configure:11680: checking whether stripping libraries is possible
+configure:11685: result: yes
+configure:11720: checking if libtool supports shared libraries
+configure:11722: result: yes
+configure:11725: checking whether to build shared libraries
+configure:11746: result: yes
+configure:11749: checking whether to build static libraries
+configure:11753: result: yes
+configure:11849: checking for pkg-config
+configure:11867: found /usr/bin/pkg-config
+configure:11879: result: /usr/bin/pkg-config
+configure:11904: checking pkg-config is at least version 0.9.0
+configure:11907: result: yes
+configure:11917: checking for JSON_VALA
+configure:11924: $PKG_CONFIG --exists --print-errors "$pkg_modules"
+configure:11927: $? = 0
+configure:11941: $PKG_CONFIG --exists --print-errors "$pkg_modules"
+configure:11944: $? = 0
+configure:12002: result: yes
+configure:12118: checking that generated files are newer than configure
+configure:12124: result: done
+configure:12151: creating ./config.status
 
 ## ---------------------- ##
 ## Running config.status. ##
@@ -389,7 +388,6 @@ config.status:1092: creating src/json-vala.pc
 config.status:1092: creating src/Makefile
 config.status:1092: creating doc/Makefile
 config.status:1092: creating config.h
-config.status:1273: config.h is unchanged
 config.status:1321: executing depfiles commands
 config.status:1321: executing libtool commands
 
@@ -489,8 +487,8 @@ lt_cv_sys_global_symbol_to_cdecl='sed -n -e '\''s/^T .* \(.*\)$/extern int \1();
 lt_cv_sys_max_cmd_len=1572864
 lt_cv_to_host_file_cmd=func_convert_file_noop
 lt_cv_to_tool_file_cmd=func_convert_file_noop
-pkg_cv_JSON_VALA_CFLAGS='-pthread -I/usr/include/gee-0.8 -I/usr/include/glib-2.0 -I/usr/lib/i386-linux-gnu/glib-2.0/include '
-pkg_cv_JSON_VALA_LIBS='-lgio-2.0 -lgee-0.8 -lgobject-2.0 -lglib-2.0 '
+pkg_cv_JSON_VALA_CFLAGS='-pthread -I/usr/include/gee-0.8 -I/usr/include/glib-2.0 -I/usr/lib/i386-linux-gnu/glib-2.0/include -I/usr/include/mee-1.0 '
+pkg_cv_JSON_VALA_LIBS='-lgio-2.0 -lgee-0.8 -lgobject-2.0 -lglib-2.0 -lmee -lmagic '
 
 ## ----------------- ##
 ## Output variables. ##
@@ -534,8 +532,8 @@ INSTALL_DATA='${INSTALL} -m 644'
 INSTALL_PROGRAM='${INSTALL}'
 INSTALL_SCRIPT='${INSTALL}'
 INSTALL_STRIP_PROGRAM='$(install_sh) -c -s'
-JSON_VALA_CFLAGS='-pthread -I/usr/include/gee-0.8 -I/usr/include/glib-2.0 -I/usr/lib/i386-linux-gnu/glib-2.0/include '
-JSON_VALA_LIBS='-lgio-2.0 -lgee-0.8 -lgobject-2.0 -lglib-2.0 '
+JSON_VALA_CFLAGS='-pthread -I/usr/include/gee-0.8 -I/usr/include/glib-2.0 -I/usr/lib/i386-linux-gnu/glib-2.0/include -I/usr/include/mee-1.0 '
+JSON_VALA_LIBS='-lgio-2.0 -lgee-0.8 -lgobject-2.0 -lglib-2.0 -lmee -lmagic '
 LD='/usr/bin/ld'
 LDFLAGS=''
 LIBOBJS=''
@@ -649,3 +647,21 @@ target_alias=''
 #define LT_OBJDIR ".libs/"
 
 configure: exit 0
+
+## ---------------------- ##
+## Running config.status. ##
+## ---------------------- ##
+
+This file was extended by json-vala config.status 1.0, which was
+generated by GNU Autoconf 2.69.  Invocation command line was
+
+  CONFIG_FILES    = 
+  CONFIG_HEADERS  = 
+  CONFIG_LINKS    = 
+  CONFIG_COMMANDS = 
+  $ ./config.status config.h
+
+on yannick-1005PXD
+
+config.status:1092: creating config.h
+config.status:1273: config.h is unchanged

@@ -28,7 +28,7 @@ libjson_vala_la_SOURCES = array.vala \
 
 libjson_vala_la_LDFLAGS = 
 	
-libjson_vala_la_VALAFLAGS =  --pkg gio-2.0 --pkg gee-0.8 \
+libjson_vala_la_VALAFLAGS =  --pkg gio-2.0 --pkg gee-0.8 --pkg mee-1.0 \
 	--library json-vala --vapi json-vala.vapi -H json-vala.h
 
 libjson_vala_la_LIBADD = $(JSON_VALA_LIBS)

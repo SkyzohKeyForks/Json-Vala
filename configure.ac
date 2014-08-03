@@ -15,9 +15,6 @@ AM_PROG_AR
 
 AM_PROG_VALAC
 
-UBUNTU_VERSION=`lsb_release -c`
-AC_MSG_NOTICE(["$UBUNTU_VERSION"])
-
 AC_ARG_ENABLE(doc, AS_HELP_STRING([--enable-doc], [Enable documentation generation]), enable_doc=$enableval, enable_doc=no)
 AM_CONDITIONAL(ENABLE_DOC, test x$enable_doc = xyes)
 
@@ -33,7 +30,8 @@ LT_INIT
 
 pkg_modules="gobject-2.0
 	gio-2.0
-	gee-0.8"
+	gee-0.8
+	mee-1.0"
 PKG_CHECK_MODULES(JSON_VALA, [$pkg_modules])
 
 AC_OUTPUT([

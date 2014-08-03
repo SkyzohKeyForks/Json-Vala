@@ -3,22 +3,26 @@ namespace Json {
 		public signal void parsing_start();
 		public signal void parsing_end (TimeSpan duration);
 		
-		public void load_from_uri (string uri) throws GLib.Error {
-			uint8[] data;
-			File.new_for_uri (uri).load_contents (null, out data, null);
-			load_from_string ((string)data);
+		public void load_from_uri (string uri, Mee.Text.Encoding encoding = Mee.Text.Encoding.utf8) throws GLib.Error {
+			var file = File.new_for_uri (uri);
+			load (new Mee.Text.StreamReader (file.read(), encoding));
 		}
 		
-		public void load_from_path (string path) throws GLib.Error {
-			string json;
-			FileUtils.get_contents (path, out json);
-			load_from_string (json);
+		public void load_from_path (string path, Mee.Text.Encoding encoding = Mee.Text.Encoding.utf8) throws GLib.Error {
+			load (new Mee.Text.StreamReader.from_path (path, encoding));
+		}
+		
+		public void load_from_stream (InputStream stream, Mee.Text.Encoding encoding = Mee.Text.Encoding.utf8) throws GLib.Error {
+			load (new Mee.Text.StreamReader (stream, encoding));
 		}
 		
 		public void load_from_string (string json) throws GLib.Error {
+			load (new Mee.Text.StringReader (json));
+		}
+
+		void load (Mee.Text.TextReader scanner) throws GLib.Error {
 			DateTime dts = new DateTime.now_local();
 			parsing_start();
-			var scanner = new Json.Scanner (json);
 			while (scanner.peek().isspace())
 				scanner.read();
 			root = new Json.Node();
@@ -30,10 +34,10 @@ namespace Json {
 				throw new Json.Error.INVALID ("can't found start of json data.\n");
 			parsing_end (new DateTime.now_local().difference (dts));
 		}
-
+		
 		public Json.Node root { get; private set; }
 
-		Json.Array parse_array (Json.Scanner scanner) throws Json.Error {
+		Json.Array parse_array (Mee.Text.TextReader scanner) throws Json.Error {
 			if (scanner.peek() != '[')
 				throw new Json.Error.TYPE ("current character isn't start of array.\n");
 			scanner.read();
@@ -53,7 +57,7 @@ namespace Json {
 				else {
 					StringBuilder sb = new StringBuilder();
 					while (scanner.peek() != ',' && scanner.peek() != ']' && !scanner.peek().isspace())
-						sb.append_c (scanner.read());
+						sb.append_unichar (scanner.read());
 					double res = 0; int64 i;
 					if (int64.try_parse (sb.str, out i))
 						val.integer = i;
@@ -81,7 +85,7 @@ namespace Json {
 			return array;
 		}
 
-		Json.Object parse_object (Json.Scanner scanner) throws Json.Error {
+		Json.Object parse_object (Mee.Text.TextReader scanner) throws Json.Error {
 			if (scanner.read() != '{')
 				throw new Json.Error.TYPE ("current character isn't start of object.\n");
 			while (scanner.peek().isspace())
@@ -108,7 +112,7 @@ namespace Json {
 				else {
 					StringBuilder sb = new StringBuilder();
 					while (scanner.peek() != ',' && scanner.peek() != '}' && !scanner.peek().isspace())
-						sb.append_c (scanner.read());
+						sb.append_unichar (scanner.read());
 					double res = 0; int64 i = 0;
 					if (int64.try_parse (sb.str, out i))
 						val.integer = i;
@@ -136,36 +140,19 @@ namespace Json {
 			return object;
 		}
 
-		double parse_number (Json.Scanner scanner) throws GLib.Error {
-			if (!scanner.peek().isdigit())
-				throw new Json.Error.INVALID ("current character isn't a number.\n");
-			StringBuilder sb = new StringBuilder();
-			bool dot_passed = false;
-			while (scanner.peek().isdigit() || scanner.peek() == '.') {
-				if (scanner.peek() == '.') {
-					if (dot_passed == true)
-						throw new Json.Error.INVALID ("invalid format of number.\n");
-					dot_passed = true;
-					sb.append_c (scanner.read());
-				}
-				sb.append_c (scanner.read());
-			}
-			return double.parse (sb.str);
-		}
-
-		string parse_string (Json.Scanner scanner) throws GLib.Error {
+		string parse_string (Mee.Text.TextReader scanner) throws GLib.Error {
 			if (scanner.peek() != '"')
 				throw new Json.Error.INVALID ("current character isn't valid.\n");
 			StringBuilder sb = new StringBuilder();
 			scanner.read();
 			while (scanner.peek() != '"' && scanner.peek() != 0) {
 				if (scanner.peek() == '\\') {
-					sb.append_c (scanner.read());
+					sb.append_unichar (scanner.read());
 					if (scanner.peek() == '"')
-						sb.append_c (scanner.read());
+						sb.append_unichar (scanner.read());
 					continue;
 				}
-				sb.append_c (scanner.read());
+				sb.append_unichar (scanner.read());
 			}
 			if (scanner.peek() == 0)
 				throw new Json.Error.NOT_FOUND ("can't found end of string.\n");
