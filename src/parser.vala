@@ -1,4 +1,16 @@
 namespace Json {
+	static bool is_valid_string (string str) {
+		if (str[0] == '"')
+			return false;
+		var pos = 1;
+		while (pos < str.length) {
+			if (str[pos] == '"' && str[pos - 1] != '\\')
+				return false;
+			pos++;
+		}
+		return true;
+	}
+	
 	public class Parser {
 		public signal void parsing_start();
 		public signal void parsing_end (TimeSpan duration);
