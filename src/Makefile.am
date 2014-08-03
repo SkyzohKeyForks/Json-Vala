@@ -23,7 +23,6 @@ libjson_vala_la_SOURCES = array.vala \
 	object.vala \
 	parser.vala \
 	property.vala \
-	scanner.vala \
 	serializer.vala
 
 libjson_vala_la_LDFLAGS = 
