@@ -15,6 +15,8 @@ AM_PROG_AR
 
 AM_PROG_VALAC
 
+UBUNTU_VERSION=`lsb_release -c`
+AC_MSG_NOTICE(["$UBUNTU_VERSION"])
 
 AC_ARG_ENABLE(doc, AS_HELP_STRING([--enable-doc], [Enable documentation generation]), enable_doc=$enableval, enable_doc=no)
 AM_CONDITIONAL(ENABLE_DOC, test x$enable_doc = xyes)
