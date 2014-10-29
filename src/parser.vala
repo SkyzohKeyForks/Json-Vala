@@ -17,11 +17,23 @@ namespace Json {
 		
 		public void load_from_uri (string uri, Mee.Text.Encoding encoding = Mee.Text.Encoding.utf8) throws GLib.Error {
 			var file = File.new_for_uri (uri);
-			load (new Mee.Text.StreamReader (file.read(), encoding));
+			if (encoding is Mee.Text.Utf8Encoding) {
+				uint8[] data;
+				file.load_contents (null, out data, null);
+				load (new Mee.Text.StringReader ((string)data));
+			}
+			else
+				load (new Mee.Text.StreamReader (file.read(), encoding));
 		}
 		
 		public void load_from_path (string path, Mee.Text.Encoding encoding = Mee.Text.Encoding.utf8) throws GLib.Error {
-			load (new Mee.Text.StreamReader.from_path (path, encoding));
+			if (encoding is Mee.Text.Utf8Encoding) {
+				uint8[] data;
+				File.new_for_path (path).load_contents (null, out data, null);
+				load (new Mee.Text.StringReader ((string)data));
+			}
+			else
+				load (new Mee.Text.StreamReader.from_path (path, encoding));
 		}
 		
 		public void load_from_stream (InputStream stream, Mee.Text.Encoding encoding = Mee.Text.Encoding.utf8) throws GLib.Error {
