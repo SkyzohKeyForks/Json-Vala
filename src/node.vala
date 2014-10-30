@@ -104,7 +104,8 @@ namespace Json {
 
 		public DateTime as_datetime() {
 			TimeVal tv = TimeVal();
-			if (str == null || !tv.from_iso8601 (str))
+			var date_str = as_string();
+			if (date_str == null || !tv.from_iso8601 (date_str))
 				return new DateTime.now_local();
 			return new DateTime.from_timeval_utc (tv);
 		}
@@ -127,9 +128,10 @@ namespace Json {
 
 		public bool is_datetime() {
 			TimeVal tv = TimeVal();
-			if (str == null)
+			var date_str = as_string();
+			if (date_str == null)
 				return false;
-			return tv.from_iso8601 (str);
+			return tv.from_iso8601 (date_str);
 		}
 
 		public bool is_null() {

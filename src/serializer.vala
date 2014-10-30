@@ -35,7 +35,14 @@ namespace Json {
 			if (prop.node_type == NodeType.OBJECT)
 				object.set_property (spec.name, deserialize_object (spec.value_type, prop.value.to_string()));
 			else if (prop.node_type == NodeType.ARRAY) {
-				
+				if (spec.value_type == typeof (string[])) {
+					string[] strv = new string[0];
+					prop.value.as_array().foreach (anode => {
+						strv += anode.as_string();
+					});
+					object.set_property (spec.name, strv);
+				}
+					
 			}
 			else if (prop.node_type == NodeType.INTEGER)
 				object.set_property (spec.name, prop.value.as_int());

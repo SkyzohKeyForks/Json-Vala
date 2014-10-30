@@ -47,6 +47,16 @@ namespace Json {
 				jval.number = (double)val;
 			else if (val.type() == typeof (float))
 				jval.number = (double)((float)val);
+			else if (val.type() == typeof (string[])) {
+				string[] strv = (string[])val;
+				var jarray = new Json.Array();
+				foreach (string s in strv) {
+					if (!is_valid_string (s))
+						throw new Json.Error.INVALID ("invalid string value.\n");
+					jarray.add_string_element (s);
+				}
+				jval.array = jarray;
+			}
 			else if (val.type() == typeof (DateTime)) {
 				jval.str = "\"" + ((DateTime)val).to_string() + "\"";
 			}
