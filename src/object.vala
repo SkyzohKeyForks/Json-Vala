@@ -3,6 +3,7 @@ namespace Json {
 		Gee.HashMap<string, Json.Node> map;
 
 		public signal void property_changed (Property property);
+		public signal void property_removed (Property property);
 		
 		public Object() {
 			map = new Gee.HashMap<string, Json.Node>();
@@ -14,6 +15,10 @@ namespace Json {
 			if (parser.root.node_type != NodeType.OBJECT)
 				throw new Json.Error.TYPE ("provided data isn't an object.\n");
 			return parser.root.object;
+		}
+		
+		public bool has_key (string key) {
+			return map.has_key (key);
 		}
 
 		public Json.Node get (string id) throws GLib.Error {
@@ -45,6 +50,13 @@ namespace Json {
 				throw new Json.Error.INVALID ("the element isn't a datetime.\n");
 			return new DateTime.from_timeval_utc (tv);
 		}
+		
+		public Mee.TimeSpan get_timespan_member (string id) throws GLib.Error {
+			var val = this[id];
+			if (val.str == null || !Mee.TimeSpan.try_parse (val.str))
+				throw new Json.Error.INVALID ("the element isn't a timespan.\n");
+			return Mee.TimeSpan.parse (val.str);
+		}
 
 		public string get_string_member (string id) throws GLib.Error {
 			Json.Node val = this[id];
@@ -66,9 +78,50 @@ namespace Json {
 				throw new Json.Error.TYPE ("current member haven't correct value type\n");
 			return val.boolean;
 		}
+		
+		public void clear() {
+			map.clear();
+		}
+		
+		public bool has (string id, Json.Node node) {
+			if (!map.has_key (id))
+				return false;
+			if (!node.equals (map[id]))
+				return false;
+			return true;
+		}
+		
+		public bool has_all (Json.Object object) {
+			bool res = true;
+			object.foreach (prop => {
+				res = has_property (prop);
+			});
+			return res;
+		}
+		
+		public bool has_property (Json.Property property) {
+			return has (property.identifier, property.value);
+		}
+		
+		public bool remove_all (Json.Object object) {
+			bool res = true;
+			object.foreach (prop => {
+				res = remove_property (prop);
+			});
+			return res;
+		}
+		
+		public bool remove_property (Json.Property property) {
+			if (!has_property (property))
+				return false;
+			return map.unset (property.identifier);
+		}
 
-		public bool remove_member (string id) {
-			return map.unset (id);
+		public bool remove_member (string id, out Json.Node node = null) {
+			bool res = map.unset (id, out node);
+			if (true)
+				property_removed (new Property (id, node));
+			return res;
 		}
 
 		public void set (string id, GLib.Value val) throws GLib.Error {
@@ -93,6 +146,8 @@ namespace Json {
 			}
 			else if (val.type() == typeof (DateTime))
 				jval.str = "\"" + ((DateTime)val).to_string() + "\"";
+			else if (val.type().is_a (typeof (Mee.TimeSpan)))
+				jval.str = "\"" + ((Mee.TimeSpan)val).to_string() + "\"";
 			else if (val.type() == typeof (bool))
 				jval.boolean = (bool)val;
 			else if (val.type() == typeof (int64))
@@ -145,6 +200,10 @@ namespace Json {
 		public void set_datetime_member (string id, DateTime date) throws GLib.Error {
 			set_string_member (id, date.to_string());
 		}
+		
+		public void set_timespan_member (string id, Mee.TimeSpan timespan)  throws GLib.Error {
+			set_string_member (id, timespan.to_string());
+		}
 
 		public void set_string_member (string id, string str) throws GLib.Error {
 			var val = new Json.Node();
@@ -178,6 +237,18 @@ namespace Json {
 			for (var i = 0; i < size; i++)
 				func (new Property(map.keys.to_array()[i], map.values.to_array()[i]));
 		}
+		
+		public string[] keys {
+			owned get {
+				return map.keys.to_array();
+			}
+		}
+		
+		public Json.Node[] values {
+			owned get {
+				return map.values.to_array();
+			}
+		}
 
 		public Json.Property[] properties {
 			owned get {
@@ -203,6 +274,19 @@ namespace Json {
 				s += ("\"" + map.keys.to_array()[i] + "\" : " + map.values.to_array()[i].to_string() + ", ");
 			s += ("\"" + map.keys.to_array()[size - 1] + "\" : " + map.values.to_array()[size - 1].to_string() + "}");
 			return s;
+		}
+		
+		public bool equals (Json.Object object) {
+			if (object.size != size)
+				return false;
+			bool res = true;
+			this.foreach (prop => {
+				if (!object.has_key (prop.identifier))
+					res = false;
+				if (!prop.value.equals (object[prop.identifier]))
+					res = false;
+			});
+			return res;
 		}
 
 		internal string to_data (uint indent, char indent_char, bool pretty) {

@@ -1,13 +1,14 @@
 namespace Json {
 	public enum NodeType {
 		NULL,
+		ARRAY,
 		BOOLEAN,
-		INTEGER,
 		DATETIME,
 		DOUBLE,
-		STRING,
+		INTEGER,
 		OBJECT,
-		ARRAY
+		STRING,
+		TIMESPAN
 	}
 	
 	public class Node {
@@ -30,8 +31,10 @@ namespace Json {
 				if (object != null)
 					return NodeType.OBJECT;
 				if (str != null) {
-					if(is_datetime())
+					if (is_datetime())
 						return NodeType.DATETIME;
+					if (is_timespan())
+						return NodeType.TIMESPAN;
 					return NodeType.STRING;
 				}
 				if (integer != null)
@@ -53,6 +56,8 @@ namespace Json {
 				if (str != null) {
 					if (is_datetime())
 						return as_datetime();
+					if (is_timespan())
+						return as_timespan();
 					return as_string();
 				}
 				if (integer != null)
@@ -105,9 +110,13 @@ namespace Json {
 		public DateTime as_datetime() {
 			TimeVal tv = TimeVal();
 			var date_str = as_string();
-			if (date_str == null || !tv.from_iso8601 (date_str))
+			if (date_str == null || date_str.length == 0 || !tv.from_iso8601 (date_str))
 				return new DateTime.now_local();
 			return new DateTime.from_timeval_utc (tv);
+		}
+		
+		public Mee.TimeSpan as_timespan() {
+			return Mee.TimeSpan.parse (as_string());
 		}
 
 		public string as_string() {
@@ -125,13 +134,25 @@ namespace Json {
 		public bool as_boolean() {
 			return (boolean == null) ? false : boolean;
 		}
+		
+		public bool equals (Json.Node node) {
+				return node.str == str &&
+					   node.isnull == isnull &&
+					   node.boolean == boolean &&
+					   node.number == number &&
+					   node.integer == integer && 
+					   (array == null ? array == node.array : array.equals (node.array)) &&
+					   (object == null ? object == node.object : object.equals (node.object));
+		}
 
 		public bool is_datetime() {
 			TimeVal tv = TimeVal();
 			var date_str = as_string();
-			if (date_str == null)
-				return false;
 			return tv.from_iso8601 (date_str);
+		}
+		
+		public bool is_timespan() {
+			return Mee.TimeSpan.try_parse (as_string());
 		}
 
 		public bool is_null() {

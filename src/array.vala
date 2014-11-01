@@ -1,6 +1,6 @@
 namespace Json {
 	public class Array {
-		Gee.ArrayList<Json.Node> list;
+		internal Gee.ArrayList<Json.Node> list;
 
 		public signal void list_changed (int index, int size, Json.Node val);
 
@@ -60,6 +60,8 @@ namespace Json {
 			else if (val.type() == typeof (DateTime)) {
 				jval.str = "\"" + ((DateTime)val).to_string() + "\"";
 			}
+			else if (val.type().is_a (typeof (Mee.TimeSpan)))
+				jval.str = "\"" + ((Mee.TimeSpan)val).to_string() + "\"";
 			else if (val.type().is_a (typeof (Json.Node)))
 				jval = (Json.Node)val;
 			else if (val.type().is_a (typeof (Json.Object)))
@@ -85,6 +87,10 @@ namespace Json {
 
 		public void add_datetime_element (DateTime date) throws GLib.Error {
 			add_string_element (date.to_string());
+		}
+		
+		public void add_timespan_element (Mee.TimeSpan timespan) throws GLib.Error {
+			add_string_element (timespan.to_string());
 		}
 		
 		public void add_string_element (string str) throws GLib.Error {
@@ -124,6 +130,10 @@ namespace Json {
 			val.isnull = true;
 			add_element (val);
 		}
+		
+		public void clear() {
+			list = new Gee.ArrayList<Json.Node>();
+		}
 
 		public delegate void ForeachFunc (Json.Node val);
 
@@ -131,9 +141,16 @@ namespace Json {
 			for (var i = 0; i < size; i++)
 				func (list[i]);
 		}
+		
+		public bool contains (Json.Node node) {
+			return index_of (node) != -1;
+		}
 
 		public int index_of (Json.Node val) {
-			return list.index_of (val);
+			for (var i = 0; i < size; i++)
+				if (val.equals (this[i]))
+					return i;
+			return -1;
 		}
 
 		public void insert (int index, Json.Node val) {
@@ -182,6 +199,13 @@ namespace Json {
 				throw new Json.Error.INVALID ("the element isn't a datetime.\n");
 			return new DateTime.from_timeval_utc (tv);
 		}
+		
+		public Mee.TimeSpan get_timespan_element (int index) throws GLib.Error {
+			var val = this[index];
+			if (val.str == null || Mee.TimeSpan.try_parse (val.str))
+				throw new Json.Error.INVALID ("the element isn't a timespan.\n");
+			return Mee.TimeSpan.parse (val.str);
+		}
 
 		public string get_string_element (int index) throws GLib.Error {
 			var val = this[index];
@@ -195,6 +219,15 @@ namespace Json {
 			if (val.isnull != true)
 				throw new Json.Error.INVALID ("the element isn't null.\n");
 			return true;
+		}
+		
+		public bool remove (Json.Node node) {
+			for (var i = 0; i < size; i++)
+				if (node.equals (this[i])) {
+					list.remove_at (i);
+					return true;
+				}
+			return false;		
 		}
 
 		public void remove_element (int index) {
@@ -232,6 +265,10 @@ namespace Json {
 		public void set_datetime_element (int index, DateTime date) throws GLib.Error {
 			set_string_element (index, date.to_string());
 		}
+		
+		public void set_timespan_element (int index, Mee.TimeSpan timespan) throws GLib.Error {
+			set_string_element (index, timespan.to_string());
+		}
 
 		public void set_double_element (int index, double number) throws GLib.Error {
 			var val = new Json.Node();
@@ -256,6 +293,12 @@ namespace Json {
 			val.isnull = true;
 			set_element (index, val);
 		}
+		
+		public Json.Array slice (int start, int stop) {
+			var array = new Json.Array();
+			array.list.add_all (list.slice (start, stop));
+			return array;
+		}
 
 		public string to_string() {
 			if (size == 0)
@@ -265,6 +308,15 @@ namespace Json {
 				s += list[i].to_string() + ",";
 			s += list[size - 1].to_string() + "]";
 			return s;
+		}
+
+		public bool equals (Json.Array array) {
+			if (array.size != size)
+				return false;
+			for (var i = 0; i < size; i++)
+				if (!array[i].equals (this[i]))
+					return false;
+			return true;
 		}
 
 		internal string to_data (uint indent, char indent_char, bool pretty) {
