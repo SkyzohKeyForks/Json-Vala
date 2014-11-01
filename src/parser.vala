@@ -13,7 +13,7 @@ namespace Json {
 	
 	public class Parser {
 		public signal void parsing_start();
-		public signal void parsing_end (TimeSpan duration);
+		public signal void parsing_end (Mee.TimeSpan duration);
 		
 		public void load_from_uri (string uri, Mee.Text.Encoding encoding = Mee.Text.Encoding.utf8) throws GLib.Error {
 			var file = File.new_for_uri (uri);
@@ -56,7 +56,7 @@ namespace Json {
 				root.object = parse_object (scanner);
 			else
 				throw new Json.Error.INVALID ("can't found start of json data.\n");
-			parsing_end (new DateTime.now_local().difference (dts));
+			parsing_end (Mee.TimeSpan.from_gtimespan (new DateTime.now_local().difference (dts)));
 		}
 		
 		public Json.Node root { get; private set; }
