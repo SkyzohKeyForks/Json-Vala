@@ -144,6 +144,10 @@ namespace Json {
 					   (array == null ? array == node.array : array.equals (node.array)) &&
 					   (object == null ? object == node.object : object.equals (node.object));
 		}
+		
+		public bool is_array() {
+			return array != null;
+		}
 
 		public bool is_datetime() {
 			TimeVal tv = TimeVal();
@@ -157,6 +161,14 @@ namespace Json {
 
 		public bool is_null() {
 			return isnull == true;
+		}
+		
+		public bool is_object() {
+			return object != null;
+		}
+		
+		public bool is_string() {
+			return str != null;
 		}
 
 		public string to_string() {

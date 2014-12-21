@@ -153,7 +153,7 @@ namespace Json {
 					scanner.read();
 				object.set_member (id, val);
 				if (scanner.peek() != ',' && scanner.peek() != '}')
-					throw new Json.Error.INVALID ("invalid en of object member.\n");
+					throw new Json.Error.INVALID ("invalid end of object member. (%c)\n".printf ((char)scanner.peek()));
 				if (scanner.peek() == ',')
 					scanner.read();
 				while (scanner.peek().isspace())
