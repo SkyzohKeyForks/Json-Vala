@@ -62,7 +62,7 @@ namespace Json {
 			Json.Node val = this[id];
 			if (val.str == null)
 				throw new Json.Error.TYPE ("current member haven't correct value type\n");
-			return val.str;
+			return val.str.substring (1, val.str.length - 2);
 		}
 
 		public double get_double_member (string id) throws GLib.Error {
