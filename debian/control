@@ -1,0 +1,48 @@
+Source: json-vala
+Section: libs
+Priority: optional
+Maintainer: Yannick Inizan <inizan.yannick@gmail.com>
+Uploaders: Yannick Inizan <inizan.yannick@gmail.com>
+Build-Depends: debhelper (>= 8.1.3),
+               cdbs (>= 0.4.93~),
+               dpkg-dev (>= 1.16.1~),
+               valac-0.28 | valac-0.26,
+               libtool,
+               dh-autoreconf,
+               libglib2.0-dev (>= 2.34.0),
+               gir1.2-glib-2.0 (>= 0.9.12),
+			   libgee-0.8-dev (>= 0.12),
+			   libmee-1.0-dev,
+               libgirepository1.0-dev (>= 0.9.12),
+               gobject-introspection (>= 0.9.12-4~)
+Standards-Version: 3.9.4
+Homepage: http://blog.developpez.com/rsharp
+Vcs-Git: git://git@github.com:inizan-yannick/Json-Vala.git
+Vcs-Browser: https://github.com/inizan-yannick/Json-Vala
+
+Package: libjson-vala-1.0-0
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libmee-1.0-0
+Multi-Arch: same
+Description: Json-Vala
+ a Json library written in Vala.
+
+Package: libjson-vala-dev
+Section: libdevel
+Architecture: any
+Depends: libjson-vala-1.0-0 (= ${binary:Version}), pkg-config, libgee-0.8-dev, libmee-1.0-dev, libglib2.0-dev, ${misc:Depends}
+Description: Json-Vala (development files)
+ a Json library written in Vala.
+ .
+ This package contains the development files.
+ 
+Package: libjson-vala-1.0-0-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends: libjson-vala-1.0-0 (= ${binary:Version}),
+         ${misc:Depends}
+Description: Json-Vala - library symbols
+ a Json library written in Vala.
+ .
+ This package contains the library symbols.
