@@ -59,6 +59,11 @@ namespace Json {
 			}
 			else if (val.type().is_a (typeof (Mee.TimeSpan)))
 				str = "\"" + ((Mee.TimeSpan)val).to_string() + "\"";
+			else if (val.type() == typeof (string)) {
+				if (!is_valid_string ((string)val))
+					throw new Json.Error.INVALID ("current string isn't valid.\n");
+				str = "\"%s\"".printf ((string)val);
+			}
 			else if (val.type().is_a (typeof (Json.Node))) {
 				var node = (Json.Node)val;
 				array = node.array;
@@ -190,8 +195,8 @@ namespace Json {
 		}
 		
 		public bool equals (GLib.Value val) {
-			var node = new Json.Node (val);
-				return node.str == str &&
+			var node = new Node (val);
+			return node.str == str &&
 					   node.isnull == isnull &&
 					   node.boolean == boolean &&
 					   node.number == number &&

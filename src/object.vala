@@ -79,6 +79,13 @@ namespace Json {
 			return val.boolean;
 		}
 		
+		public int64 get_integer_member (string id) throws GLib.Error {
+			Json.Node val = this[id];
+			if (val.integer == null)
+				throw new Json.Error.TYPE ("current member haven't correct value type\n");
+			return val.integer;
+		}
+		
 		public void clear() {
 			map.clear();
 		}
@@ -156,9 +163,7 @@ namespace Json {
 		}
 
 		public void set_string_member (string id, string str) throws GLib.Error {
-			if (!is_valid_string (str))
-				throw new Json.Error.INVALID ("invalid string.\n");
-			set_member (id, new Json.Node ("\"" + str + "\""));
+			set_member (id, new Json.Node (str));
 		}
 
 		public void set_double_member (string id, double number) throws GLib.Error {

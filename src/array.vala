@@ -47,9 +47,7 @@ namespace Json {
 		}
 		
 		public void add_string_element (string str) throws GLib.Error {
-			if (!is_valid_string (str))
-				throw new Json.Error.INVALID ("current string isn't valid.\n");
-			var val = new Json.Node ("\"%s\"".printf (str));
+			var val = new Json.Node (str);
 			add_element (val);
 		}
 
@@ -71,6 +69,10 @@ namespace Json {
 		public void add_boolean_element (bool boolean) {
 			var val = new Json.Node (boolean);
 			add_element (val);
+		}
+		
+		public void add_integer_element (int64 integer) {
+			add_element (new Json.Node (integer));
 		}
 
 		public void add_null_element() {
@@ -160,6 +162,13 @@ namespace Json {
 				throw new Json.Error.INVALID ("the element isn't a string.\n");
 			return val.str;
 		}
+		
+		public int64 get_integer_element (int index) throws GLib.Error {
+			var val = this[index];
+			if (val.integer == null)
+				throw new Json.Error.INVALID ("the element isn't an integer.\n");
+			return val.integer;
+		}
 
 		public bool get_null_element (int index) throws GLib.Error {
 			var val = this[index];
@@ -205,9 +214,7 @@ namespace Json {
 		}
 		
 		public void set_string_element (int index, string str) throws GLib.Error {
-			if (!is_valid_string (str))
-				throw new Json.Error.INVALID ("string is invalid.\n");
-			set_element (index, new Json.Node ("\"" + str + "\""));
+			set_element (index, new Json.Node (str));
 		}
 
 		public void set_datetime_element (int index, DateTime date) throws GLib.Error {

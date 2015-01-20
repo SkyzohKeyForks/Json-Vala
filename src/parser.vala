@@ -51,11 +51,10 @@ namespace Json {
 			parsing_start();
 			while (scanner.peek().isspace())
 				scanner.read();
-			root = new Json.Node();
 			if (scanner.peek() == '[')
-				root.array = parse_array (scanner);
+				root = new Node (parse_array (scanner));
 			else if (scanner.peek() == '{')
-				root.object = parse_object (scanner);
+				root = new Node (parse_object (scanner));
 			else
 				throw new Json.Error.INVALID ("can't found start of json data.\n");
 			parsing_end (Mee.TimeSpan.from_gtimespan (new DateTime.now_local().difference (dts)));
@@ -71,13 +70,12 @@ namespace Json {
 				scanner.read();
 			var array = new Json.Array();
 			while (scanner.peek() != ']' && scanner.peek() != 0) {
-				var val = new Json.Node();
 				if (scanner.peek() == '[')
-					val.array = parse_array (scanner);
+					array.add_array_element (parse_array (scanner));
 				else if (scanner.peek() == '{')
-					val.object = parse_object (scanner);
+					array.add_object_element (parse_object (scanner));
 				else if (scanner.peek() == '"')
-					val.str = parse_string (scanner);
+					array.add_string_element (parse_string (scanner));
 				else if (scanner.peek() == ',')
 					throw new Json.Error.INVALID ("untimely end of array element.\n");
 				else {
@@ -86,19 +84,18 @@ namespace Json {
 						sb.append_unichar (scanner.read());
 					double res = 0; int64 i;
 					if (int64.try_parse (sb.str, out i))
-						val.integer = i;
+						array.add_integer_element (i);
 					else if (double.try_parse (sb.str, out res))
-						val.number = res;
+						array.add_double_element (res);
 					else if (sb.str == "false" || sb.str == "true")
-						val.boolean = bool.parse (sb.str);
+						array.add_boolean_element (bool.parse (sb.str));
 					else if (sb.str == "null")
-						val.isnull = true;
+						array.add_null_element();
 					else
 						throw new Json.Error.INVALID ("invalid array element : %s\n", sb.str);
 				}
 				while (scanner.peek().isspace())
 					scanner.read();
-				array.add_element (val);
 				if (scanner.peek() != ',' && scanner.peek() != ']')
 					throw new Json.Error.INVALID ("invalid en of array element\n");
 				if (scanner.peek() == ',')
@@ -119,20 +116,18 @@ namespace Json {
 			var object = new Json.Object();
 			while (scanner.peek() != '}' && scanner.peek() != 0) {
 				string id = parse_string (scanner);
-				id = id.substring (1, id.length - 2);
 				while (scanner.peek().isspace())
 					scanner.read();
 				if (scanner.read() != ':')
 					throw new Json.Error.INVALID ("cannot find colon separator.\n");
 				while (scanner.peek().isspace())
 					scanner.read();
-				var val = new Json.Node();
 				if (scanner.peek() == '[')
-					val.array = parse_array (scanner);
+					object.set_array_member (id, parse_array (scanner));
 				else if (scanner.peek() == '{')
-					val.object = parse_object (scanner);
+					object.set_object_member (id, parse_object (scanner));
 				else if (scanner.peek() == '"')
-					val.str = parse_string (scanner);
+					object.set_string_member (id, parse_string (scanner));
 				else if (scanner.peek() == ',')
 					throw new Json.Error.INVALID ("untimely end of object member.\n");
 				else {
@@ -141,19 +136,18 @@ namespace Json {
 						sb.append_unichar (scanner.read());
 					double res = 0; int64 i = 0;
 					if (int64.try_parse (sb.str, out i))
-						val.integer = i;
+						object.set_integer_member (id, i);
 					else if (double.try_parse (sb.str, out res))
-						val.number = res;
+						object.set_double_member (id, res);
 					else if (sb.str == "false" || sb.str == "true")
-						val.boolean = bool.parse (sb.str);
+						object.set_boolean_member (id, bool.parse (sb.str));
 					else if (sb.str == "null")
-						val.isnull = true;
+						object.set_null_member (id);
 					else
 						throw new Json.Error.INVALID ("invalid object member : %s\n", sb.str);
 				}
 				while (scanner.peek().isspace())
 					scanner.read();
-				object.set_member (id, val);
 				if (scanner.peek() != ',' && scanner.peek() != '}')
 					throw new Json.Error.INVALID ("invalid end of object member. (%c)\n".printf ((char)scanner.peek()));
 				if (scanner.peek() == ',')
@@ -183,7 +177,7 @@ namespace Json {
 			if (scanner.peek() == 0)
 				throw new Json.Error.NOT_FOUND ("can't found end of string.\n");
 			scanner.read();
-			return "\"" + sb.str + "\"";
+			return sb.str;
 		}
 	}
 }
