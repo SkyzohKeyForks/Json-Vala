@@ -1,3 +1,5 @@
+using Mee;
+
 namespace Json {
 	static bool is_valid_string (string str) {
 		if (str[0] == '"')
@@ -15,36 +17,36 @@ namespace Json {
 		public signal void parsing_start();
 		public signal void parsing_end (Mee.TimeSpan duration);
 		
-		public void load_from_uri (string uri, Mee.Text.Encoding encoding = Mee.Text.Encoding.utf8) throws GLib.Error {
+		public void load_from_uri (string uri, Encoding encoding = Mee.Encoding.utf8) throws GLib.Error {
 			var file = File.new_for_uri (uri);
-			if (encoding is Mee.Text.Utf8Encoding) {
+			if (encoding is Utf8Encoding) {
 				uint8[] data;
 				file.load_contents (null, out data, null);
-				load (new Mee.Text.StringReader ((string)data));
+				load (new StringReader ((string)data));
 			}
 			else
-				load (new Mee.Text.StreamReader (file.read(), encoding));
+				load (new StreamReader (file.read(), encoding));
 		}
 		
-		public void load_from_path (string path, Mee.Text.Encoding encoding = Mee.Text.Encoding.utf8) throws GLib.Error {
-			if (encoding is Mee.Text.Utf8Encoding) {
+		public void load_from_path (string path, Encoding encoding = Mee.Encoding.utf8) throws GLib.Error {
+			if (encoding is Utf8Encoding) {
 				uint8[] data;
 				File.new_for_path (path).load_contents (null, out data, null);
-				load (new Mee.Text.StringReader ((string)data));
+				load (new StringReader ((string)data));
 			}
 			else
-				load (new Mee.Text.StreamReader.from_path (path, encoding));
+				load (new StreamReader.from_path (path, encoding));
 		}
 		
-		public void load_from_stream (InputStream stream, Mee.Text.Encoding encoding = Mee.Text.Encoding.utf8) throws GLib.Error {
-			load (new Mee.Text.StreamReader (stream, encoding));
+		public void load_from_stream (InputStream stream, Encoding encoding = Mee.Encoding.utf8) throws GLib.Error {
+			load (new StreamReader (stream, encoding));
 		}
 		
 		public void load_from_string (string json) throws GLib.Error {
-			load (new Mee.Text.StringReader (json));
+			load (new StringReader (json));
 		}
 
-		void load (Mee.Text.TextReader scanner) throws GLib.Error {
+		void load (TextReader scanner) throws GLib.Error {
 			DateTime dts = new DateTime.now_local();
 			parsing_start();
 			while (scanner.peek().isspace())
@@ -61,7 +63,7 @@ namespace Json {
 		
 		public Json.Node root { get; private set; }
 
-		Json.Array parse_array (Mee.Text.TextReader scanner) throws Json.Error {
+		Json.Array parse_array (TextReader scanner) throws Json.Error {
 			if (scanner.peek() != '[')
 				throw new Json.Error.TYPE ("current character isn't start of array.\n");
 			scanner.read();
@@ -109,7 +111,7 @@ namespace Json {
 			return array;
 		}
 
-		Json.Object parse_object (Mee.Text.TextReader scanner) throws Json.Error {
+		Json.Object parse_object (TextReader scanner) throws Json.Error {
 			if (scanner.read() != '{')
 				throw new Json.Error.TYPE ("current character isn't start of object.\n");
 			while (scanner.peek().isspace())
@@ -164,7 +166,7 @@ namespace Json {
 			return object;
 		}
 
-		string parse_string (Mee.Text.TextReader scanner) throws GLib.Error {
+		string parse_string (TextReader scanner) throws GLib.Error {
 			if (scanner.peek() != '"')
 				throw new Json.Error.INVALID ("current character isn't valid.\n");
 			StringBuilder sb = new StringBuilder();

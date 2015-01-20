@@ -72,7 +72,7 @@ namespace Json {
 			}
 		}
 
-		public Json.Node? get (GLib.Value val) {
+		public Json.Node get (GLib.Value val) {
 			int i = -1;
 			if (val.type() == typeof (int))
 				i = (int)val;
@@ -82,21 +82,27 @@ namespace Json {
 				i = (int)((int64)val);
 			if (val.type() == typeof (uint64))
 				i = (int)((uint64)val);
+			if (val.type() == typeof (int8))
+				i = (int)((int8)val);
+			if (val.type() == typeof (uint8))
+				i = (int)((uint8)val);
 			if (val.type() == typeof (long))
 				i = (int)((long)val);
 			if (val.type() == typeof (ulong))
 				i = (int)((ulong)val);
-			if (node_type == NodeType.ARRAY)
+			if (node_type == NodeType.ARRAY && i >= 0 && i < array.size)
 				return array[i];
 			if (node_type == NodeType.OBJECT) {
-				if (val.type() == typeof (string))
+				if (val.type() == typeof (string) && object.has_key ((string)val))
 					return object[(string)val];
 				if (i >= object.size)
 					i = object.size - 1;
 				if (i != -1)
 					return object.properties[i].value;
 			}
-			return null;
+			var null_node = new Node();
+			null_node.isnull = true;
+			return null_node;
 		}
 
 		public Json.Array as_array() {
