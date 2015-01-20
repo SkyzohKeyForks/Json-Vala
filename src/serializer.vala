@@ -5,7 +5,7 @@ namespace Json {
 		foreach (var spec in klass.list_properties()) {
 			GLib.Value val = GLib.Value (spec.value_type);
 			object.get_property (spec.name, ref val);
-			jobject[spec.name] = val;
+			jobject.set_member (spec.name, new Json.Node (val));
 		}
 		return jobject.to_data (1, '\t', pretty);
 	}

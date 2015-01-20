@@ -92,11 +92,10 @@ namespace Json {
 		}
 		
 		public bool has_all (Json.Object object) {
-			bool res = true;
-			object.foreach (prop => {
-				res = has_property (prop);
-			});
-			return res;
+			for (var i = 0; i < size; i++)
+				if (!has_property (object.properties[i]))
+					return false;
+			return true;
 		}
 		
 		public bool has_property (Json.Property property) {
@@ -105,10 +104,10 @@ namespace Json {
 		
 		public bool remove_all (Json.Object object) {
 			bool res = true;
-			object.foreach (prop => {
-				res = remove_property (prop);
-			});
-			return res;
+			for (var i = 0; i < size; i++)
+				if (!remove_property (object.properties[i]))
+					return false;
+			return true;
 		}
 		
 		public bool remove_property (Json.Property property) {
@@ -127,55 +126,8 @@ namespace Json {
 		public void set (string id, GLib.Value val) throws GLib.Error {
 			if (!is_valid_string (id))
 				throw new Json.Error.INVALID ("identifier is invalid.\n");
-			var jval = new Json.Node();
-			if (val.type().is_a (typeof (Json.Node)))
-				jval = (Json.Node)val;
-			else if (val.type().is_a (typeof (Json.Object)))
-				jval.object = (Json.Object)val;
-			else if (val.type().is_a (typeof (Json.Array)))
-				jval.array = (Json.Array)val;
-			else if (val.type() == typeof (string[])) {
-				string[] strv = (string[])val;
-				var jarray = new Json.Array();
-				foreach (string s in strv) {
-					if (!is_valid_string (s))
-						throw new Json.Error.INVALID ("invalid string value.\n");
-					jarray.add_string_element (s);
-				}
-				jval.array = jarray;
-			}
-			else if (val.type() == typeof (DateTime))
-				jval.str = "\"" + ((DateTime)val).to_string() + "\"";
-			else if (val.type().is_a (typeof (Mee.TimeSpan)))
-				jval.str = "\"" + ((Mee.TimeSpan)val).to_string() + "\"";
-			else if (val.type() == typeof (bool))
-				jval.boolean = (bool)val;
-			else if (val.type() == typeof (int64))
-				jval.integer = (int64)val;
-			else if (val.type() == typeof (uint64))
-				jval.integer = (int64)((uint64)val);
-			else if (val.type() == typeof (int))
-				jval.integer = (int64)((int)val);
-			else if (val.type() == typeof (uint))
-				jval.integer = (int64)((uint)val);
-			else if (val.type() == typeof (long))
-				jval.integer = (int64)((long)val);
-			else if (val.type() == typeof (ulong))
-				jval.integer = (int64)((long)val);
-			else if (val.type() == typeof (double))
-				jval.number = (double)val;
-			else if (val.type() == typeof (float))
-				jval.number = (double)((float)val);
-			else if (val.type() == typeof (string)) {
-				string str = (string)val;
-				if (!is_valid_string (str))
-					throw new Json.Error.INVALID ("invalid string value.\n");
-				jval.str = "\"" + str + "\"";
-			}
-			else
-				jval.isnull = true;
-			map[id] = jval;
-			property_changed (new Property (id, jval));
+			map[id] = new Json.Node (val);
+			property_changed (new Property (id, map[id]));
 		}
 
 		public void set_member (string id, Json.Node val) throws GLib.Error {
@@ -186,14 +138,12 @@ namespace Json {
 		}
 
 		public void set_array_member (string id, Json.Array array) throws GLib.Error {
-			var val = new Json.Node();
-			val.array = array;
+			var val = new Json.Node (array);
 			set_member (id, val);
 		}
 
 		public void set_object_member (string id, Json.Object object) throws GLib.Error {
-			var val = new Json.Node();
-			val.object = object;
+			var val = new Json.Node (object);
 			set_member (id, val);
 		}
 
@@ -206,36 +156,37 @@ namespace Json {
 		}
 
 		public void set_string_member (string id, string str) throws GLib.Error {
-			var val = new Json.Node();
 			if (!is_valid_string (str))
 				throw new Json.Error.INVALID ("invalid string.\n");
-			val.str = "\"" + str + "\"";
-			set_member (id, val);
+			set_member (id, new Json.Node ("\"" + str + "\""));
 		}
 
 		public void set_double_member (string id, double number) throws GLib.Error {
-			var val = new Json.Node();
-			val.number = number;
+			var val = new Json.Node (number);
 			set_member (id, val);
 		}
 
 		public void set_boolean_member (string id, bool boolean) throws GLib.Error {
-			var val = new Json.Node();
-			val.boolean = boolean;
+			var val = new Json.Node (boolean);
+			set_member (id, val);
+		}
+		
+		public void set_integer_member (string id, int64 integer) throws GLib.Error {
+			var val = new Json.Node (integer);
 			set_member (id, val);
 		}
 
 		public void set_null_member (string id) throws GLib.Error {
 			var val = new Json.Node();
-			val.isnull = true;
 			set_member (id, val);
 		}
 
-		public delegate void ForeachFunc (Json.Property property);
+		public delegate bool ForeachFunc (Json.Property property);
 
 		public void foreach (ForeachFunc func) {
-			for (var i = 0; i < size; i++)
-				func (new Property(map.keys.to_array()[i], map.values.to_array()[i]));
+			map.foreach (entry => {
+				return func (new Property (entry.key, entry.value));
+			});
 		}
 		
 		public string[] keys {
@@ -255,6 +206,7 @@ namespace Json {
 				var list = new Gee.ArrayList<Property>();
 				this.foreach (prop => {
 					list.add (prop);
+					return true;
 				});
 				return list.to_array();
 			}
@@ -281,10 +233,15 @@ namespace Json {
 				return false;
 			bool res = true;
 			this.foreach (prop => {
-				if (!object.has_key (prop.identifier))
+				if (!object.has_key (prop.identifier)) {
 					res = false;
-				if (!prop.value.equals (object[prop.identifier]))
+					return false;
+				}
+				if (!prop.value.equals (object[prop.identifier])) {
 					res = false;
+					return false;
+				}
+				return true;
 			});
 			return res;
 		}

@@ -20,8 +20,56 @@ namespace Json {
 		internal bool? boolean;
 		internal bool isnull;
 		
-		internal Node() {
-
+		public Node (GLib.Value? val = null) {
+			if (val == null)
+				isnull = true;
+			else if (val.type().is_a (typeof (Json.Array)))
+				array = (Json.Array)val;
+			else if (val.type().is_a (typeof (Json.Object)))
+				object = (Json.Object)val;
+			else if (val.type() == typeof (bool))
+				boolean = (bool)val;
+			else if (val.type() == typeof (int64))
+				integer = (int64)val;
+			else if (val.type() == typeof (uint64))
+				integer = (int64)((uint64)val);
+			else if (val.type() == typeof (int))
+				integer = (int64)((int)val);
+			else if (val.type() == typeof (uint))
+				integer = (int64)((uint)val);
+			else if (val.type() == typeof (long))
+				integer = (int64)((long)val);
+			else if (val.type() == typeof (ulong))
+				integer = (int64)((long)val);
+			else if (val.type() == typeof (double))
+				number = (double)val;
+			else if (val.type() == typeof (float))
+				number = (double)((float)val);
+			else if (val.type() == typeof (string[])) {
+				string[] strv = (string[])val;
+				array = new Json.Array();
+				foreach (string s in strv) {
+					if (!is_valid_string (s))
+						throw new Json.Error.INVALID ("invalid string value.\n");
+					array.add_string_element (s);
+				}
+			}
+			else if (val.type() == typeof (DateTime)) {
+				str = "\"" + ((DateTime)val).to_string() + "\"";
+			}
+			else if (val.type().is_a (typeof (Mee.TimeSpan)))
+				str = "\"" + ((Mee.TimeSpan)val).to_string() + "\"";
+			else if (val.type().is_a (typeof (Json.Node))) {
+				var node = (Json.Node)val;
+				array = node.array;
+				object = node.object;
+				str = node.str;
+				integer = node.integer;
+				number = node.number;
+				boolean = node.boolean;
+				isnull = node.isnull;
+			}
+			else isnull = true;
 		}
 
 		public Json.NodeType node_type {
@@ -141,7 +189,8 @@ namespace Json {
 			return (boolean == null) ? false : boolean;
 		}
 		
-		public bool equals (Json.Node node) {
+		public bool equals (GLib.Value val) {
+			var node = new Json.Node (val);
 				return node.str == str &&
 					   node.isnull == isnull &&
 					   node.boolean == boolean &&
