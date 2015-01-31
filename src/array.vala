@@ -129,9 +129,9 @@ namespace Json {
 
 		public double get_double_element (int index) throws GLib.Error {
 			var val = this[index];
-			if (val.number == null)
+			if (val.number_str == null)
 				throw new Json.Error.INVALID ("the element isn't a double.\n");
-			return val.number;
+			return val.as_double();
 		}
 
 		public bool get_boolean_element (int index) throws GLib.Error {

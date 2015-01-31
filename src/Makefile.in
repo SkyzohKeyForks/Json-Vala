@@ -127,8 +127,11 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(vapidir)" \
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 libjson_vala_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
-am_libjson_vala_la_OBJECTS = array.lo error.lo generator.lo node.lo \
-	object.lo parser.lo property.lo serializer.lo
+am_libjson_vala_la_OBJECTS = libjson_vala_la-array.lo \
+	libjson_vala_la-error.lo libjson_vala_la-generator.lo \
+	libjson_vala_la-node.lo libjson_vala_la-object.lo \
+	libjson_vala_la-parser.lo libjson_vala_la-property.lo \
+	libjson_vala_la-serializer.lo
 libjson_vala_la_OBJECTS = $(am_libjson_vala_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -136,8 +139,8 @@ am__v_lt_0 = --silent
 am__v_lt_1 = 
 libjson_vala_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
-	$(AM_CFLAGS) $(CFLAGS) $(libjson_vala_la_LDFLAGS) $(LDFLAGS) \
-	-o $@
+	$(libjson_vala_la_CFLAGS) $(CFLAGS) $(libjson_vala_la_LDFLAGS) \
+	$(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -330,16 +333,13 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-AM_CPPFLAGS = \
+lib_LTLIBRARIES = libjson-vala.la
+libjson_vala_la_CPPFLAGS = \
 	-DPACKAGE_LOCALE_DIR=\""$(localedir)"\" \
 	-DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
-	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
-	$(JSON_VALA_CFLAGS)
+	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\"
 
-AM_CFLAGS = -Wall\
-	 -g
-
-lib_LTLIBRARIES = libjson-vala.la
+libjson_vala_la_CFLAGS = -w -g $(JSON_VALA_CFLAGS)
 vapidir = $(datadir)/vala/vapi
 dist_vapi_DATA = json-vala.vapi json-vala.deps
 libjson_vala_la_SOURCES = array.vala \
@@ -448,14 +448,14 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/array.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/error.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/generator.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/node.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/object.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parser.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/property.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/serializer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjson_vala_la-array.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjson_vala_la-error.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjson_vala_la-generator.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjson_vala_la-node.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjson_vala_la-object.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjson_vala_la-parser.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjson_vala_la-property.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjson_vala_la-serializer.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -477,6 +477,62 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
+
+libjson_vala_la-array.lo: array.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -MT libjson_vala_la-array.lo -MD -MP -MF $(DEPDIR)/libjson_vala_la-array.Tpo -c -o libjson_vala_la-array.lo `test -f 'array.c' || echo '$(srcdir)/'`array.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libjson_vala_la-array.Tpo $(DEPDIR)/libjson_vala_la-array.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='array.c' object='libjson_vala_la-array.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -c -o libjson_vala_la-array.lo `test -f 'array.c' || echo '$(srcdir)/'`array.c
+
+libjson_vala_la-error.lo: error.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -MT libjson_vala_la-error.lo -MD -MP -MF $(DEPDIR)/libjson_vala_la-error.Tpo -c -o libjson_vala_la-error.lo `test -f 'error.c' || echo '$(srcdir)/'`error.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libjson_vala_la-error.Tpo $(DEPDIR)/libjson_vala_la-error.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='error.c' object='libjson_vala_la-error.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -c -o libjson_vala_la-error.lo `test -f 'error.c' || echo '$(srcdir)/'`error.c
+
+libjson_vala_la-generator.lo: generator.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -MT libjson_vala_la-generator.lo -MD -MP -MF $(DEPDIR)/libjson_vala_la-generator.Tpo -c -o libjson_vala_la-generator.lo `test -f 'generator.c' || echo '$(srcdir)/'`generator.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libjson_vala_la-generator.Tpo $(DEPDIR)/libjson_vala_la-generator.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='generator.c' object='libjson_vala_la-generator.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -c -o libjson_vala_la-generator.lo `test -f 'generator.c' || echo '$(srcdir)/'`generator.c
+
+libjson_vala_la-node.lo: node.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -MT libjson_vala_la-node.lo -MD -MP -MF $(DEPDIR)/libjson_vala_la-node.Tpo -c -o libjson_vala_la-node.lo `test -f 'node.c' || echo '$(srcdir)/'`node.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libjson_vala_la-node.Tpo $(DEPDIR)/libjson_vala_la-node.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='node.c' object='libjson_vala_la-node.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -c -o libjson_vala_la-node.lo `test -f 'node.c' || echo '$(srcdir)/'`node.c
+
+libjson_vala_la-object.lo: object.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -MT libjson_vala_la-object.lo -MD -MP -MF $(DEPDIR)/libjson_vala_la-object.Tpo -c -o libjson_vala_la-object.lo `test -f 'object.c' || echo '$(srcdir)/'`object.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libjson_vala_la-object.Tpo $(DEPDIR)/libjson_vala_la-object.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='object.c' object='libjson_vala_la-object.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -c -o libjson_vala_la-object.lo `test -f 'object.c' || echo '$(srcdir)/'`object.c
+
+libjson_vala_la-parser.lo: parser.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -MT libjson_vala_la-parser.lo -MD -MP -MF $(DEPDIR)/libjson_vala_la-parser.Tpo -c -o libjson_vala_la-parser.lo `test -f 'parser.c' || echo '$(srcdir)/'`parser.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libjson_vala_la-parser.Tpo $(DEPDIR)/libjson_vala_la-parser.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='parser.c' object='libjson_vala_la-parser.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -c -o libjson_vala_la-parser.lo `test -f 'parser.c' || echo '$(srcdir)/'`parser.c
+
+libjson_vala_la-property.lo: property.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -MT libjson_vala_la-property.lo -MD -MP -MF $(DEPDIR)/libjson_vala_la-property.Tpo -c -o libjson_vala_la-property.lo `test -f 'property.c' || echo '$(srcdir)/'`property.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libjson_vala_la-property.Tpo $(DEPDIR)/libjson_vala_la-property.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='property.c' object='libjson_vala_la-property.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -c -o libjson_vala_la-property.lo `test -f 'property.c' || echo '$(srcdir)/'`property.c
+
+libjson_vala_la-serializer.lo: serializer.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -MT libjson_vala_la-serializer.lo -MD -MP -MF $(DEPDIR)/libjson_vala_la-serializer.Tpo -c -o libjson_vala_la-serializer.lo `test -f 'serializer.c' || echo '$(srcdir)/'`serializer.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libjson_vala_la-serializer.Tpo $(DEPDIR)/libjson_vala_la-serializer.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='serializer.c' object='libjson_vala_la-serializer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -c -o libjson_vala_la-serializer.lo `test -f 'serializer.c' || echo '$(srcdir)/'`serializer.c
 $(srcdir)/array.c: $(srcdir)/libjson_vala_la_vala.stamp
 	@if test -f $@; then :; else rm -f $(srcdir)/libjson_vala_la_vala.stamp; fi
 	@if test -f $@; then :; else \

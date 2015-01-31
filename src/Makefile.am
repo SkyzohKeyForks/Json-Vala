@@ -2,16 +2,14 @@
 
 ## Created by Anjuta
 
-AM_CPPFLAGS = \
+lib_LTLIBRARIES = libjson-vala.la
+
+libjson_vala_la_CPPFLAGS = \
 	-DPACKAGE_LOCALE_DIR=\""$(localedir)"\" \
 	-DPACKAGE_SRC_DIR=\""$(srcdir)"\" \
-	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\" \
-	$(JSON_VALA_CFLAGS)
+	-DPACKAGE_DATA_DIR=\""$(pkgdatadir)"\"
 
-AM_CFLAGS = -Wall\
-	 -g
-
-lib_LTLIBRARIES = libjson-vala.la
+libjson_vala_la_CFLAGS = -w -g $(JSON_VALA_CFLAGS)
 
 vapidir = $(datadir)/vala/vapi
 dist_vapi_DATA = json-vala.vapi json-vala.deps

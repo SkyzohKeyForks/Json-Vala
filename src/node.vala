@@ -16,7 +16,7 @@ namespace Json {
 		internal Json.Object? object;
 		internal string? str;
 		internal int64? integer;
-		internal double? number;
+		internal string? number_str;
 		internal bool? boolean;
 		internal bool isnull;
 		
@@ -42,9 +42,9 @@ namespace Json {
 			else if (val.type() == typeof (ulong))
 				integer = (int64)((long)val);
 			else if (val.type() == typeof (double))
-				number = (double)val;
+				number_str = "%g".printf ((double)val);
 			else if (val.type() == typeof (float))
-				number = (double)((float)val);
+				number_str = "%g".printf ((float)val);
 			else if (val.type() == typeof (string[])) {
 				string[] strv = (string[])val;
 				array = new Json.Array();
@@ -70,7 +70,7 @@ namespace Json {
 				object = node.object;
 				str = node.str;
 				integer = node.integer;
-				number = node.number;
+				number_str = node.number_str;
 				boolean = node.boolean;
 				isnull = node.isnull;
 			}
@@ -92,7 +92,7 @@ namespace Json {
 				}
 				if (integer != null)
 					return NodeType.INTEGER;
-				if (number != null)
+				if (number_str != null)
 					return NodeType.DOUBLE;
 				if (boolean != null)
 					return NodeType.BOOLEAN;
@@ -115,8 +115,9 @@ namespace Json {
 				}
 				if (integer != null)
 					return as_int();
-				if (number != null) {
-					double d = as_double();
+				if (number_str != null) {
+					double d = 0;
+					number_str.scanf ("%g", out d);
 					return d;
 				}
 				if (boolean != null)
@@ -187,7 +188,11 @@ namespace Json {
 		}
 
 		public double as_double() {
-			return (number == null) ? 0 : number;
+			if (number_str == null)
+				return 0;
+			double d = 0;
+			number_str.scanf ("%g", out d);
+			return d;
 		}
 
 		public bool as_boolean() {
@@ -199,7 +204,7 @@ namespace Json {
 			return node.str == str &&
 					   node.isnull == isnull &&
 					   node.boolean == boolean &&
-					   node.number == number &&
+					   node.number_str == number_str &&
 					   node.integer == integer && 
 					   (array == null ? array == node.array : array.equals (node.array)) &&
 					   (object == null ? object == node.object : object.equals (node.object));
@@ -240,8 +245,8 @@ namespace Json {
 				return str;
 			if (integer != null)
 				return integer.to_string();
-			if (number != null)
-				return number.to_string();
+			if (number_str != null)
+				return number_str;
 			if (boolean != null)
 				return boolean.to_string();
 			return "null";
@@ -256,8 +261,8 @@ namespace Json {
 				return str;
 			if (integer != null)
 				return integer.to_string();
-			if (number != null)
-				return number.to_string();
+			if (number_str != null)
+				return number_str;
 			if (boolean != null)
 				return boolean.to_string();
 			return "null";

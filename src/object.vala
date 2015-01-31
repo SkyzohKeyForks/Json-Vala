@@ -67,9 +67,9 @@ namespace Json {
 
 		public double get_double_member (string id) throws GLib.Error {
 			Json.Node val = this[id];
-			if (val.number == null)
+			if (val.number_str == null)
 				throw new Json.Error.TYPE ("current member haven't correct value type\n");
-			return val.number;
+			return val.as_double();
 		}
 
 		public bool get_boolean_member (string id) throws GLib.Error {

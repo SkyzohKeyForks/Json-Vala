@@ -1,13 +1,21 @@
 namespace Json {
-	public static string serialize (GLib.Object object, bool pretty = false) throws GLib.Error {
+	
+	internal static Json.Object serialize_object (GLib.Object object) throws GLib.Error {
 		var jobject = new Json.Object();
 		var klass = (ObjectClass)object.get_type().class_ref();
 		foreach (var spec in klass.list_properties()) {
 			GLib.Value val = GLib.Value (spec.value_type);
 			object.get_property (spec.name, ref val);
-			jobject.set_member (spec.name, new Json.Node (val));
+			if (val.type().is_a (typeof (GLib.Object)))
+				jobject.set_object_member (spec.name, serialize_object ((GLib.Object)val));
+			else
+				jobject.set_member (spec.name, new Json.Node (val));
 		}
-		return jobject.to_data (1, '\t', pretty);
+		return jobject;
+	}
+	
+	public static string serialize (GLib.Object object, bool pretty = false) throws GLib.Error {
+		return serialize_object (object).to_data (1, '\t', pretty);
 	}
 
 	public static T deserialize<T> (string json) throws GLib.Error {
