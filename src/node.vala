@@ -5,6 +5,7 @@ namespace Json {
 		BOOLEAN,
 		DATETIME,
 		DOUBLE,
+		GUID,
 		INTEGER,
 		OBJECT,
 		STRING,
@@ -57,6 +58,9 @@ namespace Json {
 			else if (val.type() == typeof (DateTime)) {
 				str = "\"" + ((DateTime)val).to_string() + "\"";
 			}
+			else if (val.type() == typeof (Mee.Guid)) {
+				str = "\"" + ((Mee.Guid)val).to_string() + "\"";
+			}
 			else if (val.type().is_a (typeof (Mee.TimeSpan)))
 				str = "\"" + ((Mee.TimeSpan)val).to_string() + "\"";
 			else if (val.type() == typeof (string)) {
@@ -88,6 +92,8 @@ namespace Json {
 						return NodeType.DATETIME;
 					if (is_timespan())
 						return NodeType.TIMESPAN;
+					if (is_guid())
+						return NodeType.GUID;
 					return NodeType.STRING;
 				}
 				if (integer != null)
@@ -106,13 +112,8 @@ namespace Json {
 					return as_array();
 				if (object != null)
 					return as_object();
-				if (str != null) {
-					if (is_datetime())
-						return as_datetime();
-					if (is_timespan())
-						return as_timespan();
+				if (str != null)
 					return as_string();
-				}
 				if (integer != null)
 					return as_int();
 				if (number_str != null) {
@@ -175,6 +176,10 @@ namespace Json {
 			return new DateTime.from_timeval_utc (tv);
 		}
 		
+		public Mee.Guid as_guid() {
+			return Mee.Guid.parse (as_string());
+		}
+		
 		public Mee.TimeSpan as_timespan() {
 			return Mee.TimeSpan.parse (as_string());
 		}
@@ -218,6 +223,10 @@ namespace Json {
 			TimeVal tv = TimeVal();
 			var date_str = as_string();
 			return tv.from_iso8601 (date_str);
+		}
+		
+		public bool is_guid() {
+			return Mee.Guid.try_parse (as_string());
 		}
 		
 		public bool is_timespan() {

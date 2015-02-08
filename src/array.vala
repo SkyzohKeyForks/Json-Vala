@@ -42,6 +42,10 @@ namespace Json {
 			add_string_element (date.to_string());
 		}
 		
+		public void add_guid_element (Mee.Guid guid) throws GLib.Error {
+			add_string_element (guid.to_string());
+		}
+		
 		public void add_timespan_element (Mee.TimeSpan timespan) throws GLib.Error {
 			add_string_element (timespan.to_string());
 		}
@@ -142,18 +146,25 @@ namespace Json {
 		}
 
 		public DateTime get_datetime_element (int index) throws GLib.Error {
-			var val = this[index];
+			var str = get_string_element (index);
 			var tv = TimeVal();
-			if (val.str == null || !tv.from_iso8601 (val.str))
+			if (!tv.from_iso8601 (str))
 				throw new Json.Error.INVALID ("the element isn't a datetime.\n");
 			return new DateTime.from_timeval_utc (tv);
 		}
 		
+		public Mee.Guid get_guid_element (int index) throws GLib.Error {
+			var str = get_string_element (index);
+			if (!Mee.Guid.try_parse (str))
+				throw new Json.Error.INVALID ("the element isn't a valid guid.\n");
+			return Mee.Guid.parse (str);
+		}
+		
 		public Mee.TimeSpan get_timespan_element (int index) throws GLib.Error {
-			var val = this[index];
-			if (val.str == null || Mee.TimeSpan.try_parse (val.str))
+			var str = get_string_element (index);
+			if (!Mee.TimeSpan.try_parse (str))
 				throw new Json.Error.INVALID ("the element isn't a timespan.\n");
-			return Mee.TimeSpan.parse (val.str);
+			return Mee.TimeSpan.parse (str);
 		}
 
 		public string get_string_element (int index) throws GLib.Error {
@@ -219,6 +230,10 @@ namespace Json {
 
 		public void set_datetime_element (int index, DateTime date) throws GLib.Error {
 			set_string_element (index, date.to_string());
+		}
+		
+		public void set_guid_element (int index, Mee.Guid guid) throws GLib.Error {
+			set_string_element (index, guid.to_string());
 		}
 		
 		public void set_timespan_element (int index, Mee.TimeSpan timespan) throws GLib.Error {

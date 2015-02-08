@@ -44,18 +44,25 @@ namespace Json {
 		}
 
 		public DateTime get_datetime_member (string id) throws GLib.Error {
-			var val = this[id];
+			var str = get_string_member (id);
 			var tv = TimeVal();
-			if (val.str == null || !tv.from_iso8601 (val.str))
+			if (!tv.from_iso8601 (str))
 				throw new Json.Error.INVALID ("the element isn't a datetime.\n");
 			return new DateTime.from_timeval_utc (tv);
 		}
 		
+		public Mee.Guid get_guid_member (string id) throws GLib.Error {
+			var str = get_string_member (id);
+			if (!Mee.Guid.try_parse (str))
+				throw new Json.Error.INVALID ("current member isn't a valid guid.\n");
+			return Mee.Guid.parse (str);
+		}
+		
 		public Mee.TimeSpan get_timespan_member (string id) throws GLib.Error {
-			var val = this[id];
-			if (val.str == null || !Mee.TimeSpan.try_parse (val.str))
+			var str = get_string_member (id);
+			if (!Mee.TimeSpan.try_parse (str))
 				throw new Json.Error.INVALID ("the element isn't a timespan.\n");
-			return Mee.TimeSpan.parse (val.str);
+			return Mee.TimeSpan.parse (str);
 		}
 
 		public string get_string_member (string id) throws GLib.Error {
@@ -156,6 +163,10 @@ namespace Json {
 
 		public void set_datetime_member (string id, DateTime date) throws GLib.Error {
 			set_string_member (id, date.to_string());
+		}
+		
+		public void set_guid_member (string id, Mee.Guid guid) throws GLib.Error {
+			set_string_member (id, guid.to_string());
 		}
 		
 		public void set_timespan_member (string id, Mee.TimeSpan timespan)  throws GLib.Error {

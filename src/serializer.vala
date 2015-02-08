@@ -58,6 +58,10 @@ namespace Json {
 				object.set_property (spec.name, prop.value.as_double());
 			else if (prop.node_type == NodeType.DATETIME)
 				object.set_property (spec.name, prop.value.as_datetime());
+			else if (prop.node_type == NodeType.TIMESPAN)
+				object.set_property (spec.name, prop.value.as_timespan());
+			else if (prop.node_type == NodeType.GUID)
+				object.set_property (spec.name, prop.value.as_guid());
 			else if (prop.node_type == NodeType.BOOLEAN)
 				object.set_property (spec.name, prop.value.as_boolean());
 			else if (prop.node_type == NodeType.STRING)
