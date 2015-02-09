@@ -35,8 +35,7 @@ namespace Json {
 		var jobject = Json.Object.parse (json);
 		var object = GLib.Object.new (object_type);
 		var klass = (ObjectClass)object_type.class_ref ();
-		for (var i = 0; i < jobject.size; i++) {
-			var prop = jobject.properties[i];
+		jobject.foreach (prop => {
 			var spec = klass.find_property (prop.identifier);
 			if (spec == null)
 				throw new Json.Error.NOT_FOUND ("property wasn't found for required object.\n");
@@ -66,7 +65,7 @@ namespace Json {
 				object.set_property (spec.name, prop.value.as_boolean());
 			else if (prop.node_type == NodeType.STRING)
 				object.set_property (spec.name, prop.value.as_string());
-		}
+		});
 		return object;
 	}
 }

@@ -200,18 +200,18 @@ namespace Json {
 			set_member (id, val);
 		}
 
-		public delegate bool ForeachFunc (Json.Property property);
+		public delegate void ForeachFunc (Json.Property property);
 
 		public void foreach (ForeachFunc func) {
-			for (uint u = 0; u < size; u++)
-				if(!func (properties[u]))
-					return;
+			map.foreach ((name, value) => {
+				func (new Property (name, value));
+			});
 		}
 		
 		public string[] keys {
 			owned get {
 				var list = new GenericArray<string>();
-				this.foreach (prop => { list.add (prop.identifier); return true; });
+				this.foreach (prop => { list.add (prop.identifier); });
 				return list.data;
 			}
 		}
@@ -219,7 +219,7 @@ namespace Json {
 		public Json.Node[] values {
 			owned get {
 				var list = new GenericArray<Json.Node>();
-				this.foreach (prop => { list.add (prop.value); return true; });
+				this.foreach (prop => { list.add (prop.value); });
 				return list.data;
 			}
 		}
@@ -227,7 +227,7 @@ namespace Json {
 		public Json.Property[] properties {
 			owned get {
 				var list = new GenericArray<Property>();
-				this.foreach (prop => { list.add (prop); return true; });
+				this.foreach (prop => { list.add (prop); });
 				return list.data;
 			}
 		}
@@ -255,13 +255,10 @@ namespace Json {
 			this.foreach (prop => {
 				if (!object.has_key (prop.identifier)) {
 					res = false;
-					return false;
 				}
 				if (!prop.value.equals (object[prop.identifier])) {
 					res = false;
-					return false;
 				}
-				return true;
 			});
 			return res;
 		}
