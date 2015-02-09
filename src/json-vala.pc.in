@@ -8,6 +8,6 @@ includedir=@includedir@/json-vala-1.0
 Name: libjson_vala
 Description: Sample library created by Anjuta project wizard.
 Version: @VERSION@
-Requires: gio-2.0 gee-0.8 mee-1.0
+Requires: mee-1.0
 Libs: -L${libdir} -ljson-vala
 Cflags: -I${includedir}

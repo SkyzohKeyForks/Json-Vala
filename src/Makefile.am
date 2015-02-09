@@ -1,7 +1,3 @@
-## Process this file with automake to produce Makefile.in
-
-## Created by Anjuta
-
 lib_LTLIBRARIES = libjson-vala.la
 
 libjson_vala_la_CPPFLAGS = \
@@ -18,8 +14,7 @@ libjson_vala_la_SOURCES = array.vala error.vala generator.vala node.vala object.
 
 libjson_vala_la_LDFLAGS = -version-info 1:2:0
 	
-libjson_vala_la_VALAFLAGS =  --pkg gio-2.0 --pkg gee-0.8 --pkg mee-1.0 \
-	--library json-vala --vapi json-vala.vapi -H json-vala.h --disable-warnings
+libjson_vala_la_VALAFLAGS = --pkg mee-1.0 --library json-vala --vapi json-vala.vapi -H json-vala.h --disable-warnings
 
 libjson_vala_la_LIBADD = $(JSON_VALA_LIBS)
 

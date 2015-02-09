@@ -1,13 +1,4 @@
-## Process this file with automake to produce Makefile.in
-## Created by Anjuta
-
-if ENABLE_DOC
-DOC_SUBDIR = \
-	doc \
-	$(NULL)
-endif
-
-SUBDIRS = src $(DOC_SUBDIR)
+SUBDIRS = src
 
 dist_doc_DATA = \
 	README \
@@ -18,10 +9,6 @@ dist_doc_DATA = \
 	NEWS
 
 all: all-recursive
-
-# Remove doc directory on uninstall
-uninstall-local:
-	-rm -r $(docdir)
 
 update_submodules:
 	if test -d ".git"; then \

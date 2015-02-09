@@ -1,11 +1,11 @@
 namespace Json {
 	public class Array {
-		internal Gee.ArrayList<Json.Node> list;
+		GenericArray<Json.Node> list;
 
-		public signal void list_changed (int index, int size, Json.Node val);
+		public signal void list_changed (uint index, uint size, Json.Node val);
 
 		public Array() {
-			list = new Gee.ArrayList<Json.Node>();
+			list = new GenericArray<Json.Node>();
 		}
 		
 		public static Array parse (string json) throws GLib.Error {
@@ -84,14 +84,11 @@ namespace Json {
 		}
 		
 		public void clear() {
-			list = new Gee.ArrayList<Json.Node>();
+			list = new GenericArray<Json.Node>();
 		}
 
-		public delegate void ForeachFunc (Json.Node val);
-
-		public void foreach(ForeachFunc func) {
-			for (var i = 0; i < size; i++)
-				func (list[i]);
+		public void foreach (GLib.Func<Json.Node> func) {
+			list.foreach (func);
 		}
 		
 		public bool contains (GLib.Value val) {
@@ -111,41 +108,39 @@ namespace Json {
 			list_changed (index, size, new Json.Node (val));
 		}
 
-		public Json.Node get (int index) throws GLib.Error {
-			if (index < 0 || index >= size)
-				throw new Json.Error.INVALID ("index is out of bounds.\n");
+		public Json.Node get (uint index) throws GLib.Error {
 			return list[index];
 		}
 
-		public Json.Array get_array_element (int index) throws GLib.Error {
+		public Json.Array get_array_element (uint index) throws GLib.Error {
 			var val = this[index];
 			if (val.array == null)
 				throw new Json.Error.INVALID ("the element isn't an array.\n");
 			return val.array;
 		}
 
-		public Json.Object get_object_element (int index) throws GLib.Error {
+		public Json.Object get_object_element (uint index) throws GLib.Error {
 			var val = this[index];
 			if (val.object == null)
 				throw new Json.Error.INVALID ("the element isn't an object.\n");
 			return val.object;
 		}
 
-		public double get_double_element (int index) throws GLib.Error {
+		public double get_double_element (uint index) throws GLib.Error {
 			var val = this[index];
 			if (val.number_str == null)
 				throw new Json.Error.INVALID ("the element isn't a double.\n");
 			return val.as_double();
 		}
 
-		public bool get_boolean_element (int index) throws GLib.Error {
+		public bool get_boolean_element (uint index) throws GLib.Error {
 			var val = this[index];
 			if (val.boolean == null)
 				throw new Json.Error.INVALID ("the element isn't a boolean.\n");
 			return val.boolean;
 		}
 
-		public DateTime get_datetime_element (int index) throws GLib.Error {
+		public DateTime get_datetime_element (uint index) throws GLib.Error {
 			var str = get_string_element (index);
 			var tv = TimeVal();
 			if (!tv.from_iso8601 (str))
@@ -153,35 +148,35 @@ namespace Json {
 			return new DateTime.from_timeval_utc (tv);
 		}
 		
-		public Mee.Guid get_guid_element (int index) throws GLib.Error {
+		public Mee.Guid get_guid_element (uint index) throws GLib.Error {
 			var str = get_string_element (index);
 			if (!Mee.Guid.try_parse (str))
 				throw new Json.Error.INVALID ("the element isn't a valid guid.\n");
 			return Mee.Guid.parse (str);
 		}
 		
-		public Mee.TimeSpan get_timespan_element (int index) throws GLib.Error {
+		public Mee.TimeSpan get_timespan_element (uint index) throws GLib.Error {
 			var str = get_string_element (index);
 			if (!Mee.TimeSpan.try_parse (str))
 				throw new Json.Error.INVALID ("the element isn't a timespan.\n");
 			return Mee.TimeSpan.parse (str);
 		}
 
-		public string get_string_element (int index) throws GLib.Error {
+		public string get_string_element (uint index) throws GLib.Error {
 			var val = this[index];
 			if (val.str == null)
 				throw new Json.Error.INVALID ("the element isn't a string.\n");
 			return val.str;
 		}
 		
-		public int64 get_integer_element (int index) throws GLib.Error {
+		public int64 get_integer_element (uint index) throws GLib.Error {
 			var val = this[index];
 			if (val.integer == null)
 				throw new Json.Error.INVALID ("the element isn't an integer.\n");
 			return val.integer;
 		}
 
-		public bool get_null_element (int index) throws GLib.Error {
+		public bool get_null_element (uint index) throws GLib.Error {
 			var val = this[index];
 			if (val.isnull != true)
 				throw new Json.Error.INVALID ("the element isn't null.\n");
@@ -192,77 +187,77 @@ namespace Json {
 			var node = new Json.Node (val);
 			for (var i = 0; i < size; i++)
 				if (node.equals (this[i])) {
-					list.remove_at (i);
+					list.remove_index (i);
 					return true;
 				}
 			return false;		
 		}
 
-		public void remove_element (int index) {
-			var val = list.remove_at (index);
+		public void remove_element (uint index) {
+			var val = list[index];
+			list.remove_index (index);
 			list_changed (index, size, val);
 		}
 		
-		public new void set (int index, GLib.Value val) throws GLib.Error {
+		public new void set (uint index, GLib.Value val) {
 			set_element (index, new Json.Node (val));
 		}
 
-		public void set_element (int index, Json.Node val) throws GLib.Error {
-			if (index < 0 || index >= size)
-				throw new Json.Error.INVALID ("index is out of bounds.\n");
+		public void set_element (uint index, Json.Node val) {
 			list[index] = val;
 			list_changed (index, size, val);
 		}
 
-		public void set_object_element (int index, Json.Object object) throws GLib.Error {
+		public void set_object_element (int index, Json.Object object) {
 			var val = new Json.Node (object);
 			set_element (index, val);
 		}
 
-		public void set_array_element (int index, Json.Array array) throws GLib.Error {
+		public void set_array_element (int index, Json.Array array) {
 			var val = new Json.Node (array);
 			set_element (index, val);
 		}
 		
-		public void set_string_element (int index, string str) throws GLib.Error {
+		public void set_string_element (int index, string str) {
 			set_element (index, new Json.Node (str));
 		}
 
-		public void set_datetime_element (int index, DateTime date) throws GLib.Error {
+		public void set_datetime_element (int index, DateTime date) {
 			set_string_element (index, date.to_string());
 		}
 		
-		public void set_guid_element (int index, Mee.Guid guid) throws GLib.Error {
+		public void set_guid_element (int index, Mee.Guid guid) {
 			set_string_element (index, guid.to_string());
 		}
 		
-		public void set_timespan_element (int index, Mee.TimeSpan timespan) throws GLib.Error {
+		public void set_timespan_element (int index, Mee.TimeSpan timespan) {
 			set_string_element (index, timespan.to_string());
 		}
 
-		public void set_double_element (int index, double number) throws GLib.Error {
+		public void set_double_element (int index, double number) {
 			var val = new Json.Node (number);
 			set_element (index, val);
 		}
 
-		public void set_integer_element (int index, int64 integer) throws GLib.Error {
+		public void set_integer_element (int index, int64 integer) {
 			var val = new Json.Node (integer);
 			set_element (index, val);
 		}
 
-		public void set_boolean_element (int index, bool boolean) throws GLib.Error {
+		public void set_boolean_element (int index, bool boolean) {
 			var val = new Json.Node (boolean);
 			set_element (index, val);
 		}
 
-		public void set_null_element (int index) throws GLib.Error {
+		public void set_null_element (int index) {
 			var val = new Json.Node();
 			set_element (index, val);
 		}
 		
 		public Json.Array slice (int start, int stop) {
 			var array = new Json.Array();
-			array.list.add_all (list.slice (start, stop));
+			for (uint u = start; u < stop; u++)
+				array.add (this[u]);
 			return array;
 		}
 
@@ -304,9 +299,9 @@ namespace Json {
 			return sb.str;
 		}
 
-		public int size {
+		public uint size {
 			get {
-				return list.size;
+				return list.length;
 			}
 		}
 	}

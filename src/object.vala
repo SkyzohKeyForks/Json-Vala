@@ -1,12 +1,12 @@
 namespace Json {
 	public class Object {
-		Gee.HashMap<string, Json.Node> map;
+		HashTable<string, Json.Node> map;
 
 		public signal void property_changed (Property property);
 		public signal void property_removed (Property property);
 		
 		public Object() {
-			map = new Gee.HashMap<string, Json.Node>();
+			map = new HashTable<string, Json.Node> (str_hash, str_equal);
 		}
 
 		public static Json.Object parse (string json) throws GLib.Error {
@@ -18,27 +18,29 @@ namespace Json {
 		}
 		
 		public bool has_key (string key) {
-			return map.has_key (key);
+			return map.contains (key);
 		}
 
-		public Json.Node get (string id) throws GLib.Error {
-			return map[id];
+		public Json.Node? get (string id) {
+			if (has_key (id))
+				return map[id];
+			return null;
 		}
 
-		public Json.Property get_property (string id) throws GLib.Error {
+		public Json.Property get_property (string id) {
 			return new Property (id, map[id]);
 		}
 
 		public Json.Array get_array_member (string id) throws GLib.Error {
 			Json.Node val = this[id];
-			if (val.array == null)
+			if (val == null || val.array == null)
 				throw new Json.Error.TYPE ("current member haven't correct value type\n");
 			return val.array;
 		}
 
 		public Json.Object get_object_member (string id) throws GLib.Error {
 			Json.Node val = this[id];
-			if (val.object == null)
+			if (val == null || val.object == null)
 				throw new Json.Error.TYPE ("current member haven't correct value type\n");
 			return val.object;
 		}
@@ -67,14 +69,14 @@ namespace Json {
 
 		public string get_string_member (string id) throws GLib.Error {
 			Json.Node val = this[id];
-			if (val.str == null)
+			if (val == null || val.str == null)
 				throw new Json.Error.TYPE ("current member haven't correct value type\n");
 			return val.str.substring (1, val.str.length - 2);
 		}
 
 		public double get_double_member (string id) throws GLib.Error {
 			Json.Node val = this[id];
-			if (val.number_str == null)
+			if (val == null || val.number_str == null)
 				throw new Json.Error.TYPE ("current member haven't correct value type\n");
 			return val.as_double();
 		}
@@ -88,17 +90,17 @@ namespace Json {
 		
 		public int64 get_integer_member (string id) throws GLib.Error {
 			Json.Node val = this[id];
-			if (val.integer == null)
+			if (val == null || val.integer == null)
 				throw new Json.Error.TYPE ("current member haven't correct value type\n");
 			return val.integer;
 		}
 		
 		public void clear() {
-			map.clear();
+			map = new HashTable<string, Json.Node> (str_hash, str_equal);
 		}
 		
 		public bool has (string id, Json.Node node) {
-			if (!map.has_key (id))
+			if (!map.contains (id))
 				return false;
 			if (!node.equals (map[id]))
 				return false;
@@ -127,11 +129,12 @@ namespace Json {
 		public bool remove_property (Json.Property property) {
 			if (!has_property (property))
 				return false;
-			return map.unset (property.identifier);
+			return map.remove (property.identifier);
 		}
 
-		public bool remove_member (string id, out Json.Node node = null) {
-			bool res = map.unset (id, out node);
+		public bool remove_member (string id, out Json.Node? node = null) {
+			node = map[id];
+			bool res = map.remove (id);
 			if (true)
 				property_removed (new Property (id, node));
 			return res;
@@ -200,37 +203,38 @@ namespace Json {
 		public delegate bool ForeachFunc (Json.Property property);
 
 		public void foreach (ForeachFunc func) {
-			map.foreach (entry => {
-				return func (new Property (entry.key, entry.value));
-			});
+			for (uint u = 0; u < size; u++)
+				if(!func (properties[u]))
+					return;
 		}
 		
 		public string[] keys {
 			owned get {
-				return map.keys.to_array();
+				var list = new GenericArray<string>();
+				this.foreach (prop => { list.add (prop.identifier); return true; });
+				return list.data;
 			}
 		}
 		
 		public Json.Node[] values {
 			owned get {
-				return map.values.to_array();
+				var list = new GenericArray<Json.Node>();
+				this.foreach (prop => { list.add (prop.value); return true; });
+				return list.data;
 			}
 		}
 
 		public Json.Property[] properties {
 			owned get {
-				var list = new Gee.ArrayList<Property>();
-				this.foreach (prop => {
-					list.add (prop);
-					return true;
-				});
-				return list.to_array();
+				var list = new GenericArray<Property>();
+				this.foreach (prop => { list.add (prop); return true; });
+				return list.data;
 			}
 		}
 
-		public int size {
+		public uint size {
 			get {
-				return map.size;
+				return map.length;
 			}
 		}
 
@@ -239,8 +243,8 @@ namespace Json {
 				return "{}";
 			string s = "{";
 			for (var i = 0; i < size - 1; i++)
-				s += ("\"" + map.keys.to_array()[i] + "\" : " + map.values.to_array()[i].to_string() + ", ");
-			s += ("\"" + map.keys.to_array()[size - 1] + "\" : " + map.values.to_array()[size - 1].to_string() + "}");
+				s += ("\"" + keys[i] + "\" : " + values[i].to_string() + ", ");
+			s += ("\"" + keys[size - 1] + "\" : " + values[size - 1].to_string() + "}");
 			return s;
 		}
 		
@@ -271,14 +275,14 @@ namespace Json {
 			for (var i = 0; i < size - 1; i++) {
 				for (var j = 0; j < indent; j++)
 					sb.append_c (indent_char);
-				sb.append ("\"" + map.keys.to_array()[i] + "\" : ");
-				sb.append (map.values.to_array()[i].to_data (indent + 1, indent_char, pretty));
+				sb.append ("\"" + keys[i] + "\" : ");
+				sb.append (values[i].to_data (indent + 1, indent_char, pretty));
 				sb.append (",\n");
 			}
 			for (var j = 0; j < indent; j++)
 				sb.append_c (indent_char);
-			sb.append ("\"" + map.keys.to_array()[size - 1] + "\" : ");
-			sb.append (map.values.to_array()[size - 1].to_data (indent + 1, indent_char, pretty) + "\n");
+			sb.append ("\"" + keys[size - 1] + "\" : ");
+			sb.append (values[size - 1].to_data (indent + 1, indent_char, pretty) + "\n");
 			for (var j = 0; j < indent - 1; j++)
 				sb.append_c (indent_char);
 			sb.append ("}");
