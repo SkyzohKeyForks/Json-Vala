@@ -12,7 +12,7 @@ dist_vapi_DATA = json-vala.vapi json-vala.deps
 
 libjson_vala_la_SOURCES = array.vala error.vala generator.vala node.vala object.vala parser.vala property.vala serializer.vala
 
-libjson_vala_la_LDFLAGS = -version-info 1:2:0
+libjson_vala_la_LDFLAGS = -version-info 1:4:0
 	
 libjson_vala_la_VALAFLAGS = --pkg mee-1.0 --library json-vala --vapi json-vala.vapi -H json-vala.h --disable-warnings
 
