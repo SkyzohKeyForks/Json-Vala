@@ -1,7 +1,7 @@
 using Mee;
 
 namespace Json {
-	static bool is_valid_string (string str) {
+	internal static bool is_valid_string (string str) {
 		if (str[0] == '"')
 			return false;
 		var pos = 1;

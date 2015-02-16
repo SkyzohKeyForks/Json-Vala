@@ -216,6 +216,10 @@ namespace Json {
 		public bool is_array() {
 			return array != null;
 		}
+		
+		public bool is_boolean() {
+			return boolean != null;
+		}
 
 		public bool is_datetime() {
 			TimeVal tv = TimeVal();
@@ -241,6 +245,66 @@ namespace Json {
 		
 		public bool is_string() {
 			return str != null;
+		}
+		
+		public bool is_int() {
+			return integer != null;
+		}
+		
+		public bool is_double() {
+			return number_str != null;
+		}
+		
+		public bool validate (JsonSchema.Schema schema) {
+			if (schema.schema_type == JsonSchema.SchemaType.ARRAY && node_type != NodeType.ARRAY)
+				return false;
+			if (schema.schema_type == JsonSchema.SchemaType.OBJECT && node_type != NodeType.OBJECT)
+				return false;
+			if (schema.schema_type == JsonSchema.SchemaType.BOOLEAN && node_type != NodeType.BOOLEAN)
+				return false;
+			if (schema.schema_type == JsonSchema.SchemaType.INTEGER && node_type != NodeType.INTEGER)
+				return false;
+			if (schema.schema_type == JsonSchema.SchemaType.NUMBER && node_type != NodeType.DOUBLE)
+				return false;
+			if (schema.schema_type == JsonSchema.SchemaType.STRING && str == null)
+				return false;
+			if (node_type == NodeType.OBJECT)
+				return object.validate (schema);
+			if (node_type == NodeType.ARRAY)
+				return array.validate (schema);
+			if (node_type == NodeType.INTEGER) {
+				JsonSchema.SchemaInteger si = (JsonSchema.SchemaInteger)schema;
+				if (si.multiple_of != null && (integer % si.multiple_of) != 0)
+					return false;
+				if (si.maximum != null)
+					if (si.exclusive_maximum && integer >= si.maximum || !si.exclusive_maximum && integer > si.maximum)
+						return false;
+				if (si.minimum != null)
+					if (si.exclusive_minimum && integer >= si.minimum || !si.exclusive_minimum && integer > si.minimum)
+						return false;
+			}
+			if (node_type == NodeType.DOUBLE) {
+				JsonSchema.SchemaNumber sn = (JsonSchema.SchemaNumber)schema;
+				double d = as_double();
+				if (sn.multiple_of != null && (d % sn.multiple_of) != 0)
+					return false;
+				if (sn.maximum != null)
+					if (sn.exclusive_maximum && d >= sn.maximum || !sn.exclusive_maximum && d > sn.maximum)
+						return false;
+				if (sn.minimum != null)
+					if (sn.exclusive_minimum && d >= sn.minimum || !sn.exclusive_minimum && d > sn.minimum)
+						return false;
+			}
+			if (str != null) {
+				JsonSchema.SchemaString s = (JsonSchema.SchemaString)schema;
+				if (s.max_length != null && str.length > s.max_length)
+					return false;
+				if (s.min_length != null && str.length < s.min_length)
+					return false;
+				if (s.pattern != null && !s.pattern.match (str))
+					return false;
+			}
+			return true;
 		}
 
 		public string to_string() {

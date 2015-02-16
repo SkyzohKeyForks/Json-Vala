@@ -208,6 +208,62 @@ namespace Json {
 			});
 		}
 		
+		public bool validate (JsonSchema.Schema schema) {
+			if (schema.schema_type != JsonSchema.SchemaType.OBJECT)
+				return false;
+			JsonSchema.SchemaObject so = (JsonSchema.SchemaObject)schema;
+			if (so.max_properties != null)
+				if (size > so.max_properties)
+					return false;
+			if (so.min_properties != null)
+				if (size < so.min_properties)
+					return false;
+			foreach (string str in so.required)
+				if (!map.contains (str))
+					return false;
+			bool res = true;
+			var sset = new GenericSet<string>(str_hash, str_equal);
+			map.get_keys().foreach (str => { sset.add (str); });
+			so.properties.foreach ((name, val) => {
+				if (map.contains (name)) {
+					sset.remove (name);
+					if (map[name].validate (val) == false)
+						res = false;
+				}
+			});
+			if (res == false)
+				return false;
+			res = true;
+			so.pattern_properties.foreach ((regex, val) => {
+				var sres = true;
+				sset.foreach (str => {
+					if (regex.match (str))
+						if (map[str].validate (val) == false)
+							sres = false;
+				});
+				if (sres == false)
+					res = false;
+			});
+			if (res == false)	
+				return false;
+			if (so.additional_properties.type() == typeof (bool)) {
+				bool ap = (bool)so.additional_properties;
+				if (sset.length > 0 && ap == false)
+					return false;
+			}
+			if (so.additional_properties.type().is_a (typeof (JsonSchema.Schema))) {
+				res = true;
+				var sschema = (JsonSchema.Schema)so.additional_properties;
+				sset.foreach (str => {
+					if (map[str].validate (sschema) == false)
+						res = false;
+				});
+				if (res == false)
+					return false;
+			}
+			return true;
+		}
+		
 		public string[] keys {
 			owned get {
 				var list = new GenericArray<string>();

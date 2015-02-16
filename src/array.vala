@@ -279,6 +279,59 @@ namespace Json {
 					return false;
 			return true;
 		}
+		
+		public bool validate (JsonSchema.Schema schema) {
+			if (schema.enum != null) {
+				
+			}
+			if (schema.schema_type != JsonSchema.SchemaType.ARRAY)
+				return false;
+			var sa = (JsonSchema.SchemaArray)schema;
+			if (sa.max_items != null && sa.max_items < size)
+				return false;
+			if (sa.min_items != null && sa.min_items > size)
+				return false;
+			if (sa.unique_items == true) {
+				for (var i = 0; i < size; i++)
+					for (var j = 1; j < size; j++) {
+						if (i == j)
+							continue;
+						if (this[i].equals (this[j]))
+							return false;
+					}
+			}
+			bool? ai = null;
+			JsonSchema.Schema? sa2 = null;
+			if (sa.additional_items.type() == typeof (bool)) {
+				ai = (bool)sa.additional_items;
+			}
+			else if (sa.additional_items.type().is_a (typeof (JsonSchema.Schema)))
+				sa2 = (JsonSchema.Schema)sa.additional_items;
+			JsonSchema.Schema? _items = null;
+			JsonSchema.SchemaList? sl = null;
+			if (sa.items.type().is_a (typeof (JsonSchema.Schema)))
+				_items = (JsonSchema.Schema)sa.items;
+			else if (sa.items.type() == typeof (JsonSchema.SchemaList))
+				sl = (JsonSchema.SchemaList)sa.items;
+			else return false;
+			if (sl != null) {
+				if (ai == false && sl.size < size)
+					return false;
+				for (var i = 0; i < sl.size; i++)
+					if (!this[i].validate (sl[i]))
+						return false;
+				if (sa2 != null)
+					for (var i = sl.size; i < size; i++)
+						if (!this[i].validate (sa2))
+							return false;
+			}
+			if (_items != null) {
+				for (var i = 0; i < size; i++)
+					if (!this[i].validate (_items))
+						return false;
+			}
+			return true;
+		}
 
 		internal string to_data (uint indent, char indent_char, bool pretty) {
 			if (size == 0)
