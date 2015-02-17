@@ -10,7 +10,7 @@ before_install:
   - sudo add-apt-repository -y ppa:inizan-yannick/vala-libs
   - sudo add-apt-repository -y ppa:ricotz/testing
   - sudo apt-get update -qq
-  - sudo apt-get install valac-0.24 libgee-0.8-dev libmee-1.0-dev
+  - sudo apt-get install valac-0.28 libmee-1.0-dev
 script: ./autogen.sh && make && sudo make install
 notifications:
   irc:
