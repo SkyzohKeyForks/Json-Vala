@@ -366,7 +366,7 @@ pkgconfig_DATA = json-vala.pc
 EXTRA_DIST = \
 	json-vala.pc.in
 
-CLEANFILES = *.c *.stamp json-vala.h json-vala.vapi
+CLEANFILES = *.c schema/*.c *.stamp json-vala.h json-vala.vapi
 DISTCLEANFILES = $(CLEANFILES) Makefile json-vala.pc
 all: all-am
 

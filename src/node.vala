@@ -8,6 +8,7 @@ namespace Json {
 		GUID,
 		INTEGER,
 		OBJECT,
+		REGEX,
 		STRING,
 		TIMESPAN
 	}
@@ -55,6 +56,9 @@ namespace Json {
 					array.add_string_element (s);
 				}
 			}
+			else if (val.type() == typeof (Regex)) {
+				str = "\"" + ((Regex)val).get_pattern() + "\"";
+			}
 			else if (val.type() == typeof (DateTime)) {
 				str = "\"" + ((DateTime)val).to_string() + "\"";
 			}
@@ -88,6 +92,8 @@ namespace Json {
 				if (object != null)
 					return NodeType.OBJECT;
 				if (str != null) {
+					if (is_regex())
+						return NodeType.REGEX;
 					if (is_datetime())
 						return NodeType.DATETIME;
 					if (is_timespan())
@@ -105,11 +111,21 @@ namespace Json {
 				return NodeType.NULL;
 			}
 		}
+		
+		string[] jarray_as_string_array() {
+			string[] strv = new string[0];
+			foreach (var n in array)
+				strv += n.as_string();
+			return strv;
+		}
 
 		public GLib.Value value {
 			owned get {
-				if (array != null)
+				if (array != null) {
+					if (array.is_unique == NodeType.STRING)
+						return jarray_as_string_array();
 					return as_array();
+				}
 				if (object != null)
 					return as_object();
 				if (str != null)
@@ -181,6 +197,15 @@ namespace Json {
 		public Mee.TimeSpan as_timespan() {
 			return Mee.TimeSpan.parse (as_string());
 		}
+		
+		public Regex as_regex() {
+			try {
+				return new Regex (as_string());
+			}
+			catch {
+				return new Regex ("()");
+			}
+		}
 
 		public string as_string() {
 			return (str == null) ? "" : str.substring (1, str.length - 2);
@@ -233,6 +258,14 @@ namespace Json {
 		
 		public bool is_timespan() {
 			return Mee.TimeSpan.try_parse (as_string());
+		}
+		public bool is_regex() {
+			try {
+				var regex = new Regex (as_string());
+				return true;
+			} catch {
+				return false;
+			}
 		}
 
 		public bool is_null() {

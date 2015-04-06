@@ -21,6 +21,13 @@ namespace Json {
 			array.add_values (values);
 			return array;
 		}
+		
+		public static Array from_strv (string[] array) throws GLib.Error {
+			var jarray = new Array();
+			foreach (string str in array)
+				jarray.add_string_element (str);
+			return jarray;
+		}
 
 		public void add_element (Json.Node val) {
 			list.add (val);
@@ -48,6 +55,10 @@ namespace Json {
 		
 		public void add_timespan_element (Mee.TimeSpan timespan) throws GLib.Error {
 			add_string_element (timespan.to_string());
+		}
+		
+		public void add_regex_element (Regex regex) throws GLib.Error {
+			add_string_element (regex.get_pattern());
 		}
 		
 		public void add_string_element (string str) throws GLib.Error {
@@ -161,6 +172,15 @@ namespace Json {
 				throw new Json.Error.INVALID ("the element isn't a timespan.\n");
 			return Mee.TimeSpan.parse (str);
 		}
+		
+		public Regex get_regex_element (uint index) throws GLib.Error {
+			var str = get_string_element (index);
+			try {
+				return new Regex (str);
+			} catch (RegexError re) {
+				throw new Json.Error.INVALID ("the element isn't a regular expression : %s.\n".printf (re.message));
+			}
+		}
 
 		public string get_string_element (uint index) throws GLib.Error {
 			var val = this[index];
@@ -208,48 +228,52 @@ namespace Json {
 			list_changed (index, size, val);
 		}
 
-		public void set_object_element (int index, Json.Object object) {
+		public void set_object_element (uint index, Json.Object object) {
 			var val = new Json.Node (object);
 			set_element (index, val);
 		}
 
-		public void set_array_element (int index, Json.Array array) {
+		public void set_array_element (uint index, Json.Array array) {
 			var val = new Json.Node (array);
 			set_element (index, val);
 		}
 		
-		public void set_string_element (int index, string str) {
+		public void set_string_element (uint index, string str) {
 			set_element (index, new Json.Node (str));
 		}
 
-		public void set_datetime_element (int index, DateTime date) {
+		public void set_datetime_element (uint index, DateTime date) {
 			set_string_element (index, date.to_string());
 		}
 		
-		public void set_guid_element (int index, Mee.Guid guid) {
+		public void set_guid_element (uint index, Mee.Guid guid) {
 			set_string_element (index, guid.to_string());
 		}
 		
-		public void set_timespan_element (int index, Mee.TimeSpan timespan) {
+		public void set_timespan_element (uint index, Mee.TimeSpan timespan) {
 			set_string_element (index, timespan.to_string());
 		}
+		
+		public void set_regex_element (uint index, Regex regex) {
+			set_string_element (index, regex.get_pattern());
+		}
 
-		public void set_double_element (int index, double number) {
+		public void set_double_element (uint index, double number) {
 			var val = new Json.Node (number);
 			set_element (index, val);
 		}
 
-		public void set_integer_element (int index, int64 integer) {
+		public void set_integer_element (uint index, int64 integer) {
 			var val = new Json.Node (integer);
 			set_element (index, val);
 		}
 
-		public void set_boolean_element (int index, bool boolean) {
+		public void set_boolean_element (uint index, bool boolean) {
 			var val = new Json.Node (boolean);
 			set_element (index, val);
 		}
 
-		public void set_null_element (int index) {
+		public void set_null_element (uint index) {
 			var val = new Json.Node();
 			set_element (index, val);
 		}
@@ -350,6 +374,18 @@ namespace Json {
 				sb.append_c (indent_char);
 			sb.append ("]");
 			return sb.str;
+		}
+		
+		public NodeType is_unique {
+			get {
+				if (size == 0)
+					return NodeType.NULL;
+				NodeType nt = list[0].node_type;
+				for (var i = 1; i < list.length; i++)
+					if (list[i].node_type != nt)
+						return NodeType.NULL;
+				return nt;
+			}
 		}
 
 		public uint size {

@@ -63,8 +63,17 @@ namespace Json {
 		public Mee.TimeSpan get_timespan_member (string id) throws GLib.Error {
 			var str = get_string_member (id);
 			if (!Mee.TimeSpan.try_parse (str))
-				throw new Json.Error.INVALID ("the element isn't a timespan.\n");
+				throw new Json.Error.INVALID ("current member isn't a timespan.\n");
 			return Mee.TimeSpan.parse (str);
+		}
+		
+		public Regex get_regex_member (string id) throws GLib.Error {
+			var str = get_string_member (id);
+			try {
+				return new Regex (str);
+			} catch (RegexError re) {
+				throw new Json.Error.INVALID ("current member isn't a regular expression : %s.\n".printf (re.message));
+			}
 		}
 
 		public string get_string_member (string id) throws GLib.Error {
@@ -174,6 +183,10 @@ namespace Json {
 		
 		public void set_timespan_member (string id, Mee.TimeSpan timespan)  throws GLib.Error {
 			set_string_member (id, timespan.to_string());
+		}
+		
+		public void set_regex_member (string id, Regex regex) throws GLib.Error {
+			set_string_member (id, regex.get_pattern());
 		}
 
 		public void set_string_member (string id, string str) throws GLib.Error {
