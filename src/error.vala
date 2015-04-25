@@ -1,4 +1,4 @@
-namespace Json {
+namespace MeeJson {
 	public errordomain Error {
 		NULL,
 		INVALID,

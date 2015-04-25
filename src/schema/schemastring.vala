@@ -1,4 +1,4 @@
-namespace JsonSchema {
+namespace MeeJsonSchema {
 	public class SchemaString : Schema {
 		public SchemaString() {
 			GLib.Object (schema_type: SchemaType.STRING);

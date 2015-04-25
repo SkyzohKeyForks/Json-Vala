@@ -1,4 +1,4 @@
-namespace Json {
+namespace MeeJson {
 	public enum NodeType {
 		NULL,
 		ARRAY,
@@ -14,8 +14,8 @@ namespace Json {
 	}
 	
 	public class Node {
-		internal Json.Array? array;
-		internal Json.Object? object;
+		internal MeeJson.Array? array;
+		internal MeeJson.Object? object;
 		internal string? str;
 		internal int64? integer;
 		internal string? number_str;
@@ -25,10 +25,10 @@ namespace Json {
 		public Node (GLib.Value? val = null) {
 			if (val == null)
 				isnull = true;
-			else if (val.type().is_a (typeof (Json.Array)))
-				array = (Json.Array)val;
-			else if (val.type().is_a (typeof (Json.Object)))
-				object = (Json.Object)val;
+			else if (val.type().is_a (typeof (MeeJson.Array)))
+				array = (MeeJson.Array)val;
+			else if (val.type().is_a (typeof (MeeJson.Object)))
+				object = (MeeJson.Object)val;
 			else if (val.type() == typeof (bool))
 				boolean = (bool)val;
 			else if (val.type() == typeof (int64))
@@ -49,10 +49,10 @@ namespace Json {
 				number_str = "%g".printf ((float)val);
 			else if (val.type() == typeof (string[])) {
 				string[] strv = (string[])val;
-				array = new Json.Array();
+				array = new MeeJson.Array();
 				foreach (string s in strv) {
 					if (!is_valid_string (s))
-						throw new Json.Error.INVALID ("invalid string value.\n");
+						throw new MeeJson.Error.INVALID ("invalid string value.\n");
 					array.add_string_element (s);
 				}
 			}
@@ -69,11 +69,11 @@ namespace Json {
 				str = "\"" + ((Mee.TimeSpan)val).to_string() + "\"";
 			else if (val.type() == typeof (string)) {
 				if (!is_valid_string ((string)val))
-					throw new Json.Error.INVALID ("current string isn't valid.\n");
+					throw new MeeJson.Error.INVALID ("current string isn't valid.\n");
 				str = "\"%s\"".printf ((string)val);
 			}
-			else if (val.type().is_a (typeof (Json.Node))) {
-				var node = (Json.Node)val;
+			else if (val.type().is_a (typeof (MeeJson.Node))) {
+				var node = (MeeJson.Node)val;
 				array = node.array;
 				object = node.object;
 				str = node.str;
@@ -85,15 +85,13 @@ namespace Json {
 			else isnull = true;
 		}
 
-		public Json.NodeType node_type {
+		public MeeJson.NodeType node_type {
 			get {
 				if (array != null)
 					return NodeType.ARRAY;
 				if (object != null)
 					return NodeType.OBJECT;
 				if (str != null) {
-					if (is_regex())
-						return NodeType.REGEX;
 					if (is_datetime())
 						return NodeType.DATETIME;
 					if (is_timespan())
@@ -143,7 +141,7 @@ namespace Json {
 			}
 		}
 
-		public Json.Node get (GLib.Value val) {
+		public MeeJson.Node get (GLib.Value val) {
 			uint i = 0;
 			if (val.type() == typeof (int))
 				i = (uint)(int)val;
@@ -174,12 +172,16 @@ namespace Json {
 			return null_node;
 		}
 
-		public Json.Array as_array() {
-			return (array == null) ? new Json.Array() : array;
+		public MeeJson.Array as_array() {
+			return (array == null) ? new MeeJson.Array() : array;
 		}
 
-		public Json.Object as_object() {
-			return (object == null) ? new Json.Object() : object;
+		public MeeJson.Object as_object() {
+			return (object == null) ? new MeeJson.Object() : object;
+		}
+		
+		public uint8[] as_binary() {
+			return Base64.decode (as_string());
 		}
 
 		public DateTime as_datetime() {
@@ -199,12 +201,7 @@ namespace Json {
 		}
 		
 		public Regex as_regex() {
-			try {
-				return new Regex (as_string());
-			}
-			catch {
-				return new Regex ("()");
-			}
+			return new Regex (as_string());
 		}
 
 		public string as_string() {
@@ -245,7 +242,7 @@ namespace Json {
 		public bool is_boolean() {
 			return boolean != null;
 		}
-
+		
 		public bool is_datetime() {
 			TimeVal tv = TimeVal();
 			var date_str = as_string();
@@ -259,15 +256,7 @@ namespace Json {
 		public bool is_timespan() {
 			return Mee.TimeSpan.try_parse (as_string());
 		}
-		public bool is_regex() {
-			try {
-				var regex = new Regex (as_string());
-				return true;
-			} catch {
-				return false;
-			}
-		}
-
+		
 		public bool is_null() {
 			return isnull == true;
 		}
@@ -288,25 +277,25 @@ namespace Json {
 			return number_str != null;
 		}
 		
-		public bool validate (JsonSchema.Schema schema) {
-			if (schema.schema_type == JsonSchema.SchemaType.ARRAY && node_type != NodeType.ARRAY)
+		public bool validate (MeeJsonSchema.Schema schema) {
+			if (schema.schema_type == MeeJsonSchema.SchemaType.ARRAY && node_type != NodeType.ARRAY)
 				return false;
-			if (schema.schema_type == JsonSchema.SchemaType.OBJECT && node_type != NodeType.OBJECT)
+			if (schema.schema_type == MeeJsonSchema.SchemaType.OBJECT && node_type != NodeType.OBJECT)
 				return false;
-			if (schema.schema_type == JsonSchema.SchemaType.BOOLEAN && node_type != NodeType.BOOLEAN)
+			if (schema.schema_type == MeeJsonSchema.SchemaType.BOOLEAN && node_type != NodeType.BOOLEAN)
 				return false;
-			if (schema.schema_type == JsonSchema.SchemaType.INTEGER && node_type != NodeType.INTEGER)
+			if (schema.schema_type == MeeJsonSchema.SchemaType.INTEGER && node_type != NodeType.INTEGER)
 				return false;
-			if (schema.schema_type == JsonSchema.SchemaType.NUMBER && node_type != NodeType.DOUBLE)
+			if (schema.schema_type == MeeJsonSchema.SchemaType.NUMBER && node_type != NodeType.DOUBLE)
 				return false;
-			if (schema.schema_type == JsonSchema.SchemaType.STRING && str == null)
+			if (schema.schema_type == MeeJsonSchema.SchemaType.STRING && str == null)
 				return false;
 			if (node_type == NodeType.OBJECT)
 				return object.validate (schema);
 			if (node_type == NodeType.ARRAY)
 				return array.validate (schema);
 			if (node_type == NodeType.INTEGER) {
-				JsonSchema.SchemaInteger si = (JsonSchema.SchemaInteger)schema;
+				MeeJsonSchema.SchemaInteger si = (MeeJsonSchema.SchemaInteger)schema;
 				if (si.multiple_of != null && (integer % si.multiple_of) != 0)
 					return false;
 				if (si.maximum != null)
@@ -317,7 +306,7 @@ namespace Json {
 						return false;
 			}
 			if (node_type == NodeType.DOUBLE) {
-				JsonSchema.SchemaNumber sn = (JsonSchema.SchemaNumber)schema;
+				MeeJsonSchema.SchemaNumber sn = (MeeJsonSchema.SchemaNumber)schema;
 				double d = as_double();
 				if (sn.multiple_of != null && (d % sn.multiple_of) != 0)
 					return false;
@@ -329,7 +318,7 @@ namespace Json {
 						return false;
 			}
 			if (str != null) {
-				JsonSchema.SchemaString s = (JsonSchema.SchemaString)schema;
+				MeeJsonSchema.SchemaString s = (MeeJsonSchema.SchemaString)schema;
 				if (s.max_length != null && str.length > s.max_length)
 					return false;
 				if (s.min_length != null && str.length < s.min_length)

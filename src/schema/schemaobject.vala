@@ -1,4 +1,4 @@
-namespace JsonSchema {
+namespace MeeJsonSchema {
 	public class SchemaObject : Schema {
 		public SchemaObject() {
 			GLib.Object (schema_type: SchemaType.OBJECT);
@@ -23,7 +23,7 @@ namespace JsonSchema {
 			}
 			set {
 				value.foreach ((name, val) => {
-					if (Json.is_valid_string (name))
+					if (MeeJson.is_valid_string (name))
 						deps[name] = val;
 				});
 			}
@@ -39,7 +39,7 @@ namespace JsonSchema {
 			}
 			set {
 				value.foreach ((name, val) => {
-					if (Json.is_valid_string (name))
+					if (MeeJson.is_valid_string (name))
 						props[name] = val;
 				});
 			}
@@ -54,7 +54,7 @@ namespace JsonSchema {
 			set {
 				req = new string[0];
 				foreach (string str in value)
-					if (Json.is_valid_string (str))
+					if (MeeJson.is_valid_string (str))
 						req += str;
 			}
 		}

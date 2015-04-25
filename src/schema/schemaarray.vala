@@ -1,4 +1,4 @@
-namespace JsonSchema {
+namespace MeeJsonSchema {
 	public class SchemaArray : Schema {
 		public SchemaArray() {
 			GLib.Object (schema_type: SchemaType.ARRAY);
@@ -11,7 +11,7 @@ namespace JsonSchema {
 		public bool unique_items { get; set; }
 	}
 	
-	public class Set : Json.Array {
+	public class Set : MeeJson.Array {
 		GLib.Type value_type;
 		
 		public new void add (GLib.Value val) {

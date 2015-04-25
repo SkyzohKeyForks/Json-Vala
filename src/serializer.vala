@@ -1,7 +1,7 @@
-namespace Json {
+namespace MeeJson {
 	
-	internal static Json.Object serialize_object (GLib.Object object) throws GLib.Error {
-		var jobject = new Json.Object();
+	internal static MeeJson.Object serialize_object (GLib.Object object) throws GLib.Error {
+		var jobject = new MeeJson.Object();
 		var klass = (ObjectClass)object.get_type().class_ref();
 		foreach (var spec in klass.list_properties()) {
 			GLib.Value val = GLib.Value (spec.value_type);
@@ -9,20 +9,20 @@ namespace Json {
 			if (val.type().is_a (typeof (GLib.Object)))
 				jobject.set_object_member (spec.name, serialize_object ((GLib.Object)val));
 			else
-				jobject.set_member (spec.name, new Json.Node (val));
+				jobject.set_member (spec.name, new MeeJson.Node (val));
 		}
 		return jobject;
 	}
-	
+
 	public static string serialize (GLib.Object object, bool pretty = false) throws GLib.Error {
 		return serialize_object (object).to_data (1, '\t', pretty);
 	}
-
+	/*
 	public static T deserialize<T> (string json) throws GLib.Error {
 		if (typeof (T).is_object())
 			return deserialize_object (typeof (T), json);
 		if (typeof (T) == typeof (string[])) {
-			var array = Json.Array.parse (json);
+			var array = MeeJson.Array.parse (json);
 			string[] str_array = new string[array.size];
 			for (var i = 0; i < array.size; i++)
 				str_array[i] = (string)array[i].value;
@@ -30,17 +30,41 @@ namespace Json {
 		}
 		return null;
 	}
-
-	public static GLib.Object deserialize_object (Type object_type, string json) throws GLib.Error {
-		var jobject = Json.Object.parse (json);
+	*/
+	
+	public static T deserialize_bson<T> (uint8[] bson) throws GLib.Error {
+		var mis = new MemoryInputStream.from_data (bson, null);
+		var reader = new MeeJson.Bson.Reader (mis);
+		return deserialize<T> (reader);
+	}
+	
+	public static T deserialize_json<T> (string json) throws GLib.Error {
+		return deserialize<T> (new TextReader (new Mee.StringReader (json)));
+	}
+	
+	public static T deserialize<T> (Reader reader) throws GLib.Error {
+		if (typeof (T).is_object())
+			return deserialize_object (typeof (T), reader);
+		if (typeof (T) == typeof (string[])) {
+			var array = reader.read_array();
+			string[] strv = new string[array.size];
+			for (var i = 0; i < array.size; i++)
+				strv[i] = array.get_string_element (i);
+			return strv;
+		}
+		return null;
+	}
+	
+	public static GLib.Object deserialize_object (Type object_type, Reader reader) throws GLib.Error {
+		var jobject = reader.read_object();
 		var object = GLib.Object.new (object_type);
 		var klass = (ObjectClass)object_type.class_ref ();
 		jobject.foreach (prop => {
 			var spec = klass.find_property (prop.identifier);
 			if (spec == null)
-				throw new Json.Error.NOT_FOUND ("property wasn't found for required object.\n");
+				throw new MeeJson.Error.NOT_FOUND ("property wasn't found for required object.\n");
 			if (prop.node_type == NodeType.OBJECT)
-				object.set_property (spec.name, deserialize_object (spec.value_type, prop.value.to_string()));
+				object.set_property (spec.name, deserialize_object (spec.value_type, new TextReader (new Mee.StringReader (prop.value.to_string()))));
 			else if (prop.node_type == NodeType.ARRAY) {
 				if (spec.value_type == typeof (string[])) {
 					string[] strv = new string[0];

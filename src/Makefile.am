@@ -10,8 +10,10 @@ libjson_vala_la_CFLAGS = -w -g $(JSON_VALA_CFLAGS) -lm
 vapidir = $(datadir)/vala/vapi
 dist_vapi_DATA = json-vala.vapi json-vala.deps
 
-libjson_vala_la_SOURCES = array.vala error.vala generator.vala node.vala object.vala parser.vala property.vala serializer.vala \
-	schema/schema.vala schema/schemaobject.vala schema/schemaarray.vala schema/schemastring.vala schema/schemanumber.vala
+libjson_vala_la_SOURCES = array.vala error.vala generator.vala node.vala object.vala \
+	reader.vala parser.vala property.vala serializer.vala \
+	schema/schema.vala schema/schemaobject.vala schema/schemaarray.vala schema/schemastring.vala schema/schemanumber.vala \
+	bson/bsonreader.vala bson/bsondocument.vala
 
 libjson_vala_la_LDFLAGS = -version-info 1:4:0
 	
@@ -30,6 +32,6 @@ pkgconfig_DATA = json-vala.pc
 EXTRA_DIST = \
 	json-vala.pc.in
 	
-CLEANFILES = *.c schema/*.c *.stamp json-vala.h json-vala.vapi
+CLEANFILES = *.c schema/*.c bson/*.c *.stamp json-vala.h json-vala.vapi
 
 DISTCLEANFILES = $(CLEANFILES) Makefile json-vala.pc

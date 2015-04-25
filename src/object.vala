@@ -1,19 +1,19 @@
-namespace Json {
+namespace MeeJson {
 	public class Object {
-		HashTable<string, Json.Node> map;
+		HashTable<string, MeeJson.Node> map;
 
 		public signal void property_changed (Property property);
 		public signal void property_removed (Property property);
 		
 		public Object() {
-			map = new HashTable<string, Json.Node> (str_hash, str_equal);
+			map = new HashTable<string, MeeJson.Node> (str_hash, str_equal);
 		}
 
-		public static Json.Object parse (string json) throws GLib.Error {
+		public static MeeJson.Object parse (string json) throws GLib.Error {
 			var parser = new Parser();
 			parser.load_from_string (json);
 			if (parser.root.node_type != NodeType.OBJECT)
-				throw new Json.Error.TYPE ("provided data isn't an object.\n");
+				throw new MeeJson.Error.TYPE ("provided data isn't an object.\n");
 			return parser.root.object;
 		}
 		
@@ -21,49 +21,57 @@ namespace Json {
 			return map.contains (key);
 		}
 
-		public Json.Node? get (string id) {
+		public MeeJson.Node? get (string id) {
 			if (has_key (id))
 				return map[id];
 			return null;
 		}
 
-		public Json.Property get_property (string id) {
+		public MeeJson.Property get_property (string id) {
 			return new Property (id, map[id]);
 		}
 
-		public Json.Array get_array_member (string id) throws GLib.Error {
-			Json.Node val = this[id];
+		public MeeJson.Array get_array_member (string id) throws GLib.Error {
+			MeeJson.Node val = this[id];
 			if (val == null || val.array == null)
-				throw new Json.Error.TYPE ("current member haven't correct value type\n");
+				throw new MeeJson.Error.TYPE ("current member haven't correct value type\n");
 			return val.array;
 		}
 
-		public Json.Object get_object_member (string id) throws GLib.Error {
-			Json.Node val = this[id];
+		public MeeJson.Object get_object_member (string id) throws GLib.Error {
+			MeeJson.Node val = this[id];
 			if (val == null || val.object == null)
-				throw new Json.Error.TYPE ("current member haven't correct value type\n");
+				throw new MeeJson.Error.TYPE ("current member haven't correct value type\n");
 			return val.object;
+		}
+		
+		public uint8[] get_binary_member (string id) throws GLib.Error {
+			var str = get_string_member (id);
+			var data = Base64.decode (str);
+			if (data.length == 0)
+				throw new MeeJson.Error.INVALID ("the member isn't a valid binary data");
+			return data;
 		}
 
 		public DateTime get_datetime_member (string id) throws GLib.Error {
 			var str = get_string_member (id);
 			var tv = TimeVal();
 			if (!tv.from_iso8601 (str))
-				throw new Json.Error.INVALID ("the element isn't a datetime.\n");
+				throw new MeeJson.Error.INVALID ("the member isn't a datetime.\n");
 			return new DateTime.from_timeval_utc (tv);
 		}
 		
 		public Mee.Guid get_guid_member (string id) throws GLib.Error {
 			var str = get_string_member (id);
 			if (!Mee.Guid.try_parse (str))
-				throw new Json.Error.INVALID ("current member isn't a valid guid.\n");
+				throw new MeeJson.Error.INVALID ("current member isn't a valid guid.\n");
 			return Mee.Guid.parse (str);
 		}
 		
 		public Mee.TimeSpan get_timespan_member (string id) throws GLib.Error {
 			var str = get_string_member (id);
 			if (!Mee.TimeSpan.try_parse (str))
-				throw new Json.Error.INVALID ("current member isn't a timespan.\n");
+				throw new MeeJson.Error.INVALID ("current member isn't a timespan.\n");
 			return Mee.TimeSpan.parse (str);
 		}
 		
@@ -72,43 +80,43 @@ namespace Json {
 			try {
 				return new Regex (str);
 			} catch (RegexError re) {
-				throw new Json.Error.INVALID ("current member isn't a regular expression : %s.\n".printf (re.message));
+				throw new MeeJson.Error.INVALID ("current member isn't a regular expression : %s.\n".printf (re.message));
 			}
 		}
 
 		public string get_string_member (string id) throws GLib.Error {
-			Json.Node val = this[id];
+			MeeJson.Node val = this[id];
 			if (val == null || val.str == null)
-				throw new Json.Error.TYPE ("current member haven't correct value type\n");
+				throw new MeeJson.Error.TYPE ("current member haven't correct value type\n");
 			return val.str.substring (1, val.str.length - 2);
 		}
 
 		public double get_double_member (string id) throws GLib.Error {
-			Json.Node val = this[id];
+			MeeJson.Node val = this[id];
 			if (val == null || val.number_str == null)
-				throw new Json.Error.TYPE ("current member haven't correct value type\n");
+				throw new MeeJson.Error.TYPE ("current member haven't correct value type\n");
 			return val.as_double();
 		}
 
 		public bool get_boolean_member (string id) throws GLib.Error {
-			Json.Node val = this[id];
+			MeeJson.Node val = this[id];
 			if (val.boolean == null)
-				throw new Json.Error.TYPE ("current member haven't correct value type\n");
+				throw new MeeJson.Error.TYPE ("current member haven't correct value type\n");
 			return val.boolean;
 		}
 		
 		public int64 get_integer_member (string id) throws GLib.Error {
-			Json.Node val = this[id];
+			MeeJson.Node val = this[id];
 			if (val == null || val.integer == null)
-				throw new Json.Error.TYPE ("current member haven't correct value type\n");
+				throw new MeeJson.Error.TYPE ("current member haven't correct value type\n");
 			return val.integer;
 		}
 		
 		public void clear() {
-			map = new HashTable<string, Json.Node> (str_hash, str_equal);
+			map = new HashTable<string, MeeJson.Node> (str_hash, str_equal);
 		}
 		
-		public bool has (string id, Json.Node node) {
+		public bool has (string id, MeeJson.Node node) {
 			if (!map.contains (id))
 				return false;
 			if (!node.equals (map[id]))
@@ -116,18 +124,18 @@ namespace Json {
 			return true;
 		}
 		
-		public bool has_all (Json.Object object) {
+		public bool has_all (MeeJson.Object object) {
 			for (var i = 0; i < size; i++)
 				if (!has_property (object.properties[i]))
 					return false;
 			return true;
 		}
 		
-		public bool has_property (Json.Property property) {
+		public bool has_property (MeeJson.Property property) {
 			return has (property.identifier, property.value);
 		}
 		
-		public bool remove_all (Json.Object object) {
+		public bool remove_all (MeeJson.Object object) {
 			bool res = true;
 			for (var i = 0; i < size; i++)
 				if (!remove_property (object.properties[i]))
@@ -135,13 +143,13 @@ namespace Json {
 			return true;
 		}
 		
-		public bool remove_property (Json.Property property) {
+		public bool remove_property (MeeJson.Property property) {
 			if (!has_property (property))
 				return false;
 			return map.remove (property.identifier);
 		}
 
-		public bool remove_member (string id, out Json.Node? node = null) {
+		public bool remove_member (string id, out MeeJson.Node? node = null) {
 			node = map[id];
 			bool res = map.remove (id);
 			if (true)
@@ -151,26 +159,30 @@ namespace Json {
 
 		public void set (string id, GLib.Value val) throws GLib.Error {
 			if (!is_valid_string (id))
-				throw new Json.Error.INVALID ("identifier is invalid.\n");
-			map[id] = new Json.Node (val);
+				throw new MeeJson.Error.INVALID ("identifier is invalid.\n");
+			map[id] = new MeeJson.Node (val);
 			property_changed (new Property (id, map[id]));
 		}
 
-		public void set_member (string id, Json.Node val) throws GLib.Error {
+		public void set_member (string id, MeeJson.Node val) throws GLib.Error {
 			if (!is_valid_string (id))
-				throw new Json.Error.INVALID ("identifier is invalid.\n");
+				throw new MeeJson.Error.INVALID ("identifier is invalid.\n");
 			map[id] = val;
 			property_changed (new Property (id, val));
 		}
 
-		public void set_array_member (string id, Json.Array array) throws GLib.Error {
-			var val = new Json.Node (array);
+		public void set_array_member (string id, MeeJson.Array array) throws GLib.Error {
+			var val = new MeeJson.Node (array);
 			set_member (id, val);
 		}
 
-		public void set_object_member (string id, Json.Object object) throws GLib.Error {
-			var val = new Json.Node (object);
+		public void set_object_member (string id, MeeJson.Object object) throws GLib.Error {
+			var val = new MeeJson.Node (object);
 			set_member (id, val);
+		}
+		
+		public void set_binary_member (string id, uint8[] data) throws GLib.Error {
+			set_string_member (id, Base64.encode (data));
 		}
 
 		public void set_datetime_member (string id, DateTime date) throws GLib.Error {
@@ -190,30 +202,30 @@ namespace Json {
 		}
 
 		public void set_string_member (string id, string str) throws GLib.Error {
-			set_member (id, new Json.Node (str));
+			set_member (id, new MeeJson.Node (str));
 		}
 
 		public void set_double_member (string id, double number) throws GLib.Error {
-			var val = new Json.Node (number);
+			var val = new MeeJson.Node (number);
 			set_member (id, val);
 		}
 
 		public void set_boolean_member (string id, bool boolean) throws GLib.Error {
-			var val = new Json.Node (boolean);
+			var val = new MeeJson.Node (boolean);
 			set_member (id, val);
 		}
 		
 		public void set_integer_member (string id, int64 integer) throws GLib.Error {
-			var val = new Json.Node (integer);
+			var val = new MeeJson.Node (integer);
 			set_member (id, val);
 		}
 
 		public void set_null_member (string id) throws GLib.Error {
-			var val = new Json.Node();
+			var val = new MeeJson.Node();
 			set_member (id, val);
 		}
 
-		public delegate void ForeachFunc (Json.Property property);
+		public delegate void ForeachFunc (MeeJson.Property property);
 
 		public void foreach (ForeachFunc func) {
 			map.foreach ((name, value) => {
@@ -221,10 +233,10 @@ namespace Json {
 			});
 		}
 		
-		public bool validate (JsonSchema.Schema schema) {
-			if (schema.schema_type != JsonSchema.SchemaType.OBJECT)
+		public bool validate (MeeJsonSchema.Schema schema) {
+			if (schema.schema_type != MeeJsonSchema.SchemaType.OBJECT)
 				return false;
-			JsonSchema.SchemaObject so = (JsonSchema.SchemaObject)schema;
+			MeeJsonSchema.SchemaObject so = (MeeJsonSchema.SchemaObject)schema;
 			if (so.max_properties != null)
 				if (size > so.max_properties)
 					return false;
@@ -264,9 +276,9 @@ namespace Json {
 				if (sset.length > 0 && ap == false)
 					return false;
 			}
-			if (so.additional_properties.type().is_a (typeof (JsonSchema.Schema))) {
+			if (so.additional_properties.type().is_a (typeof (MeeJsonSchema.Schema))) {
 				res = true;
-				var sschema = (JsonSchema.Schema)so.additional_properties;
+				var sschema = (MeeJsonSchema.Schema)so.additional_properties;
 				sset.foreach (str => {
 					if (map[str].validate (sschema) == false)
 						res = false;
@@ -285,15 +297,15 @@ namespace Json {
 			}
 		}
 		
-		public Json.Node[] values {
+		public MeeJson.Node[] values {
 			owned get {
-				var list = new GenericArray<Json.Node>();
+				var list = new GenericArray<MeeJson.Node>();
 				this.foreach (prop => { list.add (prop.value); });
 				return list.data;
 			}
 		}
 
-		public Json.Property[] properties {
+		public MeeJson.Property[] properties {
 			owned get {
 				var list = new GenericArray<Property>();
 				this.foreach (prop => { list.add (prop); });
@@ -317,7 +329,7 @@ namespace Json {
 			return s;
 		}
 		
-		public bool equals (Json.Object object) {
+		public bool equals (MeeJson.Object object) {
 			if (object.size != size)
 				return false;
 			bool res = true;

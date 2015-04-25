@@ -1,4 +1,4 @@
-namespace JsonSchema {
+namespace MeeJsonSchema {
 	public enum SchemaType {
 		NULL,
 		ARRAY,
@@ -23,7 +23,7 @@ namespace JsonSchema {
 				return _description;
 			}
 			set {
-				_description = Json.is_valid_string (value) ? value : null;
+				_description = MeeJson.is_valid_string (value) ? value : null;
 			}
 		}
 		
@@ -32,7 +32,7 @@ namespace JsonSchema {
 				return _title;
 			}
 			set {
-				_title = Json.is_valid_string (value) ? value : null;
+				_title = MeeJson.is_valid_string (value) ? value : null;
 			}
 		}
 		
@@ -42,7 +42,7 @@ namespace JsonSchema {
 	
 		[Experimental]
 		public static Schema parse (string data) throws GLib.Error {
-			var object = Json.Object.parse (data);
+			var object = MeeJson.Object.parse (data);
 			Schema schema = parse_schema (object);
 			if (object.has_key ("title") && object["title"].is_string())
 				schema.title = object["title"].as_string();
@@ -51,7 +51,7 @@ namespace JsonSchema {
 			return schema;
 		}
 		
-		static Schema parse_schema (Json.Object object) throws GLib.Error {
+		static Schema parse_schema (MeeJson.Object object) throws GLib.Error {
 			Schema schema = null;
 			if (object["type"] != null) {
 				if (object["type"].as_string() == "array")
@@ -75,7 +75,7 @@ namespace JsonSchema {
 			return schema;
 		}
 		
-		static Schema parse_number (Json.Object object) throws GLib.Error {
+		static Schema parse_number (MeeJson.Object object) throws GLib.Error {
 			var schema = new SchemaNumber();
 			if (object.has_key ("multipleOf")) {
 				if (!object["multipleOf"].is_double())
@@ -105,7 +105,7 @@ namespace JsonSchema {
 			return schema;
 		}
 		
-		static Schema parse_integer (Json.Object object) throws GLib.Error {
+		static Schema parse_integer (MeeJson.Object object) throws GLib.Error {
 			var schema = new SchemaInteger();
 			if (object.has_key ("multipleOf")) {
 				if (!object["multipleOf"].is_int())
@@ -135,7 +135,7 @@ namespace JsonSchema {
 			return schema;
 		}
 		
-		static Schema parse_string (Json.Object object) throws GLib.Error {
+		static Schema parse_string (MeeJson.Object object) throws GLib.Error {
 			var schema = new SchemaString();
 			if (object.has_key ("maxLength")) {
 				if (!object["maxLength"].is_int())
@@ -155,11 +155,11 @@ namespace JsonSchema {
 			return schema;
 		}
 		
-		static Schema parse_boolean (Json.Object object) {
+		static Schema parse_boolean (MeeJson.Object object) {
 			return new SchemaBoolean();
 		}
 		
-		static SchemaArray parse_array (Json.Object object) throws GLib.Error {
+		static SchemaArray parse_array (MeeJson.Object object) throws GLib.Error {
 			var schema = new SchemaArray();
 			if (!object.has_key ("items"))
 				throw new SchemaError.INVALID ("can't find items object.");
@@ -199,7 +199,7 @@ namespace JsonSchema {
 			return schema;
 		}
 		
-		static SchemaObject parse_object (Json.Object object) throws GLib.Error {
+		static SchemaObject parse_object (MeeJson.Object object) throws GLib.Error {
 			var schema = new SchemaObject();
 			if (object.has_key ("maxProperties"))
 				if(!object["maxProperties"].is_int())

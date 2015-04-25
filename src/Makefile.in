@@ -83,12 +83,13 @@ host_triplet = @host@
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(srcdir)/json-vala.pc.in array.c error.c generator.c node.c \
-	object.c parser.c property.c serializer.c schema/schema.c \
-	schema/schemaobject.c schema/schemaarray.c \
-	schema/schemastring.c schema/schemanumber.c \
-	$(top_srcdir)/depcomp $(srcdir)/json-vala.vapi \
-	$(srcdir)/json-vala.h $(srcdir)/libjson_vala_la_vala.stamp \
-	$(dist_vapi_DATA) $(json_valainclude_HEADERS)
+	object.c reader.c parser.c property.c serializer.c \
+	schema/schema.c schema/schemaobject.c schema/schemaarray.c \
+	schema/schemastring.c schema/schemanumber.c bson/bsonreader.c \
+	bson/bsondocument.c $(top_srcdir)/depcomp \
+	$(srcdir)/json-vala.vapi $(srcdir)/json-vala.h \
+	$(srcdir)/libjson_vala_la_vala.stamp $(dist_vapi_DATA) \
+	$(json_valainclude_HEADERS)
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -136,12 +137,15 @@ am__dirstamp = $(am__leading_dot)dirstamp
 am_libjson_vala_la_OBJECTS = libjson_vala_la-array.lo \
 	libjson_vala_la-error.lo libjson_vala_la-generator.lo \
 	libjson_vala_la-node.lo libjson_vala_la-object.lo \
-	libjson_vala_la-parser.lo libjson_vala_la-property.lo \
-	libjson_vala_la-serializer.lo schema/libjson_vala_la-schema.lo \
+	libjson_vala_la-reader.lo libjson_vala_la-parser.lo \
+	libjson_vala_la-property.lo libjson_vala_la-serializer.lo \
+	schema/libjson_vala_la-schema.lo \
 	schema/libjson_vala_la-schemaobject.lo \
 	schema/libjson_vala_la-schemaarray.lo \
 	schema/libjson_vala_la-schemastring.lo \
-	schema/libjson_vala_la-schemanumber.lo
+	schema/libjson_vala_la-schemanumber.lo \
+	bson/libjson_vala_la-bsonreader.lo \
+	bson/libjson_vala_la-bsondocument.lo
 libjson_vala_la_OBJECTS = $(am_libjson_vala_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -351,8 +355,10 @@ libjson_vala_la_CPPFLAGS = \
 libjson_vala_la_CFLAGS = -w -g $(JSON_VALA_CFLAGS) -lm
 vapidir = $(datadir)/vala/vapi
 dist_vapi_DATA = json-vala.vapi json-vala.deps
-libjson_vala_la_SOURCES = array.vala error.vala generator.vala node.vala object.vala parser.vala property.vala serializer.vala \
-	schema/schema.vala schema/schemaobject.vala schema/schemaarray.vala schema/schemastring.vala schema/schemanumber.vala
+libjson_vala_la_SOURCES = array.vala error.vala generator.vala node.vala object.vala \
+	reader.vala parser.vala property.vala serializer.vala \
+	schema/schema.vala schema/schemaobject.vala schema/schemaarray.vala schema/schemastring.vala schema/schemanumber.vala \
+	bson/bsonreader.vala bson/bsondocument.vala
 
 libjson_vala_la_LDFLAGS = -version-info 1:4:0
 libjson_vala_la_VALAFLAGS = --pkg mee-1.0 --library json-vala --vapi json-vala.vapi -H json-vala.h --disable-warnings
@@ -455,12 +461,24 @@ schema/libjson_vala_la-schemastring.lo: schema/$(am__dirstamp) \
 	schema/$(DEPDIR)/$(am__dirstamp)
 schema/libjson_vala_la-schemanumber.lo: schema/$(am__dirstamp) \
 	schema/$(DEPDIR)/$(am__dirstamp)
+bson/$(am__dirstamp):
+	@$(MKDIR_P) bson
+	@: > bson/$(am__dirstamp)
+bson/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) bson/$(DEPDIR)
+	@: > bson/$(DEPDIR)/$(am__dirstamp)
+bson/libjson_vala_la-bsonreader.lo: bson/$(am__dirstamp) \
+	bson/$(DEPDIR)/$(am__dirstamp)
+bson/libjson_vala_la-bsondocument.lo: bson/$(am__dirstamp) \
+	bson/$(DEPDIR)/$(am__dirstamp)
 
 libjson-vala.la: $(libjson_vala_la_OBJECTS) $(libjson_vala_la_DEPENDENCIES) $(EXTRA_libjson_vala_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(libjson_vala_la_LINK) -rpath $(libdir) $(libjson_vala_la_OBJECTS) $(libjson_vala_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
+	-rm -f bson/*.$(OBJEXT)
+	-rm -f bson/*.lo
 	-rm -f schema/*.$(OBJEXT)
 	-rm -f schema/*.lo
 
@@ -474,7 +492,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjson_vala_la-object.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjson_vala_la-parser.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjson_vala_la-property.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjson_vala_la-reader.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libjson_vala_la-serializer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@bson/$(DEPDIR)/libjson_vala_la-bsondocument.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@bson/$(DEPDIR)/libjson_vala_la-bsonreader.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/$(DEPDIR)/libjson_vala_la-schema.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/$(DEPDIR)/libjson_vala_la-schemaarray.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/$(DEPDIR)/libjson_vala_la-schemanumber.Plo@am__quote@
@@ -540,6 +561,13 @@ libjson_vala_la-object.lo: object.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -c -o libjson_vala_la-object.lo `test -f 'object.c' || echo '$(srcdir)/'`object.c
 
+libjson_vala_la-reader.lo: reader.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -MT libjson_vala_la-reader.lo -MD -MP -MF $(DEPDIR)/libjson_vala_la-reader.Tpo -c -o libjson_vala_la-reader.lo `test -f 'reader.c' || echo '$(srcdir)/'`reader.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libjson_vala_la-reader.Tpo $(DEPDIR)/libjson_vala_la-reader.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='reader.c' object='libjson_vala_la-reader.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -c -o libjson_vala_la-reader.lo `test -f 'reader.c' || echo '$(srcdir)/'`reader.c
+
 libjson_vala_la-parser.lo: parser.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -MT libjson_vala_la-parser.lo -MD -MP -MF $(DEPDIR)/libjson_vala_la-parser.Tpo -c -o libjson_vala_la-parser.lo `test -f 'parser.c' || echo '$(srcdir)/'`parser.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libjson_vala_la-parser.Tpo $(DEPDIR)/libjson_vala_la-parser.Plo
@@ -595,6 +623,20 @@ schema/libjson_vala_la-schemanumber.lo: schema/schemanumber.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='schema/schemanumber.c' object='schema/libjson_vala_la-schemanumber.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -c -o schema/libjson_vala_la-schemanumber.lo `test -f 'schema/schemanumber.c' || echo '$(srcdir)/'`schema/schemanumber.c
+
+bson/libjson_vala_la-bsonreader.lo: bson/bsonreader.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -MT bson/libjson_vala_la-bsonreader.lo -MD -MP -MF bson/$(DEPDIR)/libjson_vala_la-bsonreader.Tpo -c -o bson/libjson_vala_la-bsonreader.lo `test -f 'bson/bsonreader.c' || echo '$(srcdir)/'`bson/bsonreader.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) bson/$(DEPDIR)/libjson_vala_la-bsonreader.Tpo bson/$(DEPDIR)/libjson_vala_la-bsonreader.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='bson/bsonreader.c' object='bson/libjson_vala_la-bsonreader.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -c -o bson/libjson_vala_la-bsonreader.lo `test -f 'bson/bsonreader.c' || echo '$(srcdir)/'`bson/bsonreader.c
+
+bson/libjson_vala_la-bsondocument.lo: bson/bsondocument.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -MT bson/libjson_vala_la-bsondocument.lo -MD -MP -MF bson/$(DEPDIR)/libjson_vala_la-bsondocument.Tpo -c -o bson/libjson_vala_la-bsondocument.lo `test -f 'bson/bsondocument.c' || echo '$(srcdir)/'`bson/bsondocument.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) bson/$(DEPDIR)/libjson_vala_la-bsondocument.Tpo bson/$(DEPDIR)/libjson_vala_la-bsondocument.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='bson/bsondocument.c' object='bson/libjson_vala_la-bsondocument.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libjson_vala_la_CPPFLAGS) $(CPPFLAGS) $(libjson_vala_la_CFLAGS) $(CFLAGS) -c -o bson/libjson_vala_la-bsondocument.lo `test -f 'bson/bsondocument.c' || echo '$(srcdir)/'`bson/bsondocument.c
 $(srcdir)/array.c: $(srcdir)/libjson_vala_la_vala.stamp
 	@if test -f $@; then :; else rm -f $(srcdir)/libjson_vala_la_vala.stamp; fi
 	@if test -f $@; then :; else \
@@ -616,6 +658,11 @@ $(srcdir)/node.c: $(srcdir)/libjson_vala_la_vala.stamp
 	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/libjson_vala_la_vala.stamp; \
 	fi
 $(srcdir)/object.c: $(srcdir)/libjson_vala_la_vala.stamp
+	@if test -f $@; then :; else rm -f $(srcdir)/libjson_vala_la_vala.stamp; fi
+	@if test -f $@; then :; else \
+	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/libjson_vala_la_vala.stamp; \
+	fi
+$(srcdir)/reader.c: $(srcdir)/libjson_vala_la_vala.stamp
 	@if test -f $@; then :; else rm -f $(srcdir)/libjson_vala_la_vala.stamp; fi
 	@if test -f $@; then :; else \
 	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/libjson_vala_la_vala.stamp; \
@@ -660,6 +707,16 @@ $(srcdir)/schema/schemanumber.c: $(srcdir)/libjson_vala_la_vala.stamp
 	@if test -f $@; then :; else \
 	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/libjson_vala_la_vala.stamp; \
 	fi
+$(srcdir)/bson/bsonreader.c: $(srcdir)/libjson_vala_la_vala.stamp
+	@if test -f $@; then :; else rm -f $(srcdir)/libjson_vala_la_vala.stamp; fi
+	@if test -f $@; then :; else \
+	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/libjson_vala_la_vala.stamp; \
+	fi
+$(srcdir)/bson/bsondocument.c: $(srcdir)/libjson_vala_la_vala.stamp
+	@if test -f $@; then :; else rm -f $(srcdir)/libjson_vala_la_vala.stamp; fi
+	@if test -f $@; then :; else \
+	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/libjson_vala_la_vala.stamp; \
+	fi
 $(srcdir)/json-vala.vapi: $(srcdir)/libjson_vala_la_vala.stamp
 	@if test -f $@; then :; else rm -f $(srcdir)/libjson_vala_la_vala.stamp; fi
 	@if test -f $@; then :; else \
@@ -670,9 +727,9 @@ $(srcdir)/json-vala.h: $(srcdir)/libjson_vala_la_vala.stamp
 	@if test -f $@; then :; else \
 	  $(MAKE) $(AM_MAKEFLAGS) $(srcdir)/libjson_vala_la_vala.stamp; \
 	fi
-$(srcdir)/libjson_vala_la_vala.stamp: array.vala error.vala generator.vala node.vala object.vala parser.vala property.vala serializer.vala schema/schema.vala schema/schemaobject.vala schema/schemaarray.vala schema/schemastring.vala schema/schemanumber.vala
+$(srcdir)/libjson_vala_la_vala.stamp: array.vala error.vala generator.vala node.vala object.vala reader.vala parser.vala property.vala serializer.vala schema/schema.vala schema/schemaobject.vala schema/schemaarray.vala schema/schemastring.vala schema/schemanumber.vala bson/bsonreader.vala bson/bsondocument.vala
 	$(AM_V_at)rm -f $@ && echo stamp > $@-t
-	$(AM_V_VALAC)$(am__cd) $(srcdir) && $(VALAC) $(libjson_vala_la_VALAFLAGS) $(VALAFLAGS) -C array.vala error.vala generator.vala node.vala object.vala parser.vala property.vala serializer.vala schema/schema.vala schema/schemaobject.vala schema/schemaarray.vala schema/schemastring.vala schema/schemanumber.vala
+	$(AM_V_VALAC)$(am__cd) $(srcdir) && $(VALAC) $(libjson_vala_la_VALAFLAGS) $(VALAFLAGS) -C array.vala error.vala generator.vala node.vala object.vala reader.vala parser.vala property.vala serializer.vala schema/schema.vala schema/schemaobject.vala schema/schemaarray.vala schema/schemastring.vala schema/schemanumber.vala bson/bsonreader.vala bson/bsondocument.vala
 	$(AM_V_at)mv -f $@-t $@
 
 mostlyclean-libtool:
@@ -680,6 +737,7 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
+	-rm -rf bson/.libs bson/_libs
 	-rm -rf schema/.libs schema/_libs
 install-dist_vapiDATA: $(dist_vapi_DATA)
 	@$(NORMAL_INSTALL)
@@ -861,6 +919,8 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
+	-rm -f bson/$(DEPDIR)/$(am__dirstamp)
+	-rm -f bson/$(am__dirstamp)
 	-rm -f schema/$(DEPDIR)/$(am__dirstamp)
 	-rm -f schema/$(am__dirstamp)
 	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
@@ -869,6 +929,8 @@ maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 	-rm -f $(srcdir)/array.c
+	-rm -f $(srcdir)/bson/bsondocument.c
+	-rm -f $(srcdir)/bson/bsonreader.c
 	-rm -f $(srcdir)/error.c
 	-rm -f $(srcdir)/generator.c
 	-rm -f $(srcdir)/json-vala.h
@@ -878,6 +940,7 @@ maintainer-clean-generic:
 	-rm -f $(srcdir)/object.c
 	-rm -f $(srcdir)/parser.c
 	-rm -f $(srcdir)/property.c
+	-rm -f $(srcdir)/reader.c
 	-rm -f $(srcdir)/schema/schema.c
 	-rm -f $(srcdir)/schema/schemaarray.c
 	-rm -f $(srcdir)/schema/schemanumber.c
@@ -885,12 +948,15 @@ maintainer-clean-generic:
 	-rm -f $(srcdir)/schema/schemastring.c
 	-rm -f $(srcdir)/serializer.c
 	-rm -f array.c
+	-rm -f bson/bsondocument.c
+	-rm -f bson/bsonreader.c
 	-rm -f error.c
 	-rm -f generator.c
 	-rm -f node.c
 	-rm -f object.c
 	-rm -f parser.c
 	-rm -f property.c
+	-rm -f reader.c
 	-rm -f schema/schema.c
 	-rm -f schema/schemaarray.c
 	-rm -f schema/schemanumber.c
@@ -903,7 +969,7 @@ clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
 	mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf ./$(DEPDIR) schema/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) bson/$(DEPDIR) schema/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -950,7 +1016,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf ./$(DEPDIR) schema/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) bson/$(DEPDIR) schema/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

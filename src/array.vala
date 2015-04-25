@@ -1,18 +1,18 @@
-namespace Json {
+namespace MeeJson {
 	public class Array {
-		GenericArray<Json.Node> list;
+		GenericArray<MeeJson.Node> list;
 
-		public signal void list_changed (uint index, uint size, Json.Node val);
+		public signal void list_changed (uint index, uint size, MeeJson.Node val);
 
 		public Array() {
-			list = new GenericArray<Json.Node>();
+			list = new GenericArray<MeeJson.Node>();
 		}
 		
 		public static Array parse (string json) throws GLib.Error {
 			var parser = new Parser();
 			parser.load_from_string (json);
 			if (parser.root.node_type != NodeType.ARRAY)
-				throw new Json.Error.TYPE ("provided data isn't an array.\n");
+				throw new MeeJson.Error.TYPE ("provided data isn't an array.\n");
 			return parser.root.array;
 		}
 		
@@ -29,13 +29,13 @@ namespace Json {
 			return jarray;
 		}
 
-		public void add_element (Json.Node val) {
+		public void add_element (MeeJson.Node val) {
 			list.add (val);
 			list_changed (size - 1, size, val);
 		}
 		
 		public void add (GLib.Value val) throws GLib.Error {
-			var node = new Json.Node (val);
+			var node = new MeeJson.Node (val);
 			list.add (node);
 			list_changed (size - 1, size, node);
 		}
@@ -43,6 +43,10 @@ namespace Json {
 		public void add_values (GLib.Value[] values) throws GLib.Error {
 			foreach (GLib.Value val in values)
 				add (val);
+		}
+		
+		public void add_binary_element (uint8[] data) throws GLib.Error {
+			add_string_element (Base64.encode (data));
 		}
 
 		public void add_datetime_element (DateTime date) throws GLib.Error {
@@ -62,43 +66,43 @@ namespace Json {
 		}
 		
 		public void add_string_element (string str) throws GLib.Error {
-			var val = new Json.Node (str);
+			var val = new MeeJson.Node (str);
 			add_element (val);
 		}
 
-		public void add_array_element (Json.Array array) {
-			var val = new Json.Node (array);
+		public void add_array_element (MeeJson.Array array) {
+			var val = new MeeJson.Node (array);
 			add_element (val);
 		}
 
-		public void add_object_element (Json.Object object) {
-			var val = new Json.Node (object);
+		public void add_object_element (MeeJson.Object object) {
+			var val = new MeeJson.Node (object);
 			add_element (val);
 		}
 
 		public void add_double_element (double number) {
-			var val = new Json.Node (number);
+			var val = new MeeJson.Node (number);
 			add_element (val);
 		}
 
 		public void add_boolean_element (bool boolean) {
-			var val = new Json.Node (boolean);
+			var val = new MeeJson.Node (boolean);
 			add_element (val);
 		}
 		
 		public void add_integer_element (int64 integer) {
-			add_element (new Json.Node (integer));
+			add_element (new MeeJson.Node (integer));
 		}
 
 		public void add_null_element() {
-			add_element (new Json.Node());
+			add_element (new MeeJson.Node());
 		}
 		
 		public void clear() {
-			list = new GenericArray<Json.Node>();
+			list = new GenericArray<MeeJson.Node>();
 		}
 
-		public void foreach (GLib.Func<Json.Node> func) {
+		public void foreach (GLib.Func<MeeJson.Node> func) {
 			list.foreach (func);
 		}
 		
@@ -107,7 +111,7 @@ namespace Json {
 		}
 
 		public int index_of (GLib.Value val) {
-			var node = new Json.Node (val);
+			var node = new MeeJson.Node (val);
 			for (var i = 0; i < size; i++)
 				if (node.equals (this[i]))
 					return i;
@@ -115,61 +119,69 @@ namespace Json {
 		}
 
 		public void insert (int index, GLib.Value val) {
-			list.insert (index, new Json.Node (val));
-			list_changed (index, size, new Json.Node (val));
+			list.insert (index, new MeeJson.Node (val));
+			list_changed (index, size, new MeeJson.Node (val));
 		}
 
-		public Json.Node get (uint index) throws GLib.Error {
+		public MeeJson.Node get (uint index) throws GLib.Error {
 			return list[index];
 		}
 
-		public Json.Array get_array_element (uint index) throws GLib.Error {
+		public MeeJson.Array get_array_element (uint index) throws GLib.Error {
 			var val = this[index];
 			if (val.array == null)
-				throw new Json.Error.INVALID ("the element isn't an array.\n");
+				throw new MeeJson.Error.INVALID ("the element isn't an array.\n");
 			return val.array;
 		}
 
-		public Json.Object get_object_element (uint index) throws GLib.Error {
+		public MeeJson.Object get_object_element (uint index) throws GLib.Error {
 			var val = this[index];
 			if (val.object == null)
-				throw new Json.Error.INVALID ("the element isn't an object.\n");
+				throw new MeeJson.Error.INVALID ("the element isn't an object.\n");
 			return val.object;
 		}
 
 		public double get_double_element (uint index) throws GLib.Error {
 			var val = this[index];
 			if (val.number_str == null)
-				throw new Json.Error.INVALID ("the element isn't a double.\n");
+				throw new MeeJson.Error.INVALID ("the element isn't a double.\n");
 			return val.as_double();
 		}
 
 		public bool get_boolean_element (uint index) throws GLib.Error {
 			var val = this[index];
 			if (val.boolean == null)
-				throw new Json.Error.INVALID ("the element isn't a boolean.\n");
+				throw new MeeJson.Error.INVALID ("the element isn't a boolean.\n");
 			return val.boolean;
+		}
+		
+		public uint8[] get_binary_element (uint index) throws GLib.Error {
+			var str = get_string_element (index);
+			var data = Base64.decode (str);
+			if (data.length == 0)
+				throw new MeeJson.Error.INVALID ("current element isn't a valid binary data.");
+			return data;
 		}
 
 		public DateTime get_datetime_element (uint index) throws GLib.Error {
 			var str = get_string_element (index);
 			var tv = TimeVal();
 			if (!tv.from_iso8601 (str))
-				throw new Json.Error.INVALID ("the element isn't a datetime.\n");
+				throw new MeeJson.Error.INVALID ("the element isn't a datetime.\n");
 			return new DateTime.from_timeval_utc (tv);
 		}
 		
 		public Mee.Guid get_guid_element (uint index) throws GLib.Error {
 			var str = get_string_element (index);
 			if (!Mee.Guid.try_parse (str))
-				throw new Json.Error.INVALID ("the element isn't a valid guid.\n");
+				throw new MeeJson.Error.INVALID ("the element isn't a valid guid.\n");
 			return Mee.Guid.parse (str);
 		}
 		
 		public Mee.TimeSpan get_timespan_element (uint index) throws GLib.Error {
 			var str = get_string_element (index);
 			if (!Mee.TimeSpan.try_parse (str))
-				throw new Json.Error.INVALID ("the element isn't a timespan.\n");
+				throw new MeeJson.Error.INVALID ("the element isn't a timespan.\n");
 			return Mee.TimeSpan.parse (str);
 		}
 		
@@ -178,33 +190,33 @@ namespace Json {
 			try {
 				return new Regex (str);
 			} catch (RegexError re) {
-				throw new Json.Error.INVALID ("the element isn't a regular expression : %s.\n".printf (re.message));
+				throw new MeeJson.Error.INVALID ("the element isn't a regular expression : %s.\n".printf (re.message));
 			}
 		}
 
 		public string get_string_element (uint index) throws GLib.Error {
 			var val = this[index];
 			if (val.str == null)
-				throw new Json.Error.INVALID ("the element isn't a string.\n");
+				throw new MeeJson.Error.INVALID ("the element isn't a string.\n");
 			return val.str;
 		}
 		
 		public int64 get_integer_element (uint index) throws GLib.Error {
 			var val = this[index];
 			if (val.integer == null)
-				throw new Json.Error.INVALID ("the element isn't an integer.\n");
+				throw new MeeJson.Error.INVALID ("the element isn't an integer.\n");
 			return val.integer;
 		}
 
 		public bool get_null_element (uint index) throws GLib.Error {
 			var val = this[index];
 			if (val.isnull != true)
-				throw new Json.Error.INVALID ("the element isn't null.\n");
+				throw new MeeJson.Error.INVALID ("the element isn't null.\n");
 			return true;
 		}
 		
 		public bool remove (GLib.Value val) {
-			var node = new Json.Node (val);
+			var node = new MeeJson.Node (val);
 			for (var i = 0; i < size; i++)
 				if (node.equals (this[i])) {
 					list.remove_index (i);
@@ -220,26 +232,30 @@ namespace Json {
 		}
 		
 		public new void set (uint index, GLib.Value val) {
-			set_element (index, new Json.Node (val));
+			set_element (index, new MeeJson.Node (val));
 		}
 
-		public void set_element (uint index, Json.Node val) {
+		public void set_element (uint index, MeeJson.Node val) {
 			list[index] = val;
 			list_changed (index, size, val);
 		}
 
-		public void set_object_element (uint index, Json.Object object) {
-			var val = new Json.Node (object);
+		public void set_object_element (uint index, MeeJson.Object object) {
+			var val = new MeeJson.Node (object);
 			set_element (index, val);
 		}
 
-		public void set_array_element (uint index, Json.Array array) {
-			var val = new Json.Node (array);
+		public void set_array_element (uint index, MeeJson.Array array) {
+			var val = new MeeJson.Node (array);
 			set_element (index, val);
 		}
 		
 		public void set_string_element (uint index, string str) {
-			set_element (index, new Json.Node (str));
+			set_element (index, new MeeJson.Node (str));
+		}
+		
+		public void set_binary_element (uint index, uint8[] data) {
+			set_string_element (index, Base64.encode (data));
 		}
 
 		public void set_datetime_element (uint index, DateTime date) {
@@ -259,27 +275,27 @@ namespace Json {
 		}
 
 		public void set_double_element (uint index, double number) {
-			var val = new Json.Node (number);
+			var val = new MeeJson.Node (number);
 			set_element (index, val);
 		}
 
 		public void set_integer_element (uint index, int64 integer) {
-			var val = new Json.Node (integer);
+			var val = new MeeJson.Node (integer);
 			set_element (index, val);
 		}
 
 		public void set_boolean_element (uint index, bool boolean) {
-			var val = new Json.Node (boolean);
+			var val = new MeeJson.Node (boolean);
 			set_element (index, val);
 		}
 
 		public void set_null_element (uint index) {
-			var val = new Json.Node();
+			var val = new MeeJson.Node();
 			set_element (index, val);
 		}
 		
-		public Json.Array slice (int start, int stop) {
-			var array = new Json.Array();
+		public MeeJson.Array slice (int start, int stop) {
+			var array = new MeeJson.Array();
 			for (uint u = start; u < stop; u++)
 				array.add (this[u]);
 			return array;
@@ -295,7 +311,7 @@ namespace Json {
 			return s;
 		}
 
-		public bool equals (Json.Array array) {
+		public bool equals (MeeJson.Array array) {
 			if (array.size != size)
 				return false;
 			for (var i = 0; i < size; i++)
@@ -304,13 +320,13 @@ namespace Json {
 			return true;
 		}
 		
-		public bool validate (JsonSchema.Schema schema) {
+		public bool validate (MeeJsonSchema.Schema schema) {
 			if (schema.enum != null) {
 				
 			}
-			if (schema.schema_type != JsonSchema.SchemaType.ARRAY)
+			if (schema.schema_type != MeeJsonSchema.SchemaType.ARRAY)
 				return false;
-			var sa = (JsonSchema.SchemaArray)schema;
+			var sa = (MeeJsonSchema.SchemaArray)schema;
 			if (sa.max_items != null && sa.max_items < size)
 				return false;
 			if (sa.min_items != null && sa.min_items > size)
@@ -325,18 +341,18 @@ namespace Json {
 					}
 			}
 			bool? ai = null;
-			JsonSchema.Schema? sa2 = null;
+			MeeJsonSchema.Schema? sa2 = null;
 			if (sa.additional_items.type() == typeof (bool)) {
 				ai = (bool)sa.additional_items;
 			}
-			else if (sa.additional_items.type().is_a (typeof (JsonSchema.Schema)))
-				sa2 = (JsonSchema.Schema)sa.additional_items;
-			JsonSchema.Schema? _items = null;
-			JsonSchema.SchemaList? sl = null;
-			if (sa.items.type().is_a (typeof (JsonSchema.Schema)))
-				_items = (JsonSchema.Schema)sa.items;
-			else if (sa.items.type() == typeof (JsonSchema.SchemaList))
-				sl = (JsonSchema.SchemaList)sa.items;
+			else if (sa.additional_items.type().is_a (typeof (MeeJsonSchema.Schema)))
+				sa2 = (MeeJsonSchema.Schema)sa.additional_items;
+			MeeJsonSchema.Schema? _items = null;
+			MeeJsonSchema.SchemaList? sl = null;
+			if (sa.items.type().is_a (typeof (MeeJsonSchema.Schema)))
+				_items = (MeeJsonSchema.Schema)sa.items;
+			else if (sa.items.type() == typeof (MeeJsonSchema.SchemaList))
+				sl = (MeeJsonSchema.SchemaList)sa.items;
 			else return false;
 			if (sl != null) {
 				if (ai == false && sl.size < size)
