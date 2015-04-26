@@ -1,5 +1,5 @@
 namespace MeeJson.Bson {
-	enum ElementType {
+	internal enum ElementType {
 		END,
 		DOUBLE,
 		STRING,
@@ -46,8 +46,7 @@ namespace MeeJson.Bson {
 		public double read_double() {
 			uint8[] data = new uint8[8];
 			dis.read (data);
-			double* pointer = (double*)((uint8*)data);
-			return *pointer;
+			return Mee.BitConverter.to_double (data);
 		}
 		
 		public override string read_string() {

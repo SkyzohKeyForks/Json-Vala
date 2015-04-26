@@ -11,9 +11,9 @@ vapidir = $(datadir)/vala/vapi
 dist_vapi_DATA = json-vala.vapi json-vala.deps
 
 libjson_vala_la_SOURCES = array.vala error.vala generator.vala node.vala object.vala \
-	reader.vala parser.vala property.vala serializer.vala \
+	reader.vala writer.vala parser.vala property.vala serializer.vala \
 	schema/schema.vala schema/schemaobject.vala schema/schemaarray.vala schema/schemastring.vala schema/schemanumber.vala \
-	bson/bsonreader.vala bson/bsondocument.vala
+	bson/bsonreader.vala bson/bsondocument.vala bson/bsonwriter.vala
 
 libjson_vala_la_LDFLAGS = -version-info 1:4:0
 	

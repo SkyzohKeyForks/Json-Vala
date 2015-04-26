@@ -1,36 +1,31 @@
 namespace MeeJson {
 	
-	internal static MeeJson.Object serialize_object (GLib.Object object) throws GLib.Error {
+	internal static MeeJson.Object serialize_jobject (GLib.Object object) throws GLib.Error {
 		var jobject = new MeeJson.Object();
 		var klass = (ObjectClass)object.get_type().class_ref();
 		foreach (var spec in klass.list_properties()) {
 			GLib.Value val = GLib.Value (spec.value_type);
 			object.get_property (spec.name, ref val);
 			if (val.type().is_a (typeof (GLib.Object)))
-				jobject.set_object_member (spec.name, serialize_object ((GLib.Object)val));
+				jobject.set_object_member (spec.name, serialize_jobject ((GLib.Object)val));
 			else
 				jobject.set_member (spec.name, new MeeJson.Node (val));
 		}
 		return jobject;
 	}
+	
+	public static void serialize_object (Writer writer, GLib.Object object) throws GLib.Error {
+		writer.write_object (serialize_jobject (object));
+	}
+	
+	public static void serialize_json (Writer writer, Object object) throws GLib.Error {
+		writer.write_object (object);
+	}
 
-	public static string serialize (GLib.Object object, bool pretty = false) throws GLib.Error {
-		return serialize_object (object).to_data (1, '\t', pretty);
-	}
-	/*
-	public static T deserialize<T> (string json) throws GLib.Error {
+	public static void serialize<T> (Writer writer, T object) throws GLib.Error {
 		if (typeof (T).is_object())
-			return deserialize_object (typeof (T), json);
-		if (typeof (T) == typeof (string[])) {
-			var array = MeeJson.Array.parse (json);
-			string[] str_array = new string[array.size];
-			for (var i = 0; i < array.size; i++)
-				str_array[i] = (string)array[i].value;
-			return str_array;
-		}
-		return null;
+			serialize_object (writer, (GLib.Object)object);
 	}
-	*/
 	
 	public static T deserialize_bson<T> (uint8[] bson) throws GLib.Error {
 		var mis = new MemoryInputStream.from_data (bson, null);

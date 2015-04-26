@@ -62,7 +62,7 @@ namespace MeeJson {
 		}
 		
 		public void add_regex_element (Regex regex) throws GLib.Error {
-			add_string_element (regex.get_pattern());
+			add_element (new MeeJson.Node (regex));
 		}
 		
 		public void add_string_element (string str) throws GLib.Error {
@@ -186,12 +186,10 @@ namespace MeeJson {
 		}
 		
 		public Regex get_regex_element (uint index) throws GLib.Error {
-			var str = get_string_element (index);
-			try {
-				return new Regex (str);
-			} catch (RegexError re) {
-				throw new MeeJson.Error.INVALID ("the element isn't a regular expression : %s.\n".printf (re.message));
-			}
+			var val = this[index];
+			if (val.regex == null)
+				throw new MeeJson.Error.INVALID ("the element isn't a regular expression\n");
+			return val.regex;
 		}
 
 		public string get_string_element (uint index) throws GLib.Error {
@@ -271,7 +269,7 @@ namespace MeeJson {
 		}
 		
 		public void set_regex_element (uint index, Regex regex) {
-			set_string_element (index, regex.get_pattern());
+			set_element  (index, new MeeJson.Node (regex));
 		}
 
 		public void set_double_element (uint index, double number) {

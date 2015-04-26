@@ -76,12 +76,10 @@ namespace MeeJson {
 		}
 		
 		public Regex get_regex_member (string id) throws GLib.Error {
-			var str = get_string_member (id);
-			try {
-				return new Regex (str);
-			} catch (RegexError re) {
-				throw new MeeJson.Error.INVALID ("current member isn't a regular expression : %s.\n".printf (re.message));
-			}
+			var val = this[id];
+			if (val == null || val.regex == null)
+				throw new MeeJson.Error.INVALID ("current member isn't a regular expression\n");
+			return val.regex;
 		}
 
 		public string get_string_member (string id) throws GLib.Error {
@@ -198,7 +196,7 @@ namespace MeeJson {
 		}
 		
 		public void set_regex_member (string id, Regex regex) throws GLib.Error {
-			set_string_member (id, regex.get_pattern());
+			set_member (id, new MeeJson.Node (regex));
 		}
 
 		public void set_string_member (string id, string str) throws GLib.Error {

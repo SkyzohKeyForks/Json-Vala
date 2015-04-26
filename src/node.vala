@@ -21,6 +21,7 @@ namespace MeeJson {
 		internal string? number_str;
 		internal bool? boolean;
 		internal bool isnull;
+		internal Regex? regex;
 		
 		public Node (GLib.Value? val = null) {
 			if (val == null)
@@ -57,7 +58,7 @@ namespace MeeJson {
 				}
 			}
 			else if (val.type() == typeof (Regex)) {
-				str = "\"" + ((Regex)val).get_pattern() + "\"";
+				regex = (Regex)val;
 			}
 			else if (val.type() == typeof (DateTime)) {
 				str = "\"" + ((DateTime)val).to_string() + "\"";
@@ -81,6 +82,7 @@ namespace MeeJson {
 				number_str = node.number_str;
 				boolean = node.boolean;
 				isnull = node.isnull;
+				regex = node.regex;
 			}
 			else isnull = true;
 		}
@@ -91,6 +93,8 @@ namespace MeeJson {
 					return NodeType.ARRAY;
 				if (object != null)
 					return NodeType.OBJECT;
+				if (regex != null)
+					return NodeType.REGEX;
 				if (str != null) {
 					if (is_datetime())
 						return NodeType.DATETIME;
@@ -126,15 +130,14 @@ namespace MeeJson {
 				}
 				if (object != null)
 					return as_object();
+				if (regex != null)
+					return regex;
 				if (str != null)
 					return as_string();
 				if (integer != null)
 					return as_int();
-				if (number_str != null) {
-					double d = 0;
-					number_str.scanf ("%g", out d);
-					return d;
-				}
+				if (number_str != null)
+					return double.parse (number_str);
 				if (boolean != null)
 					return as_boolean();
 				return 0;
@@ -200,8 +203,8 @@ namespace MeeJson {
 			return Mee.TimeSpan.parse (as_string());
 		}
 		
-		public Regex as_regex() {
-			return new Regex (as_string());
+		public Regex? as_regex() {
+			return regex;
 		}
 
 		public string as_string() {
@@ -215,9 +218,7 @@ namespace MeeJson {
 		public double as_double() {
 			if (number_str == null)
 				return 0;
-			double d = 0;
-			number_str.scanf ("%g", out d);
-			return d;
+			return double.parse (number_str);
 		}
 
 		public bool as_boolean() {
@@ -227,12 +228,13 @@ namespace MeeJson {
 		public bool equals (GLib.Value val) {
 			var node = new Node (val);
 			return node.str == str &&
-					   node.isnull == isnull &&
-					   node.boolean == boolean &&
-					   node.number_str == number_str &&
-					   node.integer == integer && 
-					   (array == null ? array == node.array : array.equals (node.array)) &&
-					   (object == null ? object == node.object : object.equals (node.object));
+			node.isnull == isnull &&
+			node.boolean == boolean &&
+			node.number_str == number_str &&
+			node.integer == integer && 
+			(regex == null ? regex == node.regex : strcmp (regex.get_pattern(), node.regex.get_pattern()) == 0) &&
+			(array == null ? array == node.array : array.equals (node.array)) &&
+			(object == null ? object == node.object : object.equals (node.object));
 		}
 		
 		public bool is_array() {
@@ -255,6 +257,10 @@ namespace MeeJson {
 		
 		public bool is_timespan() {
 			return Mee.TimeSpan.try_parse (as_string());
+		}
+		
+		public bool is_regex() {
+			return regex != null;
 		}
 		
 		public bool is_null() {
@@ -334,6 +340,8 @@ namespace MeeJson {
 				return array.to_string();
 			if (object != null)
 				return object.to_string();
+			if (regex != null)
+				return regex.get_pattern();
 			if (str != null)
 				return str;
 			if (integer != null)
@@ -352,6 +360,10 @@ namespace MeeJson {
 				return object.to_data (indent, indent_char, pretty);
 			if (str != null)
 				return str;
+			if (regex != null)
+				return "\"" + regex.get_pattern() + "\"";
+			if (number_str != null)
+				return number_str;
 			if (integer != null)
 				return integer.to_string();
 			if (number_str != null)
