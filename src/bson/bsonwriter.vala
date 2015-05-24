@@ -20,7 +20,7 @@ namespace MeeJson.Bson {
 				var node = array[j];
 				if (node.node_type == NodeType.NULL)
 					barray.append ({ElementType.NULL});
-				if (node.node_type == NodeType.ARRAY)
+				if (node.node_type == NodeType.ARRAY || node.node_type == NodeType.STRING_ARRAY)
 					barray.append ({ElementType.ARRAY});
 				if (node.node_type == NodeType.OBJECT)
 					barray.append ({ElementType.DOCUMENT});
@@ -41,7 +41,7 @@ namespace MeeJson.Bson {
 				for (var i = 0; i < str.length; i++)
 					data[i] = str.data[i];
 				barray.append (data);
-				if (node.node_type == NodeType.ARRAY)
+				if (node.node_type == NodeType.ARRAY || node.node_type == NodeType.STRING_ARRAY)
 					barray.append (write_array2 (node.array).data);
 				if (node.node_type == NodeType.OBJECT)
 					barray.append (write_object2 (node.object).data);
@@ -107,7 +107,7 @@ namespace MeeJson.Bson {
 			object.foreach (prop => {
 				if (prop.node_type == NodeType.NULL)
 					barray.append ({ElementType.NULL});
-				if (prop.node_type == NodeType.ARRAY)
+				if (prop.node_type == NodeType.ARRAY || prop.node_type == NodeType.STRING_ARRAY)
 					barray.append ({ElementType.ARRAY});
 				if (prop.node_type == NodeType.OBJECT)
 					barray.append ({ElementType.DOCUMENT});
@@ -127,13 +127,13 @@ namespace MeeJson.Bson {
 				for (var i = 0; i < prop.identifier.length; i++)
 					data[i] = prop.identifier.data[i];
 				barray.append (data);
-				if (prop.node_type == NodeType.ARRAY)
-					barray.append (write_array2 (prop.value.array).data);
+				if (prop.node_type == NodeType.ARRAY || prop.node_type == NodeType.STRING_ARRAY)
+					barray.append (write_array2 (prop.node_value.array).data);
 				if (prop.node_type == NodeType.OBJECT)
-					barray.append (write_object2 (prop.value.object).data);
+					barray.append (write_object2 (prop.node_value.object).data);
 				if (prop.node_type == NodeType.DATETIME) {
 					TimeVal tv;
-					var datetime = prop.value.as_datetime();
+					var datetime = prop.node_value.as_datetime();
 					datetime.to_timeval (out tv);
 					int64 msec = tv.tv_sec * 1000 + tv.tv_usec / 1000;
 					data = new uint8[8];;
@@ -142,30 +142,30 @@ namespace MeeJson.Bson {
 					barray.append (data);
 				}
 				if (prop.node_type == NodeType.DOUBLE) {
-					double val = prop.value.as_double();
+					double val = prop.node_value.as_double();
 					barray.append (Mee.BitConverter.get_bytes<double?> (val));
 				}
 				if (prop.node_type == NodeType.INTEGER) {
 					data = new uint8[8];
-					int64 val = prop.value.as_int();
+					int64 val = prop.node_value.as_int();
 					for (var i = 0; i < data.length; i++)
 						data[i] = (uint8)(&val)[i];
 					barray.append (data);
 				}
 				if (prop.node_type == NodeType.STRING) {
 					data = new uint8[4];
-					int val = prop.value.as_string().length + 1;
+					int val = prop.node_value.as_string().length + 1;
 					for (var i = 0; i < data.length; i++)
 						data[i] = (uint8)(&val)[i];
 					barray.append (data);
-					data = new uint8[prop.value.as_string().length + 1];
-					for (var i = 0; i < prop.value.as_string().length; i++)
-						data[i] = prop.value.as_string().data[i];
+					data = new uint8[prop.node_value.as_string().length + 1];
+					for (var i = 0; i < prop.node_value.as_string().length; i++)
+						data[i] = prop.node_value.as_string().data[i];
 					barray.append (data);
 				}
 				if (prop.node_type == NodeType.REGEX) {
 					data = new uint8[4];
-					Regex r = (Regex)prop.value;
+					Regex r = (Regex)prop.node_value;
 					int val = r.get_pattern().length + 1;
 					for (var i = 0; i < data.length; i++)
 						data[i] = (uint8)(&val)[i];
@@ -177,7 +177,7 @@ namespace MeeJson.Bson {
 				}
 				if (prop.node_type == NodeType.BOOLEAN) {
 					data = new uint8[1];
-					data[0] = prop.value.as_boolean() == true ? 1 : 0;
+					data[0] = prop.node_value.as_boolean() == true ? 1 : 0;
 					barray.append (data);
 				}
 			});

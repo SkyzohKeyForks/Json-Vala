@@ -65,7 +65,7 @@ namespace MeeJson {
 				string id = read_string();
 				token = next_token();
 				if (token != TokenType.SEMI_COLON)
-					throw new MeeJson.Error.INVALID ("cannot find colon separator.\n");
+					throw new MeeJson.Error.INVALID ("cannot find colon separator found (%s)\n".printf (id));
 				text_reader.read();
 				token = next_token();
 				if (token == TokenType.ARRAY)

@@ -10,10 +10,11 @@ namespace MeeJson {
 		OBJECT,
 		REGEX,
 		STRING,
+		STRING_ARRAY,
 		TIMESPAN
 	}
 	
-	public class Node {
+	public class Node : GLib.Object, Item {
 		internal MeeJson.Array? array;
 		internal MeeJson.Object? object;
 		internal string? str;
@@ -89,6 +90,8 @@ namespace MeeJson {
 
 		public MeeJson.NodeType node_type {
 			get {
+				if (array != null && array.is_unique == NodeType.STRING)
+					return NodeType.STRING_ARRAY;
 				if (array != null)
 					return NodeType.ARRAY;
 				if (object != null)
@@ -162,17 +165,24 @@ namespace MeeJson {
 				i = (uint)((long)val);
 			if (val.type() == typeof (ulong))
 				i = (uint)((ulong)val);
-			if (node_type == NodeType.ARRAY && i < array.size)
+			if ((node_type == NodeType.ARRAY || node_type == NodeType.STRING_ARRAY) && i < array.size)
 				return array[i];
 			if (node_type == NodeType.OBJECT) {
 				if (val.type() == typeof (string) && object.has_key ((string)val))
 					return object[(string)val];
 				if (i < object.size)
-					return object.properties[i].value;
+					return object.properties[i].node_value;
 			}
 			var null_node = new Node();
 			null_node.isnull = true;
 			return null_node;
+		}
+		
+		public void foreach (Func<Item> func) {
+			if (array != null)
+				array.foreach (func);
+			else if (object != null)
+				object.foreach (func);
 		}
 
 		public MeeJson.Array as_array() {
@@ -209,6 +219,12 @@ namespace MeeJson {
 
 		public string as_string() {
 			return (str == null) ? "" : str.substring (1, str.length - 2);
+		}
+		
+		public string[] as_string_array() {
+			if (is_array() && array.is_unique == NodeType.STRING)
+				return jarray_as_string_array();
+			return new string[0];
 		}
 
 		public int64 as_int() {
@@ -275,6 +291,10 @@ namespace MeeJson {
 			return str != null;
 		}
 		
+		public bool is_string_array() {
+			return is_array() && array.is_unique == NodeType.STRING;
+		}
+		
 		public bool is_int() {
 			return integer != null;
 		}
@@ -284,7 +304,7 @@ namespace MeeJson {
 		}
 		
 		public bool validate (MeeJsonSchema.Schema schema) {
-			if (schema.schema_type == MeeJsonSchema.SchemaType.ARRAY && node_type != NodeType.ARRAY)
+			if (schema.schema_type == MeeJsonSchema.SchemaType.ARRAY && node_type != NodeType.ARRAY && node_type != NodeType.STRING_ARRAY)
 				return false;
 			if (schema.schema_type == MeeJsonSchema.SchemaType.OBJECT && node_type != NodeType.OBJECT)
 				return false;
@@ -298,7 +318,7 @@ namespace MeeJson {
 				return false;
 			if (node_type == NodeType.OBJECT)
 				return object.validate (schema);
-			if (node_type == NodeType.ARRAY)
+			if (node_type == NodeType.ARRAY || node_type == NodeType.STRING_ARRAY)
 				return array.validate (schema);
 			if (node_type == NodeType.INTEGER) {
 				MeeJsonSchema.SchemaInteger si = (MeeJsonSchema.SchemaInteger)schema;

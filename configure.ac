@@ -1,4 +1,4 @@
-AC_INIT([json-vala], [1.4], [inizan.yannick@gmail.com], [json-vala])
+AC_INIT([mee-json], [1.4], [inizan.yannick@gmail.com], [mee-json])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_MACRO_DIR([m4])
@@ -7,7 +7,7 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AC_CONFIG_FILES([
 Makefile
-src/json-vala.pc
+src/mee-json-1.0.pc
 src/Makefile
 ])
 

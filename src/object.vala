@@ -130,7 +130,7 @@ namespace MeeJson {
 		}
 		
 		public bool has_property (MeeJson.Property property) {
-			return has (property.identifier, property.value);
+			return has (property.identifier, property.node_value);
 		}
 		
 		public bool remove_all (MeeJson.Object object) {
@@ -223,9 +223,7 @@ namespace MeeJson {
 			set_member (id, val);
 		}
 
-		public delegate void ForeachFunc (MeeJson.Property property);
-
-		public void foreach (ForeachFunc func) {
+		public void foreach (Func<Property> func) {
 			map.foreach ((name, value) => {
 				func (new Property (name, value));
 			});
@@ -298,7 +296,7 @@ namespace MeeJson {
 		public MeeJson.Node[] values {
 			owned get {
 				var list = new GenericArray<MeeJson.Node>();
-				this.foreach (prop => { list.add (prop.value); });
+				this.foreach (prop => { list.add (prop.node_value); });
 				return list.data;
 			}
 		}
@@ -335,7 +333,7 @@ namespace MeeJson {
 				if (!object.has_key (prop.identifier)) {
 					res = false;
 				}
-				if (!prop.value.equals (object[prop.identifier])) {
+				if (!prop.node_value.equals (object[prop.identifier])) {
 					res = false;
 				}
 			});

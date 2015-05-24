@@ -11,7 +11,7 @@ namespace MeeJson {
 		public static Array parse (string json) throws GLib.Error {
 			var parser = new Parser();
 			parser.load_from_string (json);
-			if (parser.root.node_type != NodeType.ARRAY)
+			if (parser.root.node_type != NodeType.ARRAY && parser.root.node_type != NodeType.STRING_ARRAY)
 				throw new MeeJson.Error.TYPE ("provided data isn't an array.\n");
 			return parser.root.array;
 		}

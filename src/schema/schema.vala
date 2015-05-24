@@ -235,33 +235,33 @@ namespace MeeJsonSchema {
 				if (!object["properties"].is_object())
 					throw new SchemaError.INVALID ("invalid type for 'properties'.");
 				object["properties"].as_object().foreach (property => {
-					if (!property.value.is_object())
+					if (!property.node_value.is_object())
 						throw new SchemaError.INVALID ("invalid type for current property.");
-					schema.properties[property.identifier] = parse_schema (property.value.as_object());
+					schema.properties[property.identifier] = parse_schema (property.node_value.as_object());
 				});
 			}
 			if (object.has_key ("patternProperties")) {
 				if (!object["patternProperties"].is_object())
 					throw new SchemaError.INVALID ("invalid type for 'patternProperties'.");
 				object["patternProperties"].as_object().foreach (property => {
-					if (!property.value.is_object())
+					if (!property.node_value.is_object())
 						throw new SchemaError.INVALID ("invalid type for current property.");
-					schema.pattern_properties[new Regex (property.identifier)] = parse_schema (property.value.as_object());
+					schema.pattern_properties[new Regex (property.identifier)] = parse_schema (property.node_value.as_object());
 				});
 			}
 			if (object.has_key ("dependencies")) {
 				if (!object["dependencies"].is_object())
 					throw new SchemaError.INVALID ("invalid type for 'dependencies'.");
 				object["dependencies"].as_object().foreach (property => {
-					if (property.value.is_array()) {
+					if (property.node_value.is_array()) {
 						string[] deps = new string[0];
-						property.value.as_array().foreach (node => {
+						property.node_value.as_array().foreach (node => {
 							deps += node.as_string();
 						});
 						schema.dependencies[property.identifier] = deps;
 					}
-					else if (property.value.is_object())
-						schema.dependencies[property.identifier] = parse_schema (property.value.as_object());
+					else if (property.node_value.is_object())
+						schema.dependencies[property.identifier] = parse_schema (property.node_value.as_object());
 					else
 						throw new SchemaError.INVALID ("invalid type for current dependency.");
 				});

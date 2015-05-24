@@ -59,11 +59,11 @@ namespace MeeJson {
 			if (spec == null)
 				throw new MeeJson.Error.NOT_FOUND ("property wasn't found for required object.\n");
 			if (prop.node_type == NodeType.OBJECT)
-				object.set_property (spec.name, deserialize_object (spec.value_type, new TextReader (new Mee.StringReader (prop.value.to_string()))));
-			else if (prop.node_type == NodeType.ARRAY) {
+				object.set_property (spec.name, deserialize_object (spec.value_type, new TextReader (new Mee.StringReader (prop.node_value.to_string()))));
+			else if (prop.node_type == NodeType.STRING_ARRAY) {
 				if (spec.value_type == typeof (string[])) {
 					string[] strv = new string[0];
-					prop.value.as_array().foreach (anode => {
+					prop.node_value.as_array().foreach (anode => {
 						strv += anode.as_string();
 					});
 					object.set_property (spec.name, strv);
@@ -71,19 +71,19 @@ namespace MeeJson {
 					
 			}
 			else if (prop.node_type == NodeType.INTEGER)
-				object.set_property (spec.name, prop.value.as_int());
+				object.set_property (spec.name, prop.node_value.as_int());
 			else if (prop.node_type == NodeType.DOUBLE)
-				object.set_property (spec.name, prop.value.as_double());
+				object.set_property (spec.name, prop.node_value.as_double());
 			else if (prop.node_type == NodeType.DATETIME)
-				object.set_property (spec.name, prop.value.as_datetime());
+				object.set_property (spec.name, prop.node_value.as_datetime());
 			else if (prop.node_type == NodeType.TIMESPAN)
-				object.set_property (spec.name, prop.value.as_timespan());
+				object.set_property (spec.name, prop.node_value.as_timespan());
 			else if (prop.node_type == NodeType.GUID)
-				object.set_property (spec.name, prop.value.as_guid());
+				object.set_property (spec.name, prop.node_value.as_guid());
 			else if (prop.node_type == NodeType.BOOLEAN)
-				object.set_property (spec.name, prop.value.as_boolean());
+				object.set_property (spec.name, prop.node_value.as_boolean());
 			else if (prop.node_type == NodeType.STRING)
-				object.set_property (spec.name, prop.value.as_string());
+				object.set_property (spec.name, prop.node_value.as_string());
 		});
 		return object;
 	}
