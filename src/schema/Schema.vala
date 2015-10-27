@@ -1,4 +1,4 @@
-namespace MeeJsonSchema {
+namespace JsonSchema {
 	public enum SchemaType {
 		NULL,
 		ARRAY,
@@ -23,7 +23,7 @@ namespace MeeJsonSchema {
 				return _description;
 			}
 			set {
-				_description = MeeJson.is_valid_string (value) ? value : null;
+				_description = Json.is_valid_string (value) ? value : null;
 			}
 		}
 		
@@ -32,7 +32,7 @@ namespace MeeJsonSchema {
 				return _title;
 			}
 			set {
-				_title = MeeJson.is_valid_string (value) ? value : null;
+				_title = Json.is_valid_string (value) ? value : null;
 			}
 		}
 		
@@ -42,7 +42,7 @@ namespace MeeJsonSchema {
 	
 		[Experimental]
 		public static Schema parse (string data) throws GLib.Error {
-			var object = MeeJson.Object.parse (data);
+			var object = Json.Object.parse (data);
 			Schema schema = parse_schema (object);
 			if (object.has_key ("title") && object["title"].is_string())
 				schema.title = object["title"].as_string();
@@ -51,7 +51,7 @@ namespace MeeJsonSchema {
 			return schema;
 		}
 		
-		static Schema parse_schema (MeeJson.Object object) throws GLib.Error {
+		static Schema parse_schema (Json.Object object) throws GLib.Error {
 			Schema schema = null;
 			if (object["type"] != null) {
 				if (object["type"].as_string() == "array")
@@ -75,7 +75,7 @@ namespace MeeJsonSchema {
 			return schema;
 		}
 		
-		static Schema parse_number (MeeJson.Object object) throws GLib.Error {
+		static Schema parse_number (Json.Object object) throws GLib.Error {
 			var schema = new SchemaNumber();
 			if (object.has_key ("multipleOf")) {
 				if (!object["multipleOf"].is_double())
@@ -105,17 +105,17 @@ namespace MeeJsonSchema {
 			return schema;
 		}
 		
-		static Schema parse_integer (MeeJson.Object object) throws GLib.Error {
+		static Schema parse_integer (Json.Object object) throws GLib.Error {
 			var schema = new SchemaInteger();
 			if (object.has_key ("multipleOf")) {
-				if (!object["multipleOf"].is_int())
+				if (!object["multipleOf"].is_integer())
 					throw new SchemaError.INVALID ("invalid type for 'multipleOf'.");
-				schema.multiple_of = object["multipleOf"].as_int();
+				schema.multiple_of = object["multipleOf"].as_integer();
 			}
 			if (object.has_key ("maximum")) {
-				if (!object["maximum"].is_int())
+				if (!object["maximum"].is_integer())
 					throw new SchemaError.INVALID ("invalid type for 'maximum'.");
-				schema.maximum = object["maximum"].as_int();
+				schema.maximum = object["maximum"].as_integer();
 			}
 			if (object.has_key ("exclusiveMaximum")) {
 				if (!object["exclusiveMaximum"].is_boolean())
@@ -123,9 +123,9 @@ namespace MeeJsonSchema {
 				schema.exclusive_maximum = object["exclusiveMaximum"].as_boolean();
 			}
 			if (object.has_key ("minimum")) {
-				if (!object["minimum"].is_int())
+				if (!object["minimum"].is_integer())
 					throw new SchemaError.INVALID ("invalid type for 'minimum'.");
-				schema.minimum = object["minimum"].as_int();
+				schema.minimum = object["minimum"].as_integer();
 			}
 			if (object.has_key ("exclusiveMinimum")) {
 				if (!object["exclusiveMinimum"].is_boolean())
@@ -135,17 +135,17 @@ namespace MeeJsonSchema {
 			return schema;
 		}
 		
-		static Schema parse_string (MeeJson.Object object) throws GLib.Error {
+		static Schema parse_string (Json.Object object) throws GLib.Error {
 			var schema = new SchemaString();
 			if (object.has_key ("maxLength")) {
-				if (!object["maxLength"].is_int())
+				if (!object["maxLength"].is_integer())
 					throw new SchemaError.INVALID ("invalid type for 'maxLength'.");
-				schema.max_length = (uint64)object["maxLength"].as_int();
+				schema.max_length = (uint64)object["maxLength"].as_integer();
 			}
 			if (object.has_key ("minLength")) {
-				if (!object["minLength"].is_int())
+				if (!object["minLength"].is_integer())
 					throw new SchemaError.INVALID ("invalid type for 'minLength'.");
-				schema.min_length = (uint64)object["minLength"].as_int();
+				schema.min_length = (uint64)object["minLength"].as_integer();
 			}
 			if (object.has_key ("pattern")) {
 				if (!object["pattern"].is_string())
@@ -155,11 +155,11 @@ namespace MeeJsonSchema {
 			return schema;
 		}
 		
-		static Schema parse_boolean (MeeJson.Object object) {
+		static Schema parse_boolean (Json.Object object) {
 			return new SchemaBoolean();
 		}
 		
-		static SchemaArray parse_array (MeeJson.Object object) throws GLib.Error {
+		static SchemaArray parse_array (Json.Object object) throws GLib.Error {
 			var schema = new SchemaArray();
 			if (!object.has_key ("items"))
 				throw new SchemaError.INVALID ("can't find items object.");
@@ -182,15 +182,15 @@ namespace MeeJsonSchema {
 				else throw new SchemaError.INVALID ("invalid type for 'additionalItems'.");
 			}
 			if (object.has_key ("maxItems"))
-				if (!object["maxItems"].is_int()) 
+				if (!object["maxItems"].is_integer()) 
 					throw new SchemaError.INVALID ("invalid type for 'maxItems'.");
 				else
-					schema.max_items = (uint64)object["maxItems"].as_int();
+					schema.max_items = (uint64)object["maxItems"].as_integer();
 			if (object.has_key ("minItems"))
-				if (!object["minItems"].is_int()) 
+				if (!object["minItems"].is_integer()) 
 					throw new SchemaError.INVALID ("invalid type for 'minItems'.");
 				else
-					schema.min_items = (uint64)object["minItems"].as_int();
+					schema.min_items = (uint64)object["minItems"].as_integer();
 			if (object.has_key ("uniqueItems"))
 				if (!object["uniqueItems"].is_boolean()) 
 					throw new SchemaError.INVALID ("invalid type for 'uniqueItems'.");
@@ -199,18 +199,18 @@ namespace MeeJsonSchema {
 			return schema;
 		}
 		
-		static SchemaObject parse_object (MeeJson.Object object) throws GLib.Error {
+		static SchemaObject parse_object (Json.Object object) throws GLib.Error {
 			var schema = new SchemaObject();
 			if (object.has_key ("maxProperties"))
-				if(!object["maxProperties"].is_int())
+				if(!object["maxProperties"].is_integer())
 					throw new SchemaError.INVALID ("invalid type for 'maxProperties'.");
 				else
-					schema.max_properties = (uint64)object["maxProperties"].as_int();
+					schema.max_properties = (uint64)object["maxProperties"].as_integer();
 			if (object.has_key ("minProperties"))
-				if(!object["minProperties"].is_int())
+				if(!object["minProperties"].is_integer())
 					throw new SchemaError.INVALID ("invalid type for 'minProperties'.");
 				else
-					schema.min_properties = (uint64)object["minProperties"].as_int();
+					schema.min_properties = (uint64)object["minProperties"].as_integer();
 			if (object.has_key ("required")) {
 				if (!object["required"].is_array())
 					throw new SchemaError.INVALID ("invalid type for 'required'.");
@@ -235,33 +235,33 @@ namespace MeeJsonSchema {
 				if (!object["properties"].is_object())
 					throw new SchemaError.INVALID ("invalid type for 'properties'.");
 				object["properties"].as_object().foreach (property => {
-					if (!property.node_value.is_object())
+					if (!property.node.is_object())
 						throw new SchemaError.INVALID ("invalid type for current property.");
-					schema.properties[property.identifier] = parse_schema (property.node_value.as_object());
+					schema.properties[property.key] = parse_schema (property.node.as_object());
 				});
 			}
 			if (object.has_key ("patternProperties")) {
 				if (!object["patternProperties"].is_object())
 					throw new SchemaError.INVALID ("invalid type for 'patternProperties'.");
 				object["patternProperties"].as_object().foreach (property => {
-					if (!property.node_value.is_object())
+					if (!property.node.is_object())
 						throw new SchemaError.INVALID ("invalid type for current property.");
-					schema.pattern_properties[new Regex (property.identifier)] = parse_schema (property.node_value.as_object());
+					schema.pattern_properties[new Regex (property.key)] = parse_schema (property.node.as_object());
 				});
 			}
 			if (object.has_key ("dependencies")) {
 				if (!object["dependencies"].is_object())
 					throw new SchemaError.INVALID ("invalid type for 'dependencies'.");
 				object["dependencies"].as_object().foreach (property => {
-					if (property.node_value.is_array()) {
+					if (property.node.is_array()) {
 						string[] deps = new string[0];
-						property.node_value.as_array().foreach (node => {
+						property.node.as_array().foreach (node => {
 							deps += node.as_string();
 						});
-						schema.dependencies[property.identifier] = deps;
+						schema.dependencies[property.key] = deps;
 					}
-					else if (property.node_value.is_object())
-						schema.dependencies[property.identifier] = parse_schema (property.node_value.as_object());
+					else if (property.node.is_object())
+						schema.dependencies[property.key] = parse_schema (property.node.as_object());
 					else
 						throw new SchemaError.INVALID ("invalid type for current dependency.");
 				});

@@ -1,4 +1,4 @@
-namespace MeeJson.Bson {
+namespace Json.Bson {
 	internal enum ElementType {
 		END,
 		DOUBLE,
@@ -24,10 +24,10 @@ namespace MeeJson.Bson {
 		TYPE
 	}
 	
-	public class Reader : MeeJson.Reader {
+	public class Reader : GLib.Object {
 		DataInputStream dis;
 		
-		public Reader (InputStream stream) {
+		internal Reader (InputStream stream) {
 			dis = new DataInputStream (stream);
 			dis.byte_order = DataStreamByteOrder.LITTLE_ENDIAN;
 		}
@@ -46,10 +46,11 @@ namespace MeeJson.Bson {
 		public double read_double() {
 			uint8[] data = new uint8[8];
 			dis.read (data);
-			return Mee.BitConverter.to_double (data);
+			double* ptr = (double*)((void*)data);
+			return *ptr;
 		}
 		
-		public override string read_string() {
+		public string read_string() {
 			int i = dis.read_int32();
 			uint8[] data = new uint8[i];
 			dis.read (data);
@@ -72,7 +73,7 @@ namespace MeeJson.Bson {
 			return data;
 		}
 		
-		public override DateTime read_date_time() throws GLib.Error {
+		public DateTime read_date_time() throws GLib.Error {
 			int64 i = dis.read_int64();
 			TimeVal utc = TimeVal();
 			utc.tv_sec = (long)(i / 1000);
@@ -80,9 +81,9 @@ namespace MeeJson.Bson {
 			return new DateTime.from_timeval_utc (utc);
 		}
 		
-		public override MeeJson.Array read_array() throws GLib.Error {
+		public Json.Array read_array() throws GLib.Error {
 			int size = dis.read_int32();
-			var array = new MeeJson.Array();
+			var array = new Json.Array();
 			ElementType et = ElementType.END;
 			uint64 index = 0;
 			while ((et = (ElementType)dis.read_byte()) != ElementType.END) {
@@ -128,9 +129,9 @@ namespace MeeJson.Bson {
 			return array;
 		}
 		
-		public override MeeJson.Object read_object() throws GLib.Error {
+		public Json.Object read_object() throws GLib.Error {
 			int size = dis.read_int32();
-			var object = new MeeJson.Object();
+			var object = new Json.Object();
 			ElementType et = (ElementType)dis.read_byte();
 			while (et != ElementType.END) {
 				string id = read_id();

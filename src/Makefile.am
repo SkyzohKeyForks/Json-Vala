@@ -1,32 +1,30 @@
-lib_LTLIBRARIES = libmee-json-1.0.la
+lib_LTLIBRARIES = libjson-vala-1.0.la
 
-libmee_json_1_0_la_CFLAGS = -w -g $(JSON_VALA_CFLAGS) -lm
+libjson_vala_1_0_la_CFLAGS = -w -g $(JSON_VALA_CFLAGS) -lm
 
 vapidir = $(datadir)/vala/vapi
-dist_vapi_DATA = mee-json-1.0.vapi mee-json-1.0.deps
+dist_vapi_DATA = json-vala-1.0.vapi
 
-libmee_json_1_0_la_SOURCES = array.vala error.vala generator.vala node.vala object.vala \
-	reader.vala writer.vala parser.vala property.vala serializer.vala \
-	schema/schema.vala schema/schemaobject.vala schema/schemaarray.vala schema/schemastring.vala schema/schemanumber.vala \
-	bson/bsonreader.vala bson/bsondocument.vala bson/bsonwriter.vala
+libjson_vala_1_0_la_SOURCES = Array.vala Object.vala Node.vala Parser.vala \
+	schema/Schema.vala schema/SchemaArray.vala schema/SchemaNumber.vala schema/SchemaObject.vala schema/SchemaString.vala \
+	bson/BsonDocument.vala bson/BsonReader.vala
 
-libmee_json_1_0_la_LDFLAGS = -version-info 1:5
+libjson_vala_1_0_la_LDFLAGS = -version-info 1:6:0
 	
-libmee_json_1_0_la_VALAFLAGS = --pkg mee-1.0 --library mee-json-1.0 -H mee-json.h --disable-warnings
+libjson_vala_1_0_la_VALAFLAGS = --library json-vala-1.0 -H json-vala.h
 
-libmee_json_1_0_la_LIBADD = $(JSON_VALA_LIBS)
+libjson_vala_1_0_la_LIBADD = $(JSON_VALA_LIBS)
 
 
 json_valaincludedir = $(includedir)/json-vala-1.0
 json_valainclude_HEADERS = \
-	mee-json.h
+	json-vala.h
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = mee-json-1.0.pc
+pkgconfig_DATA = json-vala-1.0.pc
 
-EXTRA_DIST = \
-	mee-json-1.0.pc.in
+EXTRA_DIST = $(libjson_vala_1_0_la_SOURCES) json-vala-1.0.pc.in
 	
-CLEANFILES = *.c schema/*.c bson/*.c *.stamp *.h *.vapi
+CLEANFILES = *.c bson/*.c schema/*.c *.stamp *.h *.vapi
 
-DISTCLEANFILES = $(CLEANFILES) Makefile mee-json-1.0.pc
+DISTCLEANFILES = $(CLEANFILES) Makefile *.pc

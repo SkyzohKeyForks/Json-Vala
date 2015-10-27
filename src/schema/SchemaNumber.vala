@@ -1,4 +1,4 @@
-namespace MeeJsonSchema {
+namespace JsonSchema {
 	public class SchemaBoolean : Schema {
 		public SchemaBoolean() {
 			GLib.Object (schema_type: SchemaType.BOOLEAN);

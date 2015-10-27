@@ -3,11 +3,11 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 datarootdir=@datarootdir@
 datadir=@datadir@
-includedir=@includedir@/mee-json-1.0
+includedir=@includedir@/json-vala-1.0
 
-Name: MeeJson
+Name: Json
 Description: JSON library.
 Version: @VERSION@
-Requires: mee-1.0
-Libs: -L${libdir} -lmee-json-1.0
+Requires: gobject-2.0
+Libs: -L${libdir} -ljson-vala-1.0
 Cflags: -I${includedir}
