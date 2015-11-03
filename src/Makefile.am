@@ -11,7 +11,7 @@ libjson_vala_1_0_la_SOURCES = Array.vala Object.vala Node.vala Parser.vala \
 
 libjson_vala_1_0_la_LDFLAGS = -version-info 1:6:0
 	
-libjson_vala_1_0_la_VALAFLAGS = --library json-vala-1.0 -H json-vala.h
+libjson_vala_1_0_la_VALAFLAGS = --library json-vala-1.0 -H json-vala.h --pkg gio-2.0
 
 libjson_vala_1_0_la_LIBADD = $(JSON_VALA_LIBS)
 
