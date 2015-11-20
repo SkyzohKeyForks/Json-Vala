@@ -59,6 +59,8 @@ namespace Json {
 			var array = new Json.Array();
 			while (true) {
 				token = scanner.get_next_token();
+				if (token == TokenType.RIGHT_BRACE && array.size == 0)
+					return array;
 				if (token == TokenType.LEFT_BRACE)
 					array.add_array_element (read_array (scanner));
 				else if (token == TokenType.LEFT_CURLY)
@@ -88,7 +90,7 @@ namespace Json {
 						throw new ReadError.INVALID ("invalid identifier: %s.".printf (id));
 				}
 				else
-					throw new ReadError.INVALID ("invalid element for array.");
+					throw new ReadError.INVALID ("invalid element for array. '%u'".printf (token));
 				token = scanner.get_next_token();
 				if (token == TokenType.RIGHT_BRACE)
 					return array;
@@ -107,6 +109,8 @@ namespace Json {
 			var object = new Json.Object();
 			while (true) {
 				token = scanner.get_next_token();
+				if (token == TokenType.RIGHT_BRACE && object.size == 0)
+					return object;
 				if (token != TokenType.STRING)
 					throw new ReadError.INVALID ("can't find member key.");
 				string id = convert_string (scanner.cur_value().string);
