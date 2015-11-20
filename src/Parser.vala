@@ -17,33 +17,32 @@ namespace Json {
 	}
 	
 	public class Parser : GLib.Object {
-		Scanner scanner;
-		FileStream stream;
-
-		public Parser (string text) {
-			scanner = new Scanner (null);
-			scanner.input_text (text, text.length);
-		}
-		
-		public Parser.file (string path) throws GLib.Error {
-			scanner = new Scanner (null);
-			stream = FileStream.open (path, "r");
-			if (stream == null)
-				throw new ReadError.NULL ("file doesn't exist.");
-			scanner.input_file (stream.fileno());
-		}
-		
 		public signal void parsing_start();
 		public signal void parsing_end (TimeSpan duration);
 		
-		public void parse() throws GLib.Error {
+		public void load_from_path (string path) throws GLib.Error {
+			uint8[] data;
+			File.new_for_path (path).load_contents (null, out data, null);
+			load_from_data ((string)data);
+		}
+		
+		public void load_from_uri (string uri) throws GLib.Error {
+			uint8[] data;
+			File.new_for_uri (uri).load_contents (null, out data, null);
+			load_from_data ((string)data);
+		}
+			
+		public void load_from_data (string data) throws GLib.Error {
+			var scanner = new Scanner (null);
+			string text = data.replace ("\\u", "\\\\u");
+			scanner.input_text (text, text.length);
 			var dt = new DateTime.now_local();
 			parsing_start();
 			var token = scanner.get_next_token();
 			if (token == TokenType.LEFT_BRACE)
-				root = new Json.Node (read_array());
+				root = new Json.Node (read_array (scanner));
 			else if (token == TokenType.LEFT_CURLY)
-				root = new Json.Node (read_object());
+				root = new Json.Node (read_object (scanner));
 			else
 				throw new ReadError.INVALID ("invalid JSON document.");
 			parsing_end (new DateTime.now_local().difference (dt));
@@ -51,7 +50,7 @@ namespace Json {
 		
 		public Json.Node root { get; private set; }
 		
-		Json.Array read_array() throws GLib.Error {
+		Json.Array read_array (Scanner scanner) throws GLib.Error {
 			var token = scanner.cur_token();
 			if (token == TokenType.NONE)
 				token = scanner.get_next_token();
@@ -61,11 +60,11 @@ namespace Json {
 			while (true) {
 				token = scanner.get_next_token();
 				if (token == TokenType.LEFT_BRACE)
-					array.add_array_element (read_array());
+					array.add_array_element (read_array (scanner));
 				else if (token == TokenType.LEFT_CURLY)
-					array.add_object_element (read_object());
+					array.add_object_element (read_object (scanner));
 				else if (token == TokenType.STRING)
-					array.add_string_element (scanner.cur_value().string);
+					array.add_string_element (convert_string (scanner.cur_value().string));
 				else if (token == '-') {
 					token = scanner.get_next_token();
 					if (token == TokenType.INT)
@@ -99,7 +98,7 @@ namespace Json {
 			assert_not_reached();
 		}
 	
-		Json.Object read_object() throws GLib.Error {
+		Json.Object read_object (Scanner scanner) throws GLib.Error {
 			var token = scanner.cur_token();
 			if (token == TokenType.NONE)
 				token = scanner.get_next_token();
@@ -110,17 +109,17 @@ namespace Json {
 				token = scanner.get_next_token();
 				if (token != TokenType.STRING)
 					throw new ReadError.INVALID ("can't find member key.");
-				string id = scanner.cur_value().string;
+				string id = convert_string (scanner.cur_value().string);
 				token = scanner.get_next_token();
 				if (token != ':')
 					throw new ReadError.INVALID ("can't find semicolon separator");
 				token = scanner.get_next_token();
 				if (token == TokenType.LEFT_BRACE)
-					object.set_array_member (id, read_array());
+					object.set_array_member (id, read_array (scanner));
 				else if (token == TokenType.LEFT_CURLY)
-					object.set_object_member (id, read_object());
+					object.set_object_member (id, read_object (scanner));
 				else if (token == TokenType.STRING)
-					object.set_string_member (id, scanner.cur_value().string);
+					object.set_string_member (id, convert_string (scanner.cur_value().string));
 				else if (token == '-') {
 					token = scanner.get_next_token();
 					if (token == TokenType.INT)
@@ -152,6 +151,34 @@ namespace Json {
 					throw new ReadError.INVALID ("invalid end of member.");
 			}
 			assert_not_reached();
+		}
+		
+		string convert_string (string source) {
+			StringBuilder sb = new StringBuilder();
+			int i = 0;
+			int len = source.length;
+			while (i < len) {
+				if (source[i] == '\\' && source[i + 1] == 'u') {
+					if (i + 2 >= len || i + 5 >= len)
+						return source;
+					string s = source.substring (i + 2, 4);
+					i += 6;
+					if (str_equal (s, "D834") || str_equal (s, "D87F") || str_equal (s, "DB7F")) {
+						if (source[i] != '\\' || source[i + 1] != 'u' || i + 2 >= len || i + 5 >= len)
+							return source;
+						s += source.substring (i + 2, 4);
+						i += 6;
+					}
+					unichar w = 0;
+					s.scanf ("%x", &w);
+					sb.append_unichar (w);
+				}
+				else {
+					sb.append_c (source[i]);
+					i++;
+				}
+			}
+			return sb.str;
 		}
 	}
 }

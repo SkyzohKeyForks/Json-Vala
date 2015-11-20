@@ -15,7 +15,8 @@ namespace Json {
 
 		public static Array parse (string json) {
 			try {
-				var parser = new Json.Parser (json);
+				var parser = new Json.Parser();
+				parser.load_from_data (json);
 				if (parser.root.node_type == NodeType.ARRAY)
 					return parser.root.array;
 				return new Json.Array();

@@ -5,7 +5,7 @@ libjson_vala_1_0_la_CFLAGS = -w -g $(JSON_VALA_CFLAGS) -lm
 vapidir = $(datadir)/vala/vapi
 dist_vapi_DATA = json-vala-1.0.vapi
 
-libjson_vala_1_0_la_SOURCES = Array.vala Object.vala Node.vala Parser.vala \
+libjson_vala_1_0_la_SOURCES = Array.vala Object.vala Node.vala Parser.vala Generator.vala \
 	schema/Schema.vala schema/SchemaArray.vala schema/SchemaNumber.vala schema/SchemaObject.vala schema/SchemaString.vala \
 	bson/BsonDocument.vala bson/BsonReader.vala
 

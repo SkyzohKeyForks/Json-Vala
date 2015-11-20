@@ -15,14 +15,17 @@ namespace Json {
 	
 	public class Object : GLib.Object {
 		HashTable<string, Json.Node> table;
+		string[] ids;
 
 		construct {
+			ids = new string[0];
 			table = new HashTable<string, Json.Node> (str_hash, str_equal);
 		}
 
 		public static Object parse (string json) {
 			try {
-				var parser = new Json.Parser (json);
+				var parser = new Json.Parser();
+				parser.load_from_data (json);
 				if (parser.root.node_type == NodeType.OBJECT)
 					return parser.root.object;
 				return new Json.Object();
@@ -113,10 +116,89 @@ namespace Json {
 		public Regex get_regex_member (string id) {
 			return get_member (id).as_regex();
 		}
+		
+		public Json.Node remove_at (GLib.Value key) {
+			uint i = 0;
+			if (key.type() == typeof (string)) {
+				string k = (string)key;
+				if (!(k in table))
+					return new Json.Node();
+				var node = new Json.Node (table[k]);
+				table.remove (k);
+				var strv = new string[0];
+				foreach (string s in ids)
+					if (!str_equal (s, k))
+						strv += s;
+				ids = strv;
+				return node;
+			}
+			if (key.type() == typeof (int))
+				i = (uint)(int)key;
+			if (key.type() == typeof (uint))
+				i = (uint)key;
+			if (key.type() == typeof (int64))
+				i = (uint)((int64)key);
+			if (key.type() == typeof (uint64))
+				i = (uint)((uint64)key);
+			if (key.type() == typeof (int8))
+				i = (uint)((int8)key);
+			if (key.type() == typeof (uint8))
+				i = (uint)((uint8)key);
+			if (key.type() == typeof (long))
+				i = (uint)((long)key);
+			if (key.type() == typeof (ulong))
+				i = (uint)((ulong)key);
+			string k = ids[i];
+			if (!(k in table))
+				return new Json.Node();
+			var node = new Json.Node (table[k]);
+			table.remove (k);
+			var strv = new string[0];
+			foreach (string s in ids)
+				if (!str_equal (s, k))
+					strv += s;
+			ids = strv;
+			return node;
+		}
+		
+		public void set (GLib.Value key, GLib.Value value) {
+			uint i = 0;
+			var node = new Json.Node (value);
+			if (key.type() == typeof (string)) {
+				set_member ((string)key, node);
+				return;
+			}
+			if (key.type() == typeof (int))
+				i = (uint)(int)key;
+			if (key.type() == typeof (uint))
+				i = (uint)key;
+			if (key.type() == typeof (int64))
+				i = (uint)((int64)key);
+			if (key.type() == typeof (uint64))
+				i = (uint)((uint64)key);
+			if (key.type() == typeof (int8))
+				i = (uint)((int8)key);
+			if (key.type() == typeof (uint8))
+				i = (uint)((uint8)key);
+			if (key.type() == typeof (long))
+				i = (uint)((long)key);
+			if (key.type() == typeof (ulong))
+				i = (uint)((ulong)key);
+			if (i < size) {
+				set_member (ids[i], node);
+			}
+		}
 
 		public void set_member (string id, Json.Node node) {
-			if (is_valid_string (id))
+			if (is_valid_string (id)) {
 				table[id] = node;
+				var strv = new string[0];
+				foreach (string s in ids)
+					if (!str_equal (s, id))
+						strv += s;
+				strv += id;
+				ids = strv;
+			}
 		}
 
 		public void set_boolean_member (string id, bool value) {
@@ -159,26 +241,26 @@ namespace Json {
 			if (table.length == 0)
 				return "{}";
 			string result = "{ ";
-			for (var i = 0; i < table.length - 1; i++)
-				result += "\"%s\" : %s, ".printf (table.get_keys().nth_data (i), table[table.get_keys().nth_data (i)].to_string());
-			result += "\"%s\" : %s }".printf (table.get_keys().nth_data (table.length - 1), table[table.get_keys().nth_data (table.length - 1)].to_string());
+			for (var i = 0; i < size - 1; i++) {
+				string key = ids[i];
+				result += "\"%s\" : %s, ".printf (key, table[key].to_string());
+			}
+			string key = ids[ids.length - 1];
+			result += "\"%s\" : %s }".printf (key, table[key].to_string());
 			return result;
 		}
 
 		public string[] keys {
 			owned get {
-				string[] vals = new string[0];
-				foreach (string key in table.get_keys())
-					vals += key;
-				return vals;
+				return ids;
 			}
 		}
 
 		public Json.Node[] values {
 			owned get {
 				var nodes = new Json.Node[0];
-				foreach (Json.Node node in table.get_values())
-					nodes += node;
+				foreach (string id in ids)
+					nodes += table[id];
 				return nodes;
 			}
 		}
@@ -186,9 +268,8 @@ namespace Json {
 		public Property[] properties {
 			owned get {
 				var props = new Property[0];
-				table.foreach ((key, val) => {
-					props += new Property (key, val);
-				});
+				foreach (string id in ids)
+					props += new Property (id, table[id]);
 				return props;
 			}
 		}
