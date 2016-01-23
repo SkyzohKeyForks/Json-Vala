@@ -12,6 +12,13 @@ namespace Json {
 				array.add (value);
 			return array;
 		}
+		
+		public static Array from_strv (string[] strv) {
+			var array = new Array();
+			foreach (var value in strv)
+				array.add (value);
+			return array;
+		}
 
 		public static Array parse (string json) {
 			try {
@@ -217,6 +224,18 @@ namespace Json {
 		public int size {
 			get {
 				return list.length;
+			}
+		}
+		
+		public NodeType is_unique {
+			get {
+				if (list.length == 0)	
+					return NodeType.NULL;
+				var nt = list[0].node_type;
+				for (var i = 1; i < list.length; i++)
+					if (list[i].node_type != nt)
+						return NodeType.NULL;
+				return nt;
 			}
 		}
 	}

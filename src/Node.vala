@@ -63,6 +63,15 @@ namespace Json {
 			return object == null ? new Json.Object() : object;
 		}
 		
+		public string[] as_string_array() {
+			string[] strv = new string[0];
+			var a = as_array();
+			foreach (var node in a)
+				if (node.is_string())
+					strv += node.as_string();
+			return strv;
+		}
+		
 		public bool is_boolean() {
 			return boolean != null;
 		}
@@ -103,6 +112,15 @@ namespace Json {
 		
 		public bool is_null() {
 			return isnull;
+		}
+		
+		public bool is_string_array() {
+			if (!is_array())
+				return false;
+			foreach (var node in array)
+				if (!node.is_string())
+					return false;
+			return true;
 		}
 		
 		public bool equal (Json.Node node) {
