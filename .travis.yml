@@ -6,9 +6,10 @@ before_install:
   - sudo apt-get update -qq -y
   - sudo apt-get install update-manager-core software-properties-common -y
   - sudo sed -i 's/^\(Prompt=\).*/\1lts/' /etc/update-manager/release-upgrades
-  - sudo do-release-upgrade -d -f DistUpgradeViewNonInteractive
+  - sudo do-release-upgrade -f DistUpgradeViewNonInteractive
+  - sudo add-apt-repository -y ppa:vala-team/ppa
   - sudo apt-get update -qq -y
-  - sudo apt-get install valac-0.28
+  - sudo apt-get install valac
 script: ./autogen.sh && make && sudo make install
 notifications:
   irc:
