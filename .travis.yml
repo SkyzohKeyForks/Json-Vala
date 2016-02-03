@@ -6,7 +6,7 @@ before_install:
   - sudo apt-get update -qq -y
   - sudo apt-get install update-manager-core software-properties-common -y
   - sudo sed -i 's/^\(Prompt=\).*/\1lts/' /etc/update-manager/release-upgrades
-  - sudo do-release-upgrade -d -f DistUpgradeViewNonInteractive -y
+  - sudo do-release-upgrade -d -f DistUpgradeViewNonInteractive
   - sudo add-apt-repository -y ppa:inizan-yannick/vala-libs
   - sudo add-apt-repository -y ppa:ricotz/testing
   - sudo apt-get update -qq -y
