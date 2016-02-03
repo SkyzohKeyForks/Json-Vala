@@ -6,6 +6,7 @@ before_install:
   - sudo apt-get update -qq -y
   - sudo apt-get install update-manager-core software-properties-common -y
   - sudo sed -i 's/^\(Prompt=\).*/\1lts/' /etc/update-manager/release-upgrades
+  - lsb_release -a
   - sudo do-release-upgrade -f DistUpgradeViewNonInteractive
   - sudo add-apt-repository -y ppa:vala-team/ppa
   - sudo apt-get update -qq -y
