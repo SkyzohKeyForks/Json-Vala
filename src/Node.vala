@@ -10,7 +10,7 @@ namespace Json {
 		DATETIME
 	}
 	
-	public class Node : GLib.Object {
+	public class Node : Iterable, GLib.Object {
 		internal bool isnull;
 		internal Json.Array? array;
 		internal Json.Object? object;
@@ -132,8 +132,15 @@ namespace Json {
 				(array == null ? node.array == null : array.equal (node.array)) &&
 				(object == null ? node.object == null : object.equal (node.object));
 		}
+		
+		public void foreach (GLib.Func<Json.Node> func) {
+			if (array != null)
+				array.foreach (func);
+			if (object != null)
+				object.foreach (func);
+		}
 
-		public Json.Node get (GLib.Value? val) {
+		public Json.Node get (GLib.Value val) {
 			if (array != null)
 				return array[val];
 			if (object != null)

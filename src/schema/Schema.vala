@@ -40,7 +40,7 @@ namespace JsonSchema {
 	
 		public SchemaType schema_type { get; set construct; }
 	
-		[Experimental]
+		[Version (experimental = true, experimental_until = "1.6")]
 		public static Schema parse (string data) throws GLib.Error {
 			var object = Json.Object.parse (data);
 			Schema schema = parse_schema (object);
@@ -234,34 +234,34 @@ namespace JsonSchema {
 			if (object.has_key ("properties")) {
 				if (!object["properties"].is_object())
 					throw new SchemaError.INVALID ("invalid type for 'properties'.");
-				object["properties"].as_object().foreach (property => {
-					if (!property.node.is_object())
+				object["properties"].as_object().foreach_member ((name, value) => {
+					if (!value.is_object())
 						throw new SchemaError.INVALID ("invalid type for current property.");
-					schema.properties[property.key] = parse_schema (property.node.as_object());
+					schema.properties[name] = parse_schema (value.as_object());
 				});
 			}
 			if (object.has_key ("patternProperties")) {
 				if (!object["patternProperties"].is_object())
 					throw new SchemaError.INVALID ("invalid type for 'patternProperties'.");
-				object["patternProperties"].as_object().foreach (property => {
-					if (!property.node.is_object())
+				object["patternProperties"].as_object().foreach_member ((name, value) => {
+					if (!value.is_object())
 						throw new SchemaError.INVALID ("invalid type for current property.");
-					schema.pattern_properties[new Regex (property.key)] = parse_schema (property.node.as_object());
+					schema.pattern_properties[new Regex (name)] = parse_schema (value.as_object());
 				});
 			}
 			if (object.has_key ("dependencies")) {
 				if (!object["dependencies"].is_object())
 					throw new SchemaError.INVALID ("invalid type for 'dependencies'.");
-				object["dependencies"].as_object().foreach (property => {
-					if (property.node.is_array()) {
+				object["dependencies"].as_object().foreach_member ((name, value) => {
+					if (value.is_array() && value.as_array().is_unique == Json.NodeType.STRING) {
 						string[] deps = new string[0];
-						property.node.as_array().foreach (node => {
+						value.as_array().foreach (node => {
 							deps += node.as_string();
 						});
-						schema.dependencies[property.key] = deps;
+						schema.dependencies[name] = deps;
 					}
-					else if (property.node.is_object())
-						schema.dependencies[property.key] = parse_schema (property.node.as_object());
+					else if (value.is_object())
+						schema.dependencies[name] = parse_schema (value.as_object());
 					else
 						throw new SchemaError.INVALID ("invalid type for current dependency.");
 				});

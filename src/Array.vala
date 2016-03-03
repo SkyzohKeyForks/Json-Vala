@@ -1,5 +1,5 @@
 namespace Json {
-	public class Array : GLib.Object {
+	public class Array : Iterable, GLib.Object {
 		GenericArray<Json.Node> list;
 
 		construct {
@@ -97,12 +97,8 @@ namespace Json {
 			return true;
 		}
 		
-		public delegate void ForeachFunc (Json.Node node);
-		
-		public void foreach (ForeachFunc func) {
-			list.foreach (data => {
-				func ((Json.Node)data);
-			});
+		public void foreach (GLib.Func<Json.Node> func) {
+			list.foreach (func);
 		}
 
 		public Json.Node get (GLib.Value val) {

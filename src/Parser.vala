@@ -109,7 +109,7 @@ namespace Json {
 			var object = new Json.Object();
 			while (true) {
 				token = scanner.get_next_token();
-				if (token == TokenType.RIGHT_BRACE && object.size == 0)
+				if (token == TokenType.RIGHT_CURLY && object.size == 0)
 					return object;
 				if (token != TokenType.STRING)
 					throw new ReadError.INVALID ("can't find member key.");

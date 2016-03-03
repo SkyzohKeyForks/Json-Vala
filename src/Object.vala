@@ -1,19 +1,10 @@
 namespace Json {
-	public class Property : GLib.Object {
-		public Property (string key, Json.Node node) requires (is_valid_string (key)) {
-			GLib.Object (key: key, node: node);
-		}
-		
-		public string key { get; construct; }
-		public Json.Node node { get; set; }
-		public GLib.Value value {
-			owned get {
-				return node.value;
-			}
-		}
+	public interface Iterable : GLib.Object {
+		public abstract void foreach (GLib.Func<Json.Node> func);
+		public abstract Json.Node get (GLib.Value value);
 	}
 	
-	public class Object : GLib.Object {
+	public class Object : Iterable, GLib.Object {
 		HashTable<string, Json.Node> table;
 		string[] ids;
 
@@ -41,12 +32,18 @@ namespace Json {
 		public bool equal (Json.Object object) {
 			return true;
 		}
-
-		public delegate void ForeachFunc (Json.Property property);
 		
-		public void foreach (ForeachFunc func) {
+		public delegate void ForeachFunc (string key, Json.Node node);
+		
+		public void foreach_member (ForeachFunc func) {
 			table.foreach ((key, val) => {
-				func (new Property (key, val));
+				func (key, val);
+			});
+		}
+		
+		public void foreach (GLib.Func<Json.Node> func) {
+			table.foreach ((key, val) => {
+				func (val);
 			});
 		}
 
@@ -262,15 +259,6 @@ namespace Json {
 				foreach (string id in ids)
 					nodes += table[id];
 				return nodes;
-			}
-		}
-
-		public Property[] properties {
-			owned get {
-				var props = new Property[0];
-				foreach (string id in ids)
-					props += new Property (id, table[id]);
-				return props;
 			}
 		}
 
