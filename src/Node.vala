@@ -1,225 +1,188 @@
 namespace Json {
+	public static string string_compress (string s) {
+			string str = s.replace ("\\u", "\\\\u").compress();
+			var sb = new StringBuilder();
+			int i = 0;
+			unichar u;
+			while (str.get_next_char (ref i, out u)) {
+				if (u == '\\') {
+					unichar v;
+					if (!str.get_next_char (ref i, out v)) {
+						sb.append_unichar (u);
+						return sb.str;
+					}
+					if (v == 'u') {
+						string unicode = "0x";
+						unichar a, b, c, d;
+						if (!str.get_next_char (ref i, out a)) {
+							sb.append_unichar ('u');
+							return sb.str;
+						}
+						unicode += a.to_string();
+						if (!str.get_next_char (ref i, out b)) {
+							sb.append_unichar ('u');
+							sb.append_unichar (a);
+							return sb.str;
+						}
+						unicode += b.to_string();
+						if (!str.get_next_char (ref i, out c)) {
+							sb.append_unichar ('u');
+							sb.append_unichar (a);
+							sb.append_unichar (b);
+							return sb.str;
+						}
+						unicode += c.to_string();
+						if (!str.get_next_char (ref i, out d)) {
+							sb.append_unichar ('u');
+							sb.append_unichar (a);
+							sb.append_unichar (b);
+							sb.append_unichar (c);
+							return sb.str;
+						}
+						unicode += d.to_string();
+						int64 n;
+						if (!int64.try_parse (unicode, out n)) {
+							sb.append_unichar ('u');
+							sb.append_unichar (a);
+							sb.append_unichar (b);
+							sb.append_unichar (c);
+							sb.append_unichar (d);
+						}
+						else
+							sb.append_unichar ((unichar)n);
+					}
+					else
+						sb.append_unichar (v);
+				}
+				else
+					sb.append_unichar (u);
+			}
+			return sb.str;
+		}
+	
 	public enum NodeType {
 		NULL,
-		ARRAY,
-		BOOLEAN,
-		DOUBLE,
 		INTEGER,
-		OBJECT,
+		BOOLEAN,
+		NUMBER,
 		STRING,
-		DATETIME
+		ARRAY,
+		OBJECT
 	}
 	
-	public class Node : Iterable, GLib.Object {
-		internal bool isnull;
-		internal Json.Array? array;
+	public class Node : GLib.Object {
 		internal Json.Object? object;
-		internal bool? boolean;
-		internal string? number_str;
+		internal Json.Array? array;
 		internal string? str;
+		internal string? number_str;
+		internal bool? boolean;
 		internal int64? integer;
-
-		public Node (GLib.Value? val = null) {
-			set_value_internal (val);
-		}
-
-		public bool as_boolean() {
-			return boolean == true;
-		}
-
-		public double as_double() {
-			return double.parse (number_str == null ? "0" : number_str);
-		}
-
-		public int64 as_integer() {
-			return integer == null ? 0 : integer;
-		}
-
-		public string as_string() {
-			return str == null ? "" : str.substring (1, str.length - 2);
-		}
+		internal bool isn;
 		
-		public DateTime as_datetime() {
-			TimeVal tv = TimeVal();
-			if (!tv.from_iso8601 (as_string()))
-				return new DateTime.now_local();
-			return new DateTime.from_timeval_local (tv);
-		}
-		
-		public Regex as_regex() {
-			try {
-				var regex = new Regex (as_string());
-				return regex;
-			} catch {
-				return new Regex ("");
-			}
-		}
-
-		public Json.Array as_array() {
-			return array == null ? new Json.Array() : array;
-		}
-
-		public Json.Object as_object() {
-			return object == null ? new Json.Object() : object;
-		}
-		
-		public string[] as_string_array() {
-			string[] strv = new string[0];
-			var a = as_array();
-			foreach (var node in a)
-				if (node.is_string())
-					strv += node.as_string();
-			return strv;
-		}
-		
-		public bool is_boolean() {
-			return boolean != null;
-		}
-		
-		public bool is_datetime() {
-			TimeVal tv = TimeVal();
-			return tv.from_iso8601 (as_string());
-		}
-		
-		public bool is_double() {
-			return number_str != null;
-		}
-		
-		public bool is_integer() {
-			return integer != null;
-		}
-		
-		public bool is_regex() {
-			try {
-				var regex = new Regex (as_string());
-				return true;
-			} catch {
-				return false;
-			}
-		}
-		
-		public bool is_string() {
-			return str != null;
-		}
-		
-		public bool is_object() {
-			return object != null;
-		}
-		
-		public bool is_array() {
-			return array != null;
-		}
-		
-		public bool is_null() {
-			return isnull;
-		}
-		
-		public bool is_string_array() {
-			if (!is_array())
-				return false;
-			foreach (var node in array)
-				if (!node.is_string())
-					return false;
-			return true;
+		public Node (GLib.Value? value = null) {
+			this.value = value;
 		}
 		
 		public bool equal (Json.Node node) {
-			return isnull == node.isnull &&
-				boolean == node.boolean &&
-				str_equal (number_str, node.number_str) &&
-				str_equal (str, node.str) &&
-				integer == node.integer &&
-				(array == null ? node.array == null : array.equal (node.array)) &&
-				(object == null ? node.object == null : object.equal (node.object));
+			bool o = object == null ? node.object == null : object.equal (node.object);
+			bool a = array == null ? node.array == null : array.equal (node.array);
+			return (o && a && str == node.str && number_str == node.number_str && boolean == node.boolean && integer == node.integer &&
+				isn == node.isn);
 		}
 		
-		public void foreach (GLib.Func<Json.Node> func) {
-			if (array != null)
-				array.foreach (func);
+		public Json.Object as_object() {
 			if (object != null)
-				object.foreach (func);
+				return object;
+			return new Json.Object();
 		}
-
-		public Json.Node get (GLib.Value val) {
+		
+		public Json.Array as_array() {
 			if (array != null)
-				return array[val];
-			if (object != null)
-				return object[val];
-			return new Json.Node();
+				return array;
+			return new Json.Array();
 		}
-
-		public string to_string() {
-			if (array != null)
-				return array.to_string();
-			if (object != null)
-				return object.to_string();
-			if (boolean != null)
-				return boolean.to_string();
-			if (number_str != null)
-				return number_str;
+		
+		public string as_string() {
 			if (str != null)
 				return str;
+				//return string_from_string (str);
+			return "";
+		}
+		
+		public bool as_boolean() {
+			return boolean == true;
+		}
+		
+		public double as_double() {
+			if (number_str != null)
+				return double.parse (number_str);
+			return 0;
+		}
+		
+		public int64 as_int() {
 			if (integer != null)
-				return integer.to_string();
-			return "null";
+				return integer;
+			return 0;
 		}
-
-		void set_value_internal (GLib.Value? val) {
-			if (val == null)
-				isnull = true;
-			else if (val.type().is_a (typeof (Json.Array)))
-				array = (Json.Array)val;
-			else if (val.type().is_a (typeof (Json.Object)))
-				object = (Json.Object)val;
-			else if (val.type() == typeof (bool))
-				boolean = (bool)val;
-			else if (val.type() == typeof (int64))
-				integer = (int64)val;
-			else if (val.type() == typeof (uint64))
-				integer = (int64)((uint64)val);
-			else if (val.type() == typeof (int))
-				integer = (int64)((int)val);
-			else if (val.type() == typeof (uint))
-				integer = (int64)((uint)val);
-			else if (val.type() == typeof (long))
-				integer = (int64)((long)val);
-			else if (val.type() == typeof (ulong))
-				integer = (int64)((long)val);
-			else if (val.type() == typeof (double))
-				number_str = "%g".printf ((double)val);
-			else if (val.type() == typeof (float))
-				number_str = "%g".printf ((float)val);
-			else if (val.type() == typeof (string) && is_valid_string ((string)val))
-				str = "\"%s\"".printf ((string)val);
-			else if (val.type() == typeof (DateTime))
-				str = "\"%s\"".printf (((DateTime)val).to_string());
-			else if (val.type() == typeof (Regex))
-				str = "\"%s\"".printf (((Regex)val).get_pattern());
-			else if (val.type().is_a (typeof (Json.Node))) {
-				var node = (Json.Node)val;
-				array = node.array;
-				object = node.object;
-				str = node.str;
-				integer = node.integer;
-				number_str = node.number_str;
-				boolean = node.boolean;
-				isnull = node.isnull;
+		
+		public bool is_null() {
+			return isn;
+		}
+		
+		public new Json.Node get (GLib.Value index) {
+			if (object != null)
+				return object[index];
+			if (array == null)
+				return new Json.Node();
+			int64 i = -1;
+			if (index.type() == typeof (int))
+				i = (int64)(int)index;
+			else if (index.type() == typeof (uint))
+				i = (int64)(uint)index;
+			else if (index.type() == typeof (int64))
+				i = (int64)index;
+			else if (index.type() == typeof (uint64))
+				i = (int64)(uint64)index;
+			else if (index.type() == typeof (long))
+				i = (int64)(long)index;
+			else if (index.type() == typeof (ulong))
+				i = (int64)(ulong)index;
+			else return new Json.Node();
+			if (i < 0 || i >= array.size)
+				return new Json.Node();
+			return array[(int)i];
+		}
+		
+		static string char_to_string (unichar u) {
+			if (u < 20) {
+				string s = "\\u";
+				s += "%04X".printf (u);
+				return s;
 			}
-			else isnull = true;
+			return u.to_string();
 		}
-
+		
+		static string string_to_string (string s) {
+			string str = "";
+			int i = 0;
+			unichar u;
+			while (s.get_next_char (ref i, out u))
+				str += char_to_string (u);
+			return str;
+		}
+		
 		public NodeType node_type {
 			get {
-				if (boolean != null)
-					return NodeType.BOOLEAN;
-				if (number_str != null)
-					return NodeType.DOUBLE;
-				if (is_datetime())
-					return NodeType.DATETIME;
-				if (str != null)
-					return NodeType.STRING;
+				if (isn)
+					return NodeType.NULL;
 				if (integer != null)
 					return NodeType.INTEGER;
+				if (number_str != null)
+					return NodeType.NUMBER;
+				if (boolean != null)
+					return NodeType.BOOLEAN;
+				if (str != null)
+					return NodeType.STRING;
 				if (array != null)
 					return NodeType.ARRAY;
 				if (object != null)
@@ -227,27 +190,67 @@ namespace Json {
 				return NodeType.NULL;
 			}
 		}
-
+		
 		public GLib.Value? value {
 			owned get {
+				if (object != null)
+					return object;
+				if (array != null)
+					return array;
+				if (str != null)
+					return str;
+					//return string_from_string (str);
 				if (boolean != null)
 					return boolean;
 				if (number_str != null)
 					return double.parse (number_str);
-				if (is_datetime())
-					return as_datetime();
-				if (str != null)
-					return as_string();
 				if (integer != null)
 					return integer;
-				if (array != null)
-					return array;
-				if (object != null)
-					return object;
 				return null;
 			}
 			set {
-				set_value_internal (value);
+				if (value == null)
+					isn = true;
+				else if (value.type().is_a (typeof (Json.Node))) {
+					var node = (Json.Node)value;
+					object = node.object;
+					array = node.array;
+					boolean = node.boolean;
+					str = node.str;
+					number_str = node.number_str;
+					integer = node.integer;
+					isn = node.isn;
+				}
+				else if (value.type().is_a (typeof (Json.Object)))
+					object = (Json.Object)value;
+				else if (value.type().is_a (typeof (Json.Array)))
+					array = (Json.Array)value;
+				else if (value.type() == typeof (bool))
+					boolean = (bool)value;
+				else if (value.type() == typeof (string))
+					str = (string)value;
+				else if (value.type() == typeof (double))
+					number_str = "%g".printf ((double)value);
+				else if (value.type() == typeof (float))
+					number_str = "%g".printf ((float)value);
+				else if (value.type() == typeof (int))
+					integer = (int)value;
+				else if (value.type() == typeof (uint))
+					integer = (uint)value;
+				else if (value.type() == typeof (int64))
+					integer = (int64)value;
+				else if (value.type() == typeof (uint64))
+					integer = (int64)(uint64)value;
+				else if (value.type() == typeof (long))
+					integer = (long)value;
+				else if (value.type() == typeof (ulong))
+					integer = (ulong)value;
+				else if (value.type() == typeof (uchar))
+					integer = (uchar)value;
+				else if (value.type() == typeof (char))
+					str = char_to_string ((unichar)((char)value));
+				else
+					isn = true;
 			}
 		}
 	}

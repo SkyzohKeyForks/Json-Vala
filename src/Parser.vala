@@ -1,4 +1,10 @@
 namespace Json {
+	public errordomain ParserError {
+		NULL,
+		INVALID,
+		EOF
+	}
+	
 	internal static bool is_valid_string (string str) {
 		if (str[0] == '"')
 			return false;
@@ -11,177 +17,220 @@ namespace Json {
 		return true;
 	}
 	
-	public errordomain ReadError {
-		NULL,
-		INVALID
-	}
-	
 	public class Parser : GLib.Object {
-		public signal void parsing_start();
-		public signal void parsing_end (TimeSpan duration);
+		public Json.Node root { get; private set; }
 		
 		public void load_from_path (string path) throws GLib.Error {
-			uint8[] data;
-			File.new_for_path (path).load_contents (null, out data, null);
-			load_from_data ((string)data);
+			var reader = new StreamReader (File.new_for_path (path).read(), Encoding.guess (path));
+			load (reader);
+		}
+		
+		public async void load_from_path_async (string path) throws GLib.Error {
+			SourceFunc cb = load_from_path_async.callback;
+			ThreadFunc<void*> run = () => {
+				load_from_path (path);
+				Idle.add (cb);
+				return null;
+			};
+			Thread.create<void*>(run, false);
+			yield;
+		}
+		
+		public void load_from_data (string data) throws GLib.Error {
+			var reader = new StringReader (data);
+			load (reader);
+		}
+		
+		public async void load_from_data_async (string data) throws GLib.Error {
+			SourceFunc cb = load_from_data_async.callback;
+			ThreadFunc<void*> run = () => {
+				load_from_data (data);
+				Idle.add (cb);
+				return null;
+			};
+			Thread.create<void*>(run, false);
+			yield;
 		}
 		
 		public void load_from_uri (string uri) throws GLib.Error {
-			uint8[] data;
-			File.new_for_uri (uri).load_contents (null, out data, null);
-			load_from_data ((string)data);
+			uint8[] data = new uint8[30];
+			var file = File.new_for_uri (uri);
+			var count = file.read().read (data);
+			data.resize ((int)count);
+			var reader = new StreamReader (file.read(), Encoding.guess (null, data));
+			load (reader);
 		}
-			
-		public void load_from_data (string data) throws GLib.Error {
-			var scanner = new Scanner (null);
-			string text = data.replace ("\\u", "\\\\u");
-			scanner.input_text (text, text.length);
+		
+		public async void load_from_uri_async (string uri) throws GLib.Error {
+			SourceFunc cb = load_from_uri_async.callback;
+			ThreadFunc<void*> run = () => {
+				load_from_uri (uri);
+				Idle.add (cb);
+				return null;
+			};
+			Thread.create<void*>(run, false);
+			yield;
+		}
+		
+		public void load (Reader reader) throws GLib.Error {
 			var dt = new DateTime.now_local();
 			parsing_start();
-			var token = scanner.get_next_token();
-			if (token == TokenType.LEFT_BRACE)
-				root = new Json.Node (read_array (scanner));
-			else if (token == TokenType.LEFT_CURLY)
-				root = new Json.Node (read_object (scanner));
+			while (reader.peek().isspace())
+				reader.read();
+			if (reader.peek() == '[')
+				root = new Json.Node (read_array (reader));
+			else if (reader.peek() == '{')
+				root = new Json.Node (read_object (reader));
 			else
-				throw new ReadError.INVALID ("invalid JSON document.");
-			parsing_end (new DateTime.now_local().difference (dt));
+				throw new ParserError.INVALID ("invalid JSON data %u".printf (reader.peek()));
+			var ts = new DateTime.now_local().difference (dt);
+			parsing_end (ts);
 		}
 		
-		public Json.Node root { get; private set; }
-		
-		Json.Array read_array (Scanner scanner) throws GLib.Error {
-			var token = scanner.cur_token();
-			if (token == TokenType.NONE)
-				token = scanner.get_next_token();
-			if (token != TokenType.LEFT_BRACE)
-				throw new ReadError.INVALID ("invalid character. expected '[', found '%c'.".printf (scanner.cur_token()));
-			var array = new Json.Array();
-			while (true) {
-				token = scanner.get_next_token();
-				if (token == TokenType.RIGHT_BRACE && array.size == 0)
-					return array;
-				if (token == TokenType.LEFT_BRACE)
-					array.add_array_element (read_array (scanner));
-				else if (token == TokenType.LEFT_CURLY)
-					array.add_object_element (read_object (scanner));
-				else if (token == TokenType.STRING)
-					array.add_string_element (convert_string (scanner.cur_value().string));
-				else if (token == '-') {
-					token = scanner.get_next_token();
-					if (token == TokenType.INT)
-						array.add_integer_element ((-1) * (int64)scanner.cur_value().int64);
-					else if (token == TokenType.FLOAT)
-						array.add_double_element ((-1) * scanner.cur_value().float);
-					else
-						throw new ReadError.INVALID ("current value is not a number.");
-				}
-				else if (token == TokenType.INT)
-					array.add_integer_element ((int64)scanner.cur_value().int64);
-				else if (token == TokenType.FLOAT)
-					array.add_double_element (scanner.cur_value().float);
-				else if (token == TokenType.IDENTIFIER) {
-					string id = scanner.cur_value().identifier;
-					if (id == "null")
-						array.add_null_element();
-					else if (id == "true" || id == "false")
-						array.add_boolean_element (id == "true");
-					else
-						throw new ReadError.INVALID ("invalid identifier: %s.".printf (id));
-				}
-				else
-					throw new ReadError.INVALID ("invalid element for array. '%u'".printf (token));
-				token = scanner.get_next_token();
-				if (token == TokenType.RIGHT_BRACE)
-					return array;
-				if (token != TokenType.COMMA)
-					throw new ReadError.INVALID ("invalid end of element.");
-			}
-			assert_not_reached();
+		public async void load_async (Reader reader) throws GLib.Error {
+			SourceFunc cb = load_async.callback;
+			ThreadFunc<void*> run = () => {
+				load (reader);
+				Idle.add (cb);
+				return null;
+			};
+			Thread.create<void*>(run, false);
+			yield;
 		}
-	
-		Json.Object read_object (Scanner scanner) throws GLib.Error {
-			var token = scanner.cur_token();
-			if (token == TokenType.NONE)
-				token = scanner.get_next_token();
-			if (token != TokenType.LEFT_CURLY)
-				throw new ReadError.INVALID ("invalid character. expected '{', found '%c'.".printf (scanner.cur_token()));
+		
+		public signal void parsing_start();
+		public signal void parsing_end (TimeSpan duration);
+		
+		Json.Object read_object (Reader reader) throws GLib.Error {
+			if (reader.peek() != '{')
+				throw new ParserError.INVALID ("invalid character. '{' expected but '%s' was found.".printf (reader.peek().to_string()));
+			reader.read();
+			while (reader.peek().isspace())
+				reader.read();
 			var object = new Json.Object();
-			while (true) {
-				token = scanner.get_next_token();
-				if (token == TokenType.RIGHT_CURLY && object.size == 0)
-					return object;
-				if (token != TokenType.STRING)
-					throw new ReadError.INVALID ("can't find member key.");
-				string id = convert_string (scanner.cur_value().string);
-				token = scanner.get_next_token();
-				if (token != ':')
-					throw new ReadError.INVALID ("can't find semicolon separator");
-				token = scanner.get_next_token();
-				if (token == TokenType.LEFT_BRACE)
-					object.set_array_member (id, read_array (scanner));
-				else if (token == TokenType.LEFT_CURLY)
-					object.set_object_member (id, read_object (scanner));
-				else if (token == TokenType.STRING)
-					object.set_string_member (id, convert_string (scanner.cur_value().string));
-				else if (token == '-') {
-					token = scanner.get_next_token();
-					if (token == TokenType.INT)
-						object.set_integer_member (id, (-1) * (int64)scanner.cur_value().int64);
-					else if (token == TokenType.FLOAT)
-						object.set_double_member (id, (-1) * scanner.cur_value().float);
-					else
-						throw new ReadError.INVALID ("current value is not a number.");
-				}
-				else if (token == TokenType.INT)
-					object.set_integer_member (id, (int64)scanner.cur_value().int64);
-				else if (token == TokenType.FLOAT)
-					object.set_double_member (id, scanner.cur_value().float);
-				else if (token == TokenType.IDENTIFIER) {
-					string val = scanner.cur_value().identifier;
-					if (val == "null")
-						object.set_null_member (id);
-					else if (val == "true" || val == "false")
-						object.set_boolean_member (id, val == "true");
-					else
-						throw new ReadError.INVALID ("invalid identifier: %s.".printf (val));
-				}
-				else
-					throw new ReadError.INVALID ("invalid member for object.");
-				token = scanner.get_next_token();
-				if (token == TokenType.RIGHT_CURLY)
-					return object;
-				if (token != TokenType.COMMA)
-					throw new ReadError.INVALID ("invalid end of member.");
+			if (reader.peek() == '}') {
+				reader.read();
+				return object;
 			}
-			assert_not_reached();
+			while (reader.peek() != 0) {
+				while (reader.peek().isspace())
+					reader.read();
+				string key = read_string (reader);
+				while (reader.peek().isspace())
+					reader.read();
+				if (reader.peek() != ':')
+					throw new ParserError.INVALID ("invalid character. ':' expected but '%s' was found.".printf (reader.peek().to_string()));
+				reader.read();
+				while (reader.peek().isspace())
+					reader.read();
+				if (reader.peek() == '[')
+					object.set_array_member (key, read_array (reader));
+				else if (reader.peek() == '{')
+					object.set_object_member (key, read_object (reader));
+				else if (reader.peek() == '"')
+					object.set_string_member (key, read_string (reader));
+				else {
+					StringBuilder sb = new StringBuilder();
+					while (reader.peek() != 0 && reader.peek() != ',' && reader.peek() != '}')
+						sb.append_unichar (reader.read());
+					string str = sb.str.strip();
+					int64 num; double d;
+					if (int64.try_parse (str, out num))
+						object.set_int_member (key, num);
+					else if (double.try_parse (str, out d))
+						object.set_double_member (key, d);
+					else if (str == "true" || str == "false")
+						object.set_boolean_member (key, str == "true");
+					else if (str == "null")
+						object.set_null_member (key);
+					else throw new ParserError.INVALID ("invalid object member : %s\n".printf (str));
+				}
+				while (reader.peek().isspace())
+					reader.read();
+				if (reader.peek() == '}')
+					break;
+				if (reader.peek() != ',')
+					throw new ParserError.INVALID ("invalid end of object member : %s\n".printf (reader.peek().to_string()));
+				reader.read();
+			}
+			if (reader.peek() == 0)
+				throw new ParserError.EOF ("end of file.");
+			reader.read();
+			return object;
 		}
 		
-		string convert_string (string source) {
-			StringBuilder sb = new StringBuilder();
-			int i = 0;
-			int len = source.length;
-			while (i < len) {
-				if (source[i] == '\\' && source[i + 1] == 'u') {
-					if (i + 2 >= len || i + 5 >= len)
-						return source;
-					string s = source.substring (i + 2, 4);
-					i += 6;
-					if (str_equal (s, "D834") || str_equal (s, "D87F") || str_equal (s, "DB7F")) {
-						if (source[i] != '\\' || source[i + 1] != 'u' || i + 2 >= len || i + 5 >= len)
-							return source;
-						s += source.substring (i + 2, 4);
-						i += 6;
-					}
-					unichar w = 0;
-					s.scanf ("%x", &w);
-					sb.append_unichar (w);
-				}
-				else {
-					sb.append_c (source[i]);
-					i++;
-				}
+		Json.Array read_array (Reader reader) throws GLib.Error {
+			if (reader.peek() != '[')
+				throw new ParserError.INVALID ("invalid character. '[' expected but '%s' was found.".printf (reader.peek().to_string()));
+			reader.read();
+			while (reader.peek().isspace())
+				reader.read();
+			var array = new Json.Array();
+			if (reader.peek() == ']') {
+				reader.read();
+				return array;
 			}
+			while (reader.peek() != 0) {
+				while (reader.peek().isspace())
+					reader.read();
+				if (reader.peek() == '[')
+					array.add_array_element (read_array (reader));
+				else if (reader.peek() == '{')
+					array.add_object_element (read_object (reader));
+				else if (reader.peek() == '"')
+					array.add_string_element (read_string (reader));
+				else {
+					StringBuilder sb = new StringBuilder();
+					while (reader.peek() != 0 && reader.peek() != ',' && reader.peek() != ']')
+						sb.append_unichar (reader.read());
+					string str = sb.str.strip();
+					int64 num; double d;
+					if (int64.try_parse (str, out num))
+						array.add_int_element (num);
+					else if (double.try_parse (str, out d))
+						array.add_double_element (d);
+					else if (str == "true" || str == "false")
+						array.add_boolean_element (str == "true");
+					else if (str == "null")
+						array.add_null_element();
+					else throw new ParserError.INVALID ("invalid array element : %s\n".printf (str));
+				}
+				while (reader.peek().isspace())
+					reader.read();
+				if (reader.peek() == ']')
+					break;
+				if (reader.peek() != ',')
+					throw new ParserError.INVALID ("invalid end of array element : %s\n".printf (reader.peek().to_string()));
+				reader.read();
+			}
+			if (reader.peek() == 0)
+				throw new ParserError.EOF ("end of file.");
+			reader.read();
+			return array;
+		}
+		
+		string read_string (Reader reader) throws GLib.Error {
+			if (reader.peek() != '"')
+				throw new ParserError.INVALID ("invalid character. '\"' expected but '%s' was found.".printf (reader.peek().to_string()));
+			StringBuilder sb = new StringBuilder();
+			reader.read();
+			while (reader.peek() != 0) {
+				if (reader.peek() == '"') {
+					reader.read();
+					return sb.str;
+				}
+				if (reader.peek() == '\r' || reader.peek() == '\n')
+					throw new ParserError.INVALID ("string is truncated");
+				if (reader.peek() == '\\') {
+					reader.read();
+					sb.append_unichar ('\\');
+					sb.append_unichar (reader.read());
+					continue;
+				}
+				sb.append_unichar (reader.read());
+			}
+			if (reader.peek() == 0)
+				throw new ParserError.EOF ("end of file");
 			return sb.str;
 		}
 	}

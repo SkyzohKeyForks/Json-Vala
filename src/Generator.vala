@@ -1,88 +1,119 @@
 namespace Json {
 	public class Generator : GLib.Object {
-		public uint indent { get; set; default = 1; }
-		public unichar indent_char { get; set; default = '\t'; }
+		public uint indent { get; set; }
+		public bool tab { get; set; }
 		public bool pretty { get; set; }
 		public Json.Node root { get; set; }
 		
-		public string to_data() {
-			if (root == null)
-				return null;
-			return node_to_data (root);
+		public string to_string() {
+			StringBuilder sb = new StringBuilder();
+			node_to_string (sb, root);
+			return sb.str;
 		}
 		
-		public void to_file (string filename) {
-			FileUtils.set_contents (filename, to_data());
+		void node_to_string (StringBuilder sb, Json.Node node, uint depth = 0) {
+			if (node.str != null) 
+				string_to_string (sb, node.str);
+			else if (node.number_str != null)
+				sb.append (node.number_str);
+			else if (node.integer != null)
+				sb.append (node.integer.to_string());
+			else if (node.boolean != null)
+				sb.append (node.boolean.to_string());
+			else if (node.array != null)
+				array_to_string (sb, node.array, depth);
+			else if (node.object != null)
+				object_to_string (sb, node.object, depth);
+			else
+				sb.append ("null");
 		}
 		
-		string node_to_data (Json.Node node, int depth = 0) {
-			if (node.array != null)
-				return array_to_data (node.array, depth);
-			if (node.object != null)
-				return object_to_data (node.object, depth);
-			return node.to_string();
-		}
-		
-		string array_to_data (Json.Array array, int depth = 0) {
-			if (array.size == 0)
-				return "[]";
-			string result = "[ ";
-			if (pretty)
-				result += "\n";
-			for (var i = 0; i < array.size - 1; i++) {
-				if (pretty)
-					for (var j = 0; j < depth + 1; j++)
-						for (var k = 0; k < indent; k++)
-							result += indent_char.to_string();
-				result += node_to_data (array.get_element (i), depth + 1) + ", ";
-				if (pretty)
-					result += "\n";
+		void string_to_string (StringBuilder sb, string str) {
+			int i = 0;
+			unichar u;
+			sb.append_unichar ('"');
+			while (str.get_next_char (ref i, out u)) {
+				if (u == '"') {
+					sb.append_unichar ('\\');
+					sb.append_unichar ('"');
+				} else
+					sb.append_unichar (u);
 			}
-			if (pretty)
-				for (var j = 0; j < depth + 1; j++)
-					for (var k = 0; k < indent; k++)
-						result += indent_char.to_string();
-			result += node_to_data (array.get_element (array.size - 1), depth + 1);
-			if (pretty)
-				result += "\n";
-			if (pretty)
-				for (var i = 0; i < depth; i++)
-					for (var j = 0; j < indent; j++)
-						result += indent_char.to_string();
-			result += " ]";
-			return result;
+			sb.append_unichar ('"');
 		}
 		
-		string object_to_data (Json.Object object, int depth = 0) {
-			if (object.size == 0)
-				return "{}";
-			string result = "{ ";
+		void object_to_string (StringBuilder sb, Json.Object object, uint depth) {
+			if (object.size == 0) {
+				sb.append ("{}");
+				return;
+			}
+			sb.append ("{ ");
 			if (pretty)
-				result += "\n";
+				sb.append_c ('\n');
 			for (var i = 0; i < object.size - 1; i++) {
 				if (pretty)
 					for (var j = 0; j < depth + 1; j++)
 						for (var k = 0; k < indent; k++)
-							result += indent_char.to_string();
+							sb.append_c (tab ? '\t' : ' ');
 				string key = object.keys[i];
-				result += "\"" + key + "\" : " + node_to_data (object.get_member (key), depth + 1) + ", ";
+				string_to_string (sb, key);
+				sb.append (" : ");
+				node_to_string (sb, object[key], depth + 1);
+				sb.append (", ");
 				if (pretty)
-					result += "\n";
+					sb.append_c ('\n');
 			}
 			if (pretty)
 				for (var j = 0; j < depth + 1; j++)
 					for (var k = 0; k < indent; k++)
-						result += indent_char.to_string();
+						sb.append_c (tab ? '\t' : ' ');
 			string key = object.keys[object.size - 1];
-			result += "\"" + key + "\" : " + node_to_data (object.get_member (key), depth + 1);
+			string_to_string (sb, key);
+			sb.append (" : ");
+			node_to_string (sb, object[key], depth + 1);
+			if (pretty) {
+				sb.append_c ('\n');
+				for (var j = 0; j < depth; j++)
+					for (var k = 0; k < indent; k++)
+						sb.append_c (tab ? '\t' : ' ');
+				sb.append ("}");
+			}
+			else
+				sb.append (" }");
+		}
+		
+		void array_to_string (StringBuilder sb, Json.Array array, uint depth) {
+			if (array.size == 0) {
+				sb.append ("[]");
+				return;
+			}
+			sb.append ("[ ");
 			if (pretty)
-				result += "\n";
+				sb.append_c ('\n');
+			for (var i = 0; i < array.size - 1; i++) {
+				if (pretty)
+					for (var j = 0; j < depth + 1; j++)
+						for (var k = 0; k < indent; k++)
+							sb.append_c (tab ? '\t' : ' ');
+				node_to_string (sb, array[i], depth + 1);
+				sb.append (", ");
+				if (pretty)
+					sb.append_c ('\n');
+			}
 			if (pretty)
-				for (var i = 0; i < depth; i++)
-					for (var j = 0; j < indent; j++)
-						result += indent_char.to_string();
-			result += " }";
-			return result;
+				for (var j = 0; j < depth + 1; j++)
+					for (var k = 0; k < indent; k++)
+						sb.append_c (tab ? '\t' : ' ');
+			node_to_string (sb, array[array.size - 1], depth + 1);
+			if (pretty) {
+				sb.append_c ('\n');
+				for (var j = 0; j < depth; j++)
+					for (var k = 0; k < indent; k++)
+						sb.append_c (tab ? '\t' : ' ');
+				sb.append ("]");
+			}
+			else
+				sb.append (" ]");
 		}
 	}
 }

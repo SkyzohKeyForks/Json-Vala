@@ -1,5 +1,5 @@
-usr/lib/libjson-vala.so
-usr/lib/libjson-vala.a
+usr/lib/libjson-vala-1.0.so
+usr/lib/libjson-vala-1.0.a
 usr/lib/pkgconfig/
 usr/include/json-vala-1.0/
 usr/share/vala

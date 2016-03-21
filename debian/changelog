@@ -1,3 +1,27 @@
+json-vala (1.7-1) xenial; urgency=low
+
+  * Parser : add async functions.
+  * Parser : allow read from iso-8859-1 and utf-16 encoding.
+  * Bson : add async functions.
+
+ -- Yannick Inizan <inizan.yannick@gmail.com>  Mon, 21 Mar 2016 02:03:00 +0100
+
+json-vala (1.6-1) xenial; urgency=low
+
+  * Parser: fix token type in read_object
+  * Array : from/to string array.
+  * Parser : return Array & Object directly when size == 0.
+  * Object: keep keys order.
+  * Generator: render JSON Node.
+  * add missing 'gio-2.0' package.
+  * Use GLib.Scanner
+  * Allow foreach iteration on node.
+  * BSON: Create writer to generate bson data.
+  * Node: fix double value, return double.parse instead of scanf.
+  * New: Introduce BSON
+  
+ -- Yannick Inizan <inizan.yannick@gmail.com>  Wed, 09 Mar 2016 18:55:03 +0100
+
 json-vala (1.4-1) vivid; urgency=low
 
   * Add JSON Schema.

@@ -1,237 +1,213 @@
 namespace Json {
-	public class Array : Iterable, GLib.Object {
-		GenericArray<Json.Node> list;
-
-		construct {
-			list = new GenericArray<Json.Node>();
+	public static string normalize (string str) {
+		StringBuilder sb = new StringBuilder();
+		int i = 0;
+		unichar u;
+		while (str.get_next_char (ref i, out u)) {
+			
 		}
-		
-		public static Array from_values (GLib.Value[] values) {
+		return sb.str;
+	}
+	
+	public class Array : GLib.Object {
+		public static Array from (GLib.Value[] values) {
 			var array = new Array();
-			foreach (var value in values)
-				array.add (value);
+			foreach (GLib.Value val in values)
+				array.add (val);
 			return array;
 		}
 		
-		public static Array from_strv (string[] strv) {
-			var array = new Array();
-			foreach (var value in strv)
-				array.add (value);
-			return array;
-		}
-
 		public static Array parse (string json) {
+			var parser = new Json.Parser();
 			try {
-				var parser = new Json.Parser();
 				parser.load_from_data (json);
 				if (parser.root.node_type == NodeType.ARRAY)
 					return parser.root.array;
-				return new Json.Array();
 			} catch {
 				return new Json.Array();
 			}
+			return new Json.Array();
 		}
 		
-		public void add (GLib.Value value) {
-			list.add (new Json.Node (value));
-		}
-
-		public void add_element (Json.Node node) {
-			list.add (node);
-		}
-
-		public void add_boolean_element (bool value) {
-			list.add (new Json.Node (value));
-		}
-
-		public void add_integer_element (int64 value) {
-			list.add (new Json.Node (value));
-		}
-
-		public void add_double_element (double value) {
-			list.add (new Json.Node (value));
-		}
-
-		public void add_string_element (string value) {
-			list.add (new Json.Node (value));
-		}
-
-		public void add_array_element (Json.Array value) {
-			list.add (new Json.Node (value));
-		}
-
-		public void add_object_element (Json.Object value) {
-			list.add (new Json.Node (value));
+		Gee.ArrayList<Json.Node> nodes;
+		
+		construct {
+			nodes = new Gee.ArrayList<Json.Node>((a, b) => {
+				return a.equal (b);
+			});
 		}
 		
-		public void add_datetime_element (DateTime value) {
-			list.add (new Json.Node (value));
+		public void add (GLib.Value val) {
+			nodes.add (new Json.Node (val));
 		}
 		
-		public void add_regex_element (Regex value) {
-			list.add (new Json.Node (value));
+		public void add_array_element (Json.Array array) {
+			nodes.add (new Json.Node (array));
 		}
-
+		
+		public void add_object_element (Json.Object object) {
+			nodes.add (new Json.Node (object));
+		}
+		
+		public void add_string_element (string str) {
+			nodes.add (new Json.Node (str));
+		}
+		
+		public void add_double_element (double number) {
+			nodes.add (new Json.Node (number));
+		}
+		
+		public void add_boolean_element (bool val) {
+			nodes.add (new Json.Node (val));
+		}
+		
+		public void add_int_element (int64 integer) {
+			nodes.add (new Json.Node (integer));
+		}
+		
 		public void add_null_element() {
-			list.add (new Json.Node());
+			nodes.add (new Json.Node (null));
 		}
 		
-		public bool contains (GLib.Value value) {
-			return index_of (value) >= 0;
+		public new Json.Node get (int index) {
+			if (index < 0 || index >= nodes.size)
+				return new Json.Node();
+			return nodes[index];
 		}
 		
-		public int index_of (GLib.Value value) {
-			var node = new Json.Node (value);
-			for (var i = 0; i < size; i++)
-				if (list[i].equal (node))
-					return i;
-			return -1;
+		public Json.Object get_object_element (int index) {
+			return this[index].as_object();
 		}
-
+		
+		public Json.Array get_array_element (int index) {
+			return this[index].as_array();
+		}
+		
+		public string get_string_element (int index) {
+			return this[index].as_string();
+		}
+		
+		public int64 get_int_element (int index) {
+			return this[index].as_int();
+		}
+		
+		public bool get_boolean_element (int index) {
+			return this[index].as_boolean();
+		}
+		
+		public double get_double_element (int index) {
+			return this[index].as_double();
+		}
+		
+		public bool get_null_element (int index) {
+			return this[index].is_null();
+		}
+		
+		public new void set (int index, GLib.Value? value) {
+			if (index < 0 || index >= nodes.size)
+				return;
+			nodes[index] = new Json.Node (value);
+		}
+		
+		public void set_object_element (int index, Json.Object val) {
+			this[index] = new Json.Node (val);
+		}
+		
+		public void set_array_element (int index, Json.Array val) {
+			this[index] = new Json.Node (val);
+		}
+		
+		public void set_string_element (int index, string val) {
+			this[index] = new Json.Node (val);
+		}
+		
+		public void set_boolean_element (int index, bool val) {
+			this[index] = new Json.Node (val);
+		}
+		
+		public void set_int_element (int index, int64 val) {
+			this[index] = new Json.Node (val);
+		}
+		
+		public void set_double_element (int index, double val) {
+			this[index] = new Json.Node (val);
+		}
+		
+		public void set_null_element (int index) {
+			this[index] = new Json.Node (null);
+		}
+		
 		public bool equal (Json.Array array) {
-			if (size != array.size)
+			if (nodes.size != array.size)
 				return false;
-			for (var i = 0; i < size; i++)
-				if (!list[i].equal (array.get_element (i)))
+			for (var i = 0; i < nodes.size; i++)
+				if (!nodes[i].equal (array[i]))
 					return false;
 			return true;
 		}
 		
-		public void foreach (GLib.Func<Json.Node> func) {
-			list.foreach (func);
+		public void clear() {
+			nodes.clear();
 		}
-
-		public Json.Node get (GLib.Value val) {
-			uint i = 0;
-			if (val.type() == typeof (int))
-				i = (uint)(int)val;
-			if (val.type() == typeof (uint))
-				i = (uint)val;
-			if (val.type() == typeof (int64))
-				i = (uint)((int64)val);
-			if (val.type() == typeof (uint64))
-				i = (uint)((uint64)val);
-			if (val.type() == typeof (int8))
-				i = (uint)((int8)val);
-			if (val.type() == typeof (uint8))
-				i = (uint)((uint8)val);
-			if (val.type() == typeof (long))
-				i = (uint)((long)val);
-			if (val.type() == typeof (ulong))
-				i = (uint)((ulong)val);
-			if (i >= list.length)
+		
+		public bool remove (Json.Node node) {
+			return nodes.remove (node);
+		}
+		
+		public Json.Node remove_at (int index) {
+			if (index < 0 || index >= nodes.size)
 				return new Json.Node();
-			return list[i];
+			return nodes.remove_at (index);
 		}
-
-		public new Json.Node get_element (int index) {
-			if (index < 0 || index >= list.length)
-				return new Json.Node();
-			return list[index];
+		
+		public Json.Array slice (int start, int stop) {
+			var array = new Json.Array();
+			nodes.slice (start, stop).foreach (node => {
+				array.add (node);
+				return true;
+			});
+			return array;
 		}
-
-		public bool get_boolean_element (int index) {
-			return get_element (index).as_boolean();
+		
+		public void insert (int index, Json.Node node) {
+			if (index < 0)
+				return;
+			if (index >= nodes.size)
+				nodes.add (node);
+			else
+				nodes.insert (index, node);
 		}
-
-		public double get_double_element (int index) {
-			return get_element (index).as_double();
+		
+		public int index_of (GLib.Value val) {
+			var node = new Json.Node (val);
+			return nodes.index_of (node);
 		}
-
-		public int64 get_integer_element (int index) {
-			return get_element (index).as_integer();
+		
+		public bool contains (GLib.Value val) {
+			return index_of (val) >= 0;
 		}
-
-		public string get_string_element (int index) {
-			return get_element (index).as_string();
-		}
-
-		public Json.Array get_array_element (int index) {
-			return get_element (index).as_array();
-		}
-
-		public Json.Object get_object_element (int index) {
-			return get_element (index).as_object();
-		}
-
-		public DateTime get_datetime_element (int index) {
-			return get_element (index).as_datetime();
-		}
-
-		public Regex get_regex_element (int index) {
-			return get_element (index).as_regex();
-		}
-
-		public bool get_null_element (int index) {
-			return get_element (index).isnull;
-		}
-
-		public void set_element (int index, Json.Node node) {
-			if (index >= 0 && index < list.length)
-				list[index] = node;
-		}
-
-		public void set_boolean_element (int index, bool value) {
-			set_element (index, new Json.Node (value));
-		}
-
-		public void set_double_element (int index, double value) {
-			set_element (index, new Json.Node (value));
-		}
-
-		public void set_string_element (int index, string value) {
-			set_element (index, new Json.Node (value));
-		}
-
-		public void set_integer_element (int index, int64 value) {
-			set_element (index, new Json.Node (value));
-		}
-
-		public void set_null_element (int index) {
-			set_element (index, new Json.Node ());
-		}
-
-		public void set_object_element (int index, Json.Object value) {
-			set_element (index, new Json.Node (value));
-		}
-
-		public void set_array_element (int index, Json.Array value) {
-			set_element (index, new Json.Node (value));
-		}
-
-		public void set_datetime_element (int index, DateTime value) {
-			set_element (index, new Json.Node (value));
-		}
-
-		public void set_regex_element (int index, Regex value) {
-			set_element (index, new Json.Node (value));
-		}
-
-		public string to_string() {
-			if (list.length == 0)
-				return "[]";
-			string result = "[ ";
-			for (var i = 0; i < list.length - 1; i++)
-				result += list[i].to_string() + ", ";
-			result += list[list.length - 1].to_string() + " ]";
-			return result;
-		}
-
-		public int size {
-			get {
-				return list.length;
-			}
+		
+		public void foreach (Func<Json.Node> func) {
+			nodes.foreach (node => {
+				func (node);
+				return true;
+			});
 		}
 		
 		public NodeType is_unique {
 			get {
-				if (list.length == 0)	
+				if (nodes.size == 0)
 					return NodeType.NULL;
-				var nt = list[0].node_type;
-				for (var i = 1; i < list.length; i++)
-					if (list[i].node_type != nt)
+				for (var i = 1; i < nodes.size; i++)
+					if (nodes[i].node_type != nodes[0].node_type)
 						return NodeType.NULL;
-				return nt;
+				return nodes[0].node_type;
+			}
+		}
+		
+		public int size {
+			get {
+				return nodes.size;
 			}
 		}
 	}

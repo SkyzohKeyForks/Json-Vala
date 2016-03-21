@@ -1,270 +1,197 @@
 namespace Json {
-	public interface Iterable : GLib.Object {
-		public abstract void foreach (GLib.Func<Json.Node> func);
-		public abstract Json.Node get (GLib.Value value);
-	}
-	
-	public class Object : Iterable, GLib.Object {
-		HashTable<string, Json.Node> table;
-		string[] ids;
-
-		construct {
-			ids = new string[0];
-			table = new HashTable<string, Json.Node> (str_hash, str_equal);
-		}
-
+	public class Object : GLib.Object {
 		public static Object parse (string json) {
+			var parser = new Json.Parser();
 			try {
-				var parser = new Json.Parser();
 				parser.load_from_data (json);
 				if (parser.root.node_type == NodeType.OBJECT)
 					return parser.root.object;
-				return new Json.Object();
 			} catch {
 				return new Json.Object();
 			}
+			return new Json.Object();
 		}
 		
-		public bool has_key (string key) {
-			return key in table;
+		Gee.HashMap<string, Json.Node> map;
+		Gee.ArrayList<string> list;
+		
+		construct {
+			list = new Gee.ArrayList<string>();
+			map = new Gee.HashMap<string, Json.Node>(key => { return str_hash (key); }, (a, b) => { return str_equal (a, b); }, (a, b) => { return a.equal (b); });
 		}
-
+		
+		public new Json.Node get (GLib.Value index) {
+			if (index.type() == typeof (string)) {
+				string key = (string)index;
+				if (map.has_key (key))
+					return map[key];
+				return new Json.Node();
+			}
+			int64 integer = -1;
+			if (index.type() == typeof (int))
+				integer = (int64)(int)index;
+			else if (index.type() == typeof (uint))
+				integer = (int64)(uint)index;
+			else if (index.type() == typeof (int64))
+				integer = (int64)index;
+			else if (index.type() == typeof (uint64))
+				integer = (int64)(uint64)index;
+			else if (index.type() == typeof (long))
+				integer = (int64)(long)index;
+			else if (index.type() == typeof (ulong))
+				integer = (int64)(ulong)index;
+			else return new Json.Node();
+			if (integer < 0 || integer >= map.size)
+				return new Json.Node();
+			return map[list[(int)integer]];
+		}
+		
+		public Json.Object get_object_member (string key) {
+			return this[key].as_object();
+		}
+		
+		public Json.Array get_array_member (string key) {
+			return this[key].as_array();
+		}
+		
+		public bool get_boolean_member (string key) {
+			return this[key].as_boolean();
+		}
+		
+		public string get_string_member (string key) {
+			return this[key].as_string();
+		}
+		
+		public double get_double_member (string key) {
+			return this[key].as_double();
+		}
+		
+		public int64 get_int_member (string key) {
+			return this[key].as_int();
+		}
+		
+		public bool get_null_member (string key) {
+			return this[key].is_null();
+		}
+		
+		public new void set (GLib.Value index, GLib.Value? value) {
+			if (index.type() == typeof (string)) {
+				string key = (string)index;
+				if (list.index_of (key) < 0)
+					list.add (key);
+				map[key] = new Json.Node (value);
+				return;
+			}
+			int64 integer = -1;
+			if (index.type() == typeof (int))
+				integer = (int64)(int)index;
+			else if (index.type() == typeof (uint))
+				integer = (int64)(uint)index;
+			else if (index.type() == typeof (int64))
+				integer = (int64)index;
+			else if (index.type() == typeof (uint64))
+				integer = (int64)(uint64)index;
+			else if (index.type() == typeof (long))
+				integer = (int64)(long)index;
+			else if (index.type() == typeof (ulong))
+				integer = (int64)(ulong)index;
+			else return;
+			if (integer < 0 || integer >= map.size)
+				return;
+			var key = list[(int)integer];
+			map[key] = new Json.Node (value);
+		}
+		
+		public void set_object_member (string key, Json.Object object) {
+			this[key] = object;
+		}
+		
+		public void set_array_member (string key, Json.Array array) {
+			this[key] = array;
+		}
+		
+		public void set_string_member (string key, string str) {
+			this[key] = str;
+		}
+		
+		public void set_boolean_member (string key, bool boolean) {
+			this[key] = boolean;
+		}
+		
+		public void set_int_member (string key, int64 val) {
+			this[key] = val;
+		}
+		
+		public void set_double_member (string key, double number) {
+			this[key] = number;
+		}
+		
+		public void set_null_member (string key) {
+			this[key] = new Json.Node (null);
+		}
+		
 		public bool equal (Json.Object object) {
+			if (object.size != map.size)
+				return false;
+			for (var i = 0; i < map.size; i++)
+				if (!this[i].equal (object[i]))
+					return false;
 			return true;
 		}
 		
-		public delegate void ForeachFunc (string key, Json.Node node);
+		public bool has_key (string key) {
+			return map.has_key (key);
+		}
 		
-		public void foreach_member (ForeachFunc func) {
-			table.foreach ((key, val) => {
-				func (key, val);
+		public bool has (string key, GLib.Value val) {
+			var node = new Json.Node (val);
+			return map.has (key, node);
+		}
+		
+		public bool unset (string key, out GLib.Value val = null) {
+			Json.Node node;
+			var res = map.unset (key, out node);
+			if (!res)
+				return false;
+			else
+				list.remove (key);
+			val = node.value;
+			return res;
+		}
+		
+		public void clear() {
+			list.clear();
+			map.clear();
+		}
+		
+		public void foreach (HFunc<string, Json.Node> func) {
+			list.foreach (key => {
+				var node = map[key];
+				func (key, node);
+				return true;
 			});
 		}
 		
-		public void foreach (GLib.Func<Json.Node> func) {
-			table.foreach ((key, val) => {
-				func (val);
-			});
-		}
-
-		public Json.Node get (GLib.Value val) {
-			uint i = 0;
-			if (val.type() == typeof (int))
-				i = (uint)(int)val;
-			if (val.type() == typeof (uint))
-				i = (uint)val;
-			if (val.type() == typeof (int64))
-				i = (uint)((int64)val);
-			if (val.type() == typeof (uint64))
-				i = (uint)((uint64)val);
-			if (val.type() == typeof (int8))
-				i = (uint)((int8)val);
-			if (val.type() == typeof (uint8))
-				i = (uint)((uint8)val);
-			if (val.type() == typeof (long))
-				i = (uint)((long)val);
-			if (val.type() == typeof (ulong))
-				i = (uint)((ulong)val);
-			if (val.type() == typeof (string))
-				return get_member ((string)val);
-			if (i >= table.length)
-				return new Json.Node();
-			return table[table.get_keys().nth_data (i)];
-		}
-
-		public Json.Node get_member (string id) {
-			if (table[id] == null)
-				return new Json.Node();
-			return table[id];
-		}
-
-		public bool get_null_member (string id) {
-			return get_member (id).isnull;
-		}
-
-		public bool get_boolean_member (string id) {
-			return get_member (id).as_boolean();
-		}
-
-		public double get_double_member (string id) {
-			return get_member (id).as_double();
-		}
-
-		public string get_string_member (string id) {
-			return get_member (id).as_string();
-		}
-
-		public int64 get_integer_member (string id) {
-			return get_member (id).as_integer();
-		}
-
-		public Json.Array get_array_member (string id) {
-			return get_member (id).as_array();
-		}
-
-		public Json.Object get_object_member (string id) {
-			return get_member (id).as_object();
-		}
-
-		public DateTime get_datetime_member (string id) {
-			return get_member (id).as_datetime();
-		}
-
-		public Regex get_regex_member (string id) {
-			return get_member (id).as_regex();
-		}
-		
-		public Json.Node remove_at (GLib.Value key) {
-			uint i = 0;
-			if (key.type() == typeof (string)) {
-				string k = (string)key;
-				if (!(k in table))
-					return new Json.Node();
-				var node = new Json.Node (table[k]);
-				table.remove (k);
-				var strv = new string[0];
-				foreach (string s in ids)
-					if (!str_equal (s, k))
-						strv += s;
-				ids = strv;
-				return node;
-			}
-			if (key.type() == typeof (int))
-				i = (uint)(int)key;
-			if (key.type() == typeof (uint))
-				i = (uint)key;
-			if (key.type() == typeof (int64))
-				i = (uint)((int64)key);
-			if (key.type() == typeof (uint64))
-				i = (uint)((uint64)key);
-			if (key.type() == typeof (int8))
-				i = (uint)((int8)key);
-			if (key.type() == typeof (uint8))
-				i = (uint)((uint8)key);
-			if (key.type() == typeof (long))
-				i = (uint)((long)key);
-			if (key.type() == typeof (ulong))
-				i = (uint)((ulong)key);
-			string k = ids[i];
-			if (!(k in table))
-				return new Json.Node();
-			var node = new Json.Node (table[k]);
-			table.remove (k);
-			var strv = new string[0];
-			foreach (string s in ids)
-				if (!str_equal (s, k))
-					strv += s;
-			ids = strv;
-			return node;
-		}
-		
-		public void set (GLib.Value key, GLib.Value value) {
-			uint i = 0;
-			var node = new Json.Node (value);
-			if (key.type() == typeof (string)) {
-				set_member ((string)key, node);
-				return;
-			}
-			if (key.type() == typeof (int))
-				i = (uint)(int)key;
-			if (key.type() == typeof (uint))
-				i = (uint)key;
-			if (key.type() == typeof (int64))
-				i = (uint)((int64)key);
-			if (key.type() == typeof (uint64))
-				i = (uint)((uint64)key);
-			if (key.type() == typeof (int8))
-				i = (uint)((int8)key);
-			if (key.type() == typeof (uint8))
-				i = (uint)((uint8)key);
-			if (key.type() == typeof (long))
-				i = (uint)((long)key);
-			if (key.type() == typeof (ulong))
-				i = (uint)((ulong)key);
-			if (i < size) {
-				set_member (ids[i], node);
-			}
-		}
-
-		public void set_member (string id, Json.Node node) {
-			if (is_valid_string (id)) {
-				table[id] = node;
-				var strv = new string[0];
-				foreach (string s in ids)
-					if (!str_equal (s, id))
-						strv += s;
-				strv += id;
-				ids = strv;
-			}
-		}
-
-		public void set_boolean_member (string id, bool value) {
-			set_member (id, new Json.Node (value));
-		}
-
-		public void set_double_member (string id, double value) {
-			set_member (id, new Json.Node (value));
-		}
-
-		public void set_string_member (string id, string value) {
-			set_member (id, new Json.Node (value));
-		}
-
-		public void set_integer_member (string id, int64 value) {
-			set_member (id, new Json.Node (value));
-		}
-
-		public void set_array_member (string id, Json.Array value) {
-			set_member (id, new Json.Node (value));
-		}
-
-		public void set_object_member (string id, Json.Object value) {
-			set_member (id, new Json.Node (value));
-		}
-
-		public void set_datetime_member (string id, DateTime value) {
-			set_member (id, new Json.Node (value));
-		}
-
-		public void set_regex_member (string id, Regex value) {
-			set_member (id, new Json.Node (value));
-		}
-
-		public void set_null_member (string id) {
-			set_member (id, new Json.Node());
-		}
-
-		public string to_string() {
-			if (table.length == 0)
-				return "{}";
-			string result = "{ ";
-			for (var i = 0; i < size - 1; i++) {
-				string key = ids[i];
-				result += "\"%s\" : %s, ".printf (key, table[key].to_string());
-			}
-			string key = ids[ids.length - 1];
-			result += "\"%s\" : %s }".printf (key, table[key].to_string());
-			return result;
-		}
-
 		public string[] keys {
 			owned get {
-				return ids;
+				return list.to_array();
 			}
 		}
-
+		
 		public Json.Node[] values {
 			owned get {
-				var nodes = new Json.Node[0];
-				foreach (string id in ids)
-					nodes += table[id];
-				return nodes;
+				var array = new Gee.ArrayList<Json.Node>();
+				list.foreach (key => {
+					array.add (map[key]);
+					return true;
+				});
+				return array.to_array();
 			}
 		}
-
+		
 		public int size {
 			get {
-				return (int)table.length;
+				return map.size;
 			}
 		}
 	}

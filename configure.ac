@@ -1,4 +1,4 @@
-AC_INIT([json-vala], [1.6], [inizan.yannick@gmail.com], [json-vala])
+AC_INIT([json-vala], [1.7], [inizan.yannick@gmail.com], [json-vala])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_MACRO_DIR([m4])
@@ -16,6 +16,6 @@ LT_INIT
 AC_PROG_CC
 AM_PROG_VALAC
 
-PKG_CHECK_MODULES(JSON_VALA, [gio-2.0])
+PKG_CHECK_MODULES(JSON_VALA, [gio-2.0 gee-0.8])
 
 AC_OUTPUT
