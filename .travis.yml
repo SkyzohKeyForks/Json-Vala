@@ -4,12 +4,8 @@ compiler:
   - gcc
 before_install:
   - sudo apt-get update -qq -y
-  - sudo apt-get install update-manager-core software-properties-common -y
-  - sudo sed -i 's/^\(Prompt=\).*/\1lts/' /etc/update-manager/release-upgrades
-  - sudo add-apt-repository -y ppa:vala-team/ppa
-  - sudo apt-get update -qq -y
-  - sudo apt-get install valac libgee-0.8-dev -y
-script: ./autogen.sh && make && sudo make install
+  - sudo apt-get install cmake valac libgee-0.8-dev -y
+script: mkdir build && cd build && cmake .. && make && sudo make install && sudo ldconfig
 notifications:
   irc:
     channels:
