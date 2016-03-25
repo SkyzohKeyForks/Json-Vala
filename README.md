@@ -9,18 +9,14 @@ Discussion and support on IRC channel [#canaldev](http://webchat.freenode.net/?c
 ## Manual installation ##
 
 ### Requirements
- * valac (>= 0.17)
+ * valac (>= 0.30)
  * pkg-config
- * gobject-2.0 (>= 2.43)
- * glib-2.0 (>= 2.43)
  * gio-2.0 (>= 2.43)
- * mee-1.0 [Mee](https://github.com/inizan-yannick/mee)
+ * gee-0.8
 
 On Debian based systems install following packages:
 
-    sudo apt-get install build-essential valac-0.28 libmee-1.0-dev
-
-you have to include [vala-libs PPA](https://code.launchpad.net/~inizan-yannick/+archive/vala-libs) and [Ricotz PAP](https://launchpad.net/~ricotz/+archive/ubuntu/testing) first.
+    sudo apt-get install valac-0.28 libgee-0.8-dev
 
 ### Building ###
  1. `./autogen.sh`
