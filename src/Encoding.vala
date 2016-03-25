@@ -27,6 +27,22 @@ namespace Json {
 		return (uint8)res;
 	}
 	
+	static string? guess_content_type (string? filename, uint8[]? data = null) {
+		if (filename == null && data == null)
+			return null;
+		string output, err;
+		File file = null;
+		FileIOStream stream = null;
+		if (filename == null) {
+			file = File.new_tmp (null, out stream);
+			stream.output_stream.write (data);
+		}
+		Process.spawn_command_line_sync ("file --mime-encoding %s".printf (filename == null ? file.get_path() : filename), out output, out err);
+		if (stream != null)
+			stream.close();
+		return output.split ("\n")[0].split (": ")[1];
+	}
+	
 	public abstract class Encoding : GLib.Object {
 		public abstract uint8[] get_bytes (string str);
 		public abstract string get_string (uint8[] bytes);
@@ -40,13 +56,7 @@ namespace Json {
 		}
 		
 		public static Encoding? guess (string? filename, uint8[]? data = null) {
-			var magic = new LibMagic.Magic (LibMagic.Flags.MIME_ENCODING);
-			magic.load();
-			string mime = null;
-			if (filename != null)
-				mime = magic.file (filename);
-			else if (data != null)
-				mime = magic.buffer (data);
+			string mime = guess_content_type (filename, data);
 			if (mime == null)
 				return null;
 			if (mime == "us-ascii")

@@ -8,7 +8,7 @@ before_install:
   - sudo sed -i 's/^\(Prompt=\).*/\1lts/' /etc/update-manager/release-upgrades
   - sudo add-apt-repository -y ppa:vala-team/ppa
   - sudo apt-get update -qq -y
-  - sudo apt-get install valac -y
+  - sudo apt-get install valac libgee-0.8-dev -y
 script: ./autogen.sh && make && sudo make install
 notifications:
   irc:

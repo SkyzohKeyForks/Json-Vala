@@ -28,4 +28,4 @@ EXTRA_DIST = $(libjson_vala_1_0_la_SOURCES) json-vala-1.0.pc.in
 	
 CLEANFILES = *.c bson/*.c schema/*.c *.stamp *.h *.vapi
 
-DISTCLEANFILES = $(CLEANFILES) Makefile *.pc
+DISTCLEANFILES = $(CLEANFILES) Makefile *.pc Makefile.in
