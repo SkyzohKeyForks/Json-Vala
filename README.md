@@ -10,16 +10,18 @@ Discussion and support on IRC channel [#canaldev](http://webchat.freenode.net/?c
 
 ### Requirements
  * valac (>= 0.30)
+ * cmake
  * pkg-config
  * gio-2.0 (>= 2.43)
  * gee-0.8
 
 On Debian based systems install following packages:
 
-    sudo apt-get install valac-0.28 libgee-0.8-dev
+    sudo apt-get install cmake valac libgee-0.8-dev
 
 ### Building ###
- 1. `./autogen.sh`
+ 1. `mkdir build && cd build`
+ 1. `cmake ..`
  1. `make`
 
 ### Installation ###
