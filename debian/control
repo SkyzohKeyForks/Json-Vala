@@ -4,11 +4,9 @@ Priority: optional
 Maintainer: Yannick Inizan <inizan.yannick@gmail.com>
 Uploaders: Yannick Inizan <inizan.yannick@gmail.com>
 Build-Depends: debhelper (>= 8.1.3),
-               cdbs (>= 0.4.93~),
                dpkg-dev (>= 1.16.1~),
+               cmake (>= 2.8),
                valac,
-               libtool,
-               dh-autoreconf,
                libglib2.0-dev (>= 2.42),
                gir1.2-glib-2.0 (>= 0.9.12),
                libgirepository1.0-dev (>= 0.9.12),

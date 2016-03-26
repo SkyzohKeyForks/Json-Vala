@@ -1,8 +1,8 @@
 # increase when you break the API
-set (PKG_SOVERSION 3)
+set (PKG_SOVERSION 1)
 
 # Increase when you add functionality
-set (PKG_SOMINOR 0.1)
+set (PKG_SOMINOR 7.1)
 
 set (VALA_SOURCES
 	Array.vala
@@ -21,6 +21,7 @@ set (VALA_SOURCES
 	schema/SchemaString.vala
 	bson/BsonDocument.vala
 	bson/BsonReader.vala
+	bson/BsonWriter.vala
 )
 
 ######################
@@ -29,9 +30,14 @@ set (VALA_SOURCES
 set (PREFIX ${CMAKE_INSTALL_PREFIX})
 set (DOLLAR "$") # You hear that? It's kittens being killed by the gods of cmake
 
-configure_file (${CMAKE_CURRENT_SOURCE_DIR}/${PKG_NAME}.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/${PKG_NAME}.pc)
-
 include (GNUInstallDirs)
+set(LIB_SUFFIX "" CACHE STRING "Define suffix of directory name (32/64)")
+set(EXEC_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}" CACHE PATH "Base directory for executables and libraries" FORCE)
+set(BIN_INSTALL_DIR "${EXEC_INSTALL_PREFIX}/bin" CACHE PATH "The subdirectory to the binaries prefix (default prefix/bin)" FORCE)
+set(LIB_INSTALL_DIR "${EXEC_INSTALL_PREFIX}/lib${LIB_SUFFIX}" CACHE PATH "The subdirectory relative to the install prefix where libraries will be installed (default is /lib${LIB_SUFFIX})")
+set(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "The subdirectory to the header prefix" FORCE)
+
+configure_file (${CMAKE_CURRENT_SOURCE_DIR}/${PKG_NAME}.pc.cmake ${CMAKE_CURRENT_BINARY_DIR}/${PKG_NAME}.pc @ONLY)
 install (FILES ${CMAKE_CURRENT_BINARY_DIR}/${PKG_NAME}.pc DESTINATION ${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig)
 
 # Link all

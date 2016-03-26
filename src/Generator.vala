@@ -14,6 +14,14 @@ namespace Json {
 		void node_to_string (StringBuilder sb, Json.Node node, uint depth = 0) {
 			if (node.str != null) 
 				string_to_string (sb, node.str);
+			else if (node.binary != null) {
+				string b64 = Base64.encode (node.binary.get_data());
+				string_to_string (sb, b64);
+			}
+			else if (node.datetime != null)
+				string_to_string (sb, node.datetime.to_string());
+			else if (node.regex != null)
+				string_to_string (sb, node.regex.get_pattern());
 			else if (node.number_str != null)
 				sb.append (node.number_str);
 			else if (node.integer != null)

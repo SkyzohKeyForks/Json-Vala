@@ -13,8 +13,8 @@ namespace Json.Bson {
 		NULL,
 		REGEX,
 		INT32 = 0x10,
-		TIMESTAMP,
-		INT64
+		TIMESTAMP = 0x11,
+		INT64 = 0x12
 	}
 	
 	errordomain ReadError {
@@ -81,6 +81,12 @@ namespace Json.Bson {
 			return new DateTime.from_timeval_utc (utc);
 		}
 		
+		public Regex read_regex() throws GLib.Error {
+			string reg = read_id();
+			read_id();
+			return new Regex (reg);
+		}
+		
 		public Json.Array read_array() throws GLib.Error {
 			int size = dis.read_int32();
 			var array = new Json.Array();
@@ -124,6 +130,10 @@ namespace Json.Bson {
 					case ElementType.INT64:
 					array.add (read_int64());
 					break;
+					case ElementType.BINARY:
+						Bytes bytes = new Bytes (read_bytes());
+						array.add (bytes);
+					break;
 				}
 			}
 			return array;
@@ -149,7 +159,7 @@ namespace Json.Bson {
 					object[id] = read_array();
 					break;
 					case ElementType.BINARY:
-					object[id] = Base64.encode (read_bytes());
+					object[id] = new Bytes (read_bytes());
 					break;
 					case ElementType.BOOLEAN:
 					object[id] = dis.read_byte() == 0 ? false : true;

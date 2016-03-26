@@ -74,6 +74,18 @@ namespace Json {
 			return this[key].is_null();
 		}
 		
+		public DateTime get_datetime_member (string key) {
+			return this[key].as_datetime();
+		}
+		
+		public Regex get_regex_member (string key) {
+			return this[key].as_regex();
+		}
+		
+		public Bytes get_binary_member (string key) {
+			return this[key].as_binary();
+		}
+		
 		public new void set (GLib.Value index, GLib.Value? value) {
 			if (index.type() == typeof (string)) {
 				string key = (string)index;
@@ -130,6 +142,18 @@ namespace Json {
 			this[key] = new Json.Node (null);
 		}
 		
+		public void set_datetime_member (string key, DateTime dt) {
+			this[key] = dt;
+		}
+		
+		public void set_regex_member (string key, Regex regex) {
+			this[key] = regex;
+		}
+		
+		public void set_binary_member (string key, Bytes bytes) {
+			this[key] = bytes;
+		}
+		
 		public bool equal (Json.Object object) {
 			if (object.size != map.size)
 				return false;
@@ -170,6 +194,12 @@ namespace Json {
 				func (key, node);
 				return true;
 			});
+		}
+		
+		public string to_string() {
+			var gen = new Generator();
+			gen.root = new Json.Node (this);
+			return gen.to_string();
 		}
 		
 		public string[] keys {

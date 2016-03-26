@@ -69,6 +69,18 @@ namespace Json {
 			nodes.add (new Json.Node (null));
 		}
 		
+		public void add_datetime_element (DateTime dt) {
+			nodes.add (new Json.Node (dt));
+		}
+		
+		public void add_regex_element (Regex regex) {
+			nodes.add (new Json.Node (regex));
+		}
+		
+		public void add_binary_element (Bytes bytes) {
+			nodes.add (new Json.Node (bytes));
+		}
+		
 		public new Json.Node get (int index) {
 			if (index < 0 || index >= nodes.size)
 				return new Json.Node();
@@ -103,6 +115,18 @@ namespace Json {
 			return this[index].is_null();
 		}
 		
+		public DateTime get_datetime_element (int index) {
+			return this[index].as_datetime();
+		}
+		
+		public Regex get_regex_element (int index) {
+			return this[index].as_regex();
+		}
+		
+		public Bytes get_binary_element (int index) {
+			return this[index].as_binary();
+		}
+		
 		public new void set (int index, GLib.Value? value) {
 			if (index < 0 || index >= nodes.size)
 				return;
@@ -135,6 +159,18 @@ namespace Json {
 		
 		public void set_null_element (int index) {
 			this[index] = new Json.Node (null);
+		}
+		
+		public void set_datetime_element (int index, DateTime dt) {
+			this[index] = dt;
+		}
+		
+		public void set_regex_element (int index, Regex regex) {
+			this[index] = regex;
+		}
+		
+		public void set_binary_element (int index, Bytes bytes) {
+			this[index] = bytes;
 		}
 		
 		public bool equal (Json.Array array) {
@@ -192,6 +228,12 @@ namespace Json {
 				func (node);
 				return true;
 			});
+		}
+		
+		public string to_string() {
+			var gen = new Generator();
+			gen.root = new Json.Node (this);
+			return gen.to_string();
 		}
 		
 		public NodeType is_unique {

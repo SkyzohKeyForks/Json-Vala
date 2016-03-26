@@ -1,12 +1,8 @@
 #!/usr/bin/make -f
 
-override_dh_auto_configure:
-	autoreconf -f -i
-	dh_auto_configure -- --disable-doc
-	
 override_dh_strip:
 	dh_strip --dbg-package=libjson-vala-1.0-0-dbg
 	dpkg-gensymbols -plibjson-vala-1.0-0 -c4
 
 %:
-	dh $@
+	dh $@ --parallel --with gir
