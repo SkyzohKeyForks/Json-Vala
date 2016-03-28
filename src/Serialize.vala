@@ -1,5 +1,9 @@
 namespace Json {
 	public static Json.Node serialize (GLib.Value value) {
+		if (value.type().is_a (typeof (Gee.Map))) {
+			var map = (Gee.Map)value;
+			return new Json.Node (serialize_map (map));
+		}
 		if (value.type().is_a (typeof (Gee.Traversable))) {
 			var t = (Gee.Traversable)value;
 			return new Json.Node (serialize_traversable (t));
@@ -16,11 +20,68 @@ namespace Json {
 		return new Json.Node();
 	}
 	
+	static Json.Object serialize_map (Gee.Map map) {
+		var ktype = map.keys.element_type;
+		var vtype = map.values.element_type;
+		var object = new Json.Object();
+		if (ktype != typeof (string))
+			return object;
+		map.foreach (entry => {
+			string key = (string)entry.key;
+			if (vtype == typeof (bool)) {
+				object.set (key, (bool)entry.value);
+			} else if (vtype == typeof (char)) {
+				object.set (key, (char)entry.value);
+			} else if (vtype == typeof (uchar)) {
+				object.set (key, (uchar)entry.value);
+			} else if (vtype == typeof (int)) {
+				object.set (key, (int)entry.value);
+			} else if (vtype == typeof (uint)) {
+				object.set (key, (uint)entry.value);
+			} else if (vtype == typeof (int64)) {
+				object.set (key, (int64)entry.value);
+			} else if (vtype == typeof (uint64)) {
+				object.set (key, (uint64)entry.value);
+			} else if (vtype == typeof (long)) {
+				object.set (key, (long)entry.value);
+			} else if (vtype == typeof (ulong)) {
+				object.set (key, (ulong)entry.value);
+			} else if (vtype == typeof (float)) {
+				float? f = (float?)entry.value;
+				if (f != null)
+					object.set (key, (float)f);
+			} else if (vtype == typeof (double)) {
+				double? d = (double?)entry.value;
+				if (d != null)
+					object.set (key, (double)d);
+			} else if (vtype.is_a (typeof (Json.Object))) {
+				object.set (key, (Json.Object)entry.value);
+			} else if (vtype.is_a (typeof (Json.Array))) {
+				object.set (key, (Json.Array)entry.value);
+			} else if (vtype.is_a (typeof (Json.Node))) {
+				object.set (key, (Json.Node)entry.value);
+			} else if (vtype == typeof (Regex)) {
+				object.set (key, (Regex)entry.value);
+			} else if (vtype == typeof (DateTime)) {
+				object.set (key, (DateTime)entry.value);
+			} else if (vtype == typeof (Bytes)) {
+				object.set (key, (Bytes)entry.value);
+			} else if (vtype == typeof (ByteArray)) {
+				object.set (key, (ByteArray)entry.value);
+			} else if (vtype.is_object()) {
+				object.set (key, serialize ((GLib.Object)entry.value));
+			} else
+				object.set (key, new Json.Node());
+			return true;
+		});
+		return object;
+	}
+	
 	static Json.Array serialize_traversable (Gee.Traversable<void*> traversable) {
 		var t = traversable.element_type;
 		var array = new Json.Array();
 		traversable.foreach (data => {
-			else if (t == typeof (bool)) {
+			if (t == typeof (bool)) {
 				array.add ((bool)data);
 			} else if (t == typeof (char)) {
 				array.add ((char)data);
@@ -62,7 +123,8 @@ namespace Json {
 				array.add ((ByteArray)data);
 			} else if (t.is_object()) {
 				array.add (serialize ((GLib.Object)data));
-			}
+			} else
+				array.add (new Json.Node());
 			return true;
 		});
 		return array;
