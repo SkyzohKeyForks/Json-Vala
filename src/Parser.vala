@@ -20,16 +20,22 @@ namespace Json {
 	public class Parser : GLib.Object {
 		public Json.Node root { get; private set; }
 		
+		public bool decode_unicode { get; set; }
+		public bool unescape_slash { get; set; }
+		
+		construct {
+			unescape_slash = true;
+		}
+		
 		public void load_from_path (string path) throws GLib.Error {
 			var reader = new StreamReader (File.new_for_path (path).read(), Encoding.guess (path));
 			load (reader);
 		}
 		
 		public async void load_from_path_async (string path) throws GLib.Error {
-			SourceFunc cb = load_from_path_async.callback;
 			ThreadFunc<void*> run = () => {
 				load_from_path (path);
-				Idle.add (cb);
+				Idle.add (load_from_path_async.callback);
 				return null;
 			};
 			Thread.create<void*>(run, false);
@@ -42,10 +48,9 @@ namespace Json {
 		}
 		
 		public async void load_from_data_async (string data) throws GLib.Error {
-			SourceFunc cb = load_from_data_async.callback;
 			ThreadFunc<void*> run = () => {
 				load_from_data (data);
-				Idle.add (cb);
+				Idle.add (load_from_data_async.callback);
 				return null;
 			};
 			Thread.create<void*>(run, false);
@@ -62,10 +67,9 @@ namespace Json {
 		}
 		
 		public async void load_from_uri_async (string uri) throws GLib.Error {
-			SourceFunc cb = load_from_uri_async.callback;
 			ThreadFunc<void*> run = () => {
 				load_from_uri (uri);
-				Idle.add (cb);
+				Idle.add (load_from_uri_async.callback);
 				return null;
 			};
 			Thread.create<void*>(run, false);
@@ -88,10 +92,9 @@ namespace Json {
 		}
 		
 		public async void load_async (Reader reader) throws GLib.Error {
-			SourceFunc cb = load_async.callback;
 			ThreadFunc<void*> run = () => {
 				load (reader);
-				Idle.add (cb);
+				Idle.add (load_async.callback);
 				return null;
 			};
 			Thread.create<void*>(run, false);
@@ -223,8 +226,33 @@ namespace Json {
 					throw new ParserError.INVALID ("string is truncated");
 				if (reader.peek() == '\\') {
 					reader.read();
-					sb.append_unichar ('\\');
-					sb.append_unichar (reader.read());
+					unichar u = reader.read();
+					if (u == 'u' && decode_unicode) {
+						unichar a = reader.read();
+						if (a == 0)
+							throw new ParserError.EOF ("end of file");
+						unichar b = reader.read();
+						if (b == 0)
+							throw new ParserError.EOF ("end of file");
+						unichar c = reader.read();
+						if (c == 0)
+							throw new ParserError.EOF ("end of file");
+						unichar d = reader.read();
+						if (d == 0)
+							throw new ParserError.EOF ("end of file");
+						string s = "0x%s%s%s%s".printf (a.to_string(), b.to_string(), c.to_string(), d.to_string());
+						int64 i = 0;
+						if (!int64.try_parse (s, out i))
+							throw new ParserError.INVALID ("invalid unicode character");
+						sb.append_unichar ((unichar)i);
+					}
+					else if (u == '/' && unescape_slash) {
+						sb.append_unichar (u);
+					}
+					else {
+						sb.append_unichar ('\\');
+						sb.append_unichar (u);
+					}
 					continue;
 				}
 				sb.append_unichar (reader.read());

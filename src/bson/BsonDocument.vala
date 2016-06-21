@@ -6,10 +6,9 @@ namespace Json.Bson {
 		}
 		
 		public async void load_from_path_async (string path) throws GLib.Error {
-			SourceFunc cb = load_from_path_async.callback;
 			ThreadFunc<void*> run = () => {
 				load_from_file (File.new_for_path (path));
-				Idle.add (cb);
+				Idle.add (load_from_path_async.callback);
 				return null;
 			};
 			Thread.create<void*>(run, false);
@@ -21,10 +20,9 @@ namespace Json.Bson {
 		}
 		
 		public async void load_from_uri_async (string uri) throws GLib.Error {
-			SourceFunc cb = load_from_uri_async.callback;
 			ThreadFunc<void*> run = () => {
 				load_from_file (File.new_for_uri (uri));
-				Idle.add (cb);
+				Idle.add (load_from_uri_async.callback);
 				return null;
 			};
 			Thread.create<void*>(run, false);
@@ -36,10 +34,9 @@ namespace Json.Bson {
 		}
 		
 		public async void load_from_file_async (File file) throws GLib.Error {
-			SourceFunc cb = load_from_file_async.callback;
 			ThreadFunc<void*> run = () => {
 				load (file.read());
-				Idle.add (cb);
+				Idle.add (load_from_file_async.callback);
 				return null;
 			};
 			Thread.create<void*>(run, false);
@@ -58,10 +55,9 @@ namespace Json.Bson {
 		}
 		
 		public async void load_async (InputStream stream) throws GLib.Error {
-			SourceFunc cb = load_async.callback;
 			ThreadFunc<void*> run = () => {
 				load (stream);
-				Idle.add (cb);
+				Idle.add (load_async.callback);
 				return null;
 			};
 			Thread.create<void*>(run, false);

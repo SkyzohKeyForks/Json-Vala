@@ -1,14 +1,4 @@
 namespace Json {
-	public static string normalize (string str) {
-		StringBuilder sb = new StringBuilder();
-		int i = 0;
-		unichar u;
-		while (str.get_next_char (ref i, out u)) {
-			
-		}
-		return sb.str;
-	}
-	
 	public class Array : GLib.Object {
 		public static Array from (GLib.Value[] values) {
 			var array = new Array();
