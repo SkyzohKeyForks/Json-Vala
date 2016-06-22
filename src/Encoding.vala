@@ -90,6 +90,36 @@ namespace Json {
 			}
 			return new Utf8Encoding();
 		}
+		
+		public static Encoding ascii {
+			owned get {
+				return new AsciiEncoding();
+			}
+		}
+		
+		public static Encoding latin1 {
+			owned get {
+				return new Latin1Encoding();
+			}
+		}
+		
+		public static Encoding utf8 {
+			owned get {
+				return new Utf8Encoding();
+			}
+		}
+		
+		public static Encoding utf16_be {
+			owned get {
+				return new UnicodeEncoding (false);
+			}
+		}
+		
+		public static Encoding utf16_le {
+			owned get {
+				return new UnicodeEncoding (false, false);
+			}
+		}
 	}
 	
 	public class AsciiEncoding : Encoding {

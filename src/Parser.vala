@@ -21,20 +21,20 @@ namespace Json {
 		public Json.Node root { get; private set; }
 		
 		public bool decode_unicode { get; set; }
-		public bool unescape_slash { get; set; }
+		public bool unescape { get; set; }
 		
 		construct {
-			unescape_slash = true;
+			unescape = true;
 		}
 		
-		public void load_from_path (string path) throws GLib.Error {
-			var reader = new StreamReader (File.new_for_path (path).read(), Encoding.guess (path));
+		public void load_from_path (string path, Encoding encoding = Encoding.utf8) throws GLib.Error {
+			var reader = new StreamReader (File.new_for_path (path).read(), encoding);
 			load (reader);
 		}
 		
-		public async void load_from_path_async (string path) throws GLib.Error {
+		public async void load_from_path_async (string path, Encoding encoding = Encoding.utf8) throws GLib.Error {
 			ThreadFunc<void*> run = () => {
-				load_from_path (path);
+				load_from_path (path, encoding);
 				Idle.add (load_from_path_async.callback);
 				return null;
 			};
@@ -57,18 +57,18 @@ namespace Json {
 			yield;
 		}
 		
-		public void load_from_uri (string uri) throws GLib.Error {
+		public void load_from_uri (string uri, Encoding encoding = Encoding.utf8) throws GLib.Error {
 			uint8[] data = new uint8[30];
 			var file = File.new_for_uri (uri);
 			var count = file.read().read (data);
 			data.resize ((int)count);
-			var reader = new StreamReader (file.read(), Encoding.guess (null, data));
+			var reader = new StreamReader (file.read(), encoding);
 			load (reader);
 		}
 		
-		public async void load_from_uri_async (string uri) throws GLib.Error {
+		public async void load_from_uri_async (string uri, Encoding encoding = Encoding.utf8) throws GLib.Error {
 			ThreadFunc<void*> run = () => {
-				load_from_uri (uri);
+				load_from_uri (uri, encoding);
 				Idle.add (load_from_uri_async.callback);
 				return null;
 			};
@@ -220,6 +220,8 @@ namespace Json {
 			while (reader.peek() != 0) {
 				if (reader.peek() == '"') {
 					reader.read();
+					if (unescape)
+						return sb.str.compress();
 					return sb.str;
 				}
 				if (reader.peek() == '\r' || reader.peek() == '\n')
@@ -246,9 +248,6 @@ namespace Json {
 							throw new ParserError.INVALID ("invalid unicode character");
 						sb.append_unichar ((unichar)i);
 					}
-					else if (u == '/' && unescape_slash) {
-						sb.append_unichar (u);
-					}
 					else {
 						sb.append_unichar ('\\');
 						sb.append_unichar (u);
@@ -259,6 +258,8 @@ namespace Json {
 			}
 			if (reader.peek() == 0)
 				throw new ParserError.EOF ("end of file");
+			if (unescape)
+				return sb.str.compress();
 			return sb.str;
 		}
 	}
