@@ -12,6 +12,7 @@ set (VALA_SOURCES
 	Object.vala
 	Parser.vala
 	Reader.vala
+	Writer.vala
 	Serialize.vala
 	Stream.vala
 	schema/Schema.vala

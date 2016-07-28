@@ -7,6 +7,24 @@ namespace Json {
 			return array;
 		}
 		
+		public static Array from_strv (string[] array) {
+			var jarray = new Array();
+			foreach (string str in array)
+			jarray.add (str);
+			return jarray;
+		}
+		
+		public static Array load (Reader reader) {
+			try {
+				var parser = new Parser();
+				parser.load (reader);
+				if (parser.root.node_type == NodeType.ARRAY)
+					return parser.root.array;
+			} catch {
+			}
+			return new Array();
+		}
+		
 		public static Array parse (string json) {
 			var parser = new Json.Parser();
 			try {
@@ -27,7 +45,7 @@ namespace Json {
 			});
 		}
 		
-		public void add (GLib.Value val) {
+		public void add (GLib.Value? val) {
 			nodes.add (new Json.Node (val));
 		}
 		
@@ -69,6 +87,10 @@ namespace Json {
 		
 		public void add_binary_element (Bytes bytes) {
 			nodes.add (new Json.Node (bytes));
+		}
+		
+		public void add_element (Json.Node node) {
+			nodes.add (new Json.Node (node));
 		}
 		
 		public new Json.Node get (int index) {
@@ -163,8 +185,12 @@ namespace Json {
 			this[index] = bytes;
 		}
 		
+		public void set_element (int index, Json.Node node) {
+			this[index] = node;
+		}
+		
 		public bool equal (Json.Array array) {
-			if (nodes.size != array.size)
+			if (nodes.size != array.length)
 				return false;
 			for (var i = 0; i < nodes.size; i++)
 				if (!nodes[i].equal (array[i]))
@@ -184,6 +210,18 @@ namespace Json {
 			if (index < 0 || index >= nodes.size)
 				return new Json.Node();
 			return nodes.remove_at (index);
+		}
+		
+		public delegate bool FilterFunc (Json.Node node);
+		
+		public Json.Array filter (FilterFunc func) {
+			var array = new Json.Array();
+			nodes.foreach (node => {
+				if (func (node))
+					array.add (node);
+				return true;
+			});
+			return array;
 		}
 		
 		public Json.Array slice (int start, int stop) {
@@ -213,6 +251,32 @@ namespace Json {
 			return index_of (val) >= 0;
 		}
 		
+		public class Iterator {
+			Array array;
+			int index;
+			
+			public Iterator (Array array) {
+				this.array = array;
+				index = -1;
+			}
+			
+			public Json.Node get() {
+				return array[index];
+			}
+			
+			public bool next() {
+				if (index + 1 < array.length) {
+					index++;
+					return true;
+				}
+				return false;
+			}
+		}
+		
+		public Iterator iterator() {
+			return new Iterator (this);
+		}
+		
 		public void foreach (Func<Json.Node> func) {
 			nodes.foreach (node => {
 				func (node);
@@ -226,7 +290,18 @@ namespace Json {
 			return gen.to_string();
 		}
 		
-		public NodeType is_unique {
+		public void write_to (Writer writer) {
+			writer.write_start_array();
+			for (var i = 0; i < nodes.size - 1; i++) {
+				writer.write_node (nodes[i]);
+				writer.write_node_delimiter();
+			}
+			if (nodes.size > 0)
+				writer.write_node (nodes[nodes.size - 1]);
+			writer.write_end_array();
+		}
+		
+		public NodeType is_single {
 			get {
 				if (nodes.size == 0)
 					return NodeType.NULL;
@@ -237,7 +312,7 @@ namespace Json {
 			}
 		}
 		
-		public int size {
+		public int length {
 			get {
 				return nodes.size;
 			}

@@ -253,7 +253,7 @@ namespace JsonSchema {
 				if (object["dependencies"].node_type != Json.NodeType.OBJECT)
 					throw new SchemaError.INVALID ("invalid type for 'dependencies'.");
 				object["dependencies"].as_object().foreach ((name, value) => {
-					if (value.node_type == Json.NodeType.ARRAY && value.as_array().is_unique == Json.NodeType.STRING) {
+					if (value.node_type == Json.NodeType.ARRAY && value.as_array().is_single == Json.NodeType.STRING) {
 						string[] deps = new string[0];
 						value.as_array().foreach (node => {
 							deps += node.as_string();

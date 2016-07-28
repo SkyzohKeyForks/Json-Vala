@@ -24,9 +24,9 @@ namespace Json {
 				string_to_string (sb, node.regex.get_pattern());
 			else if (node.number_str != null)
 				sb.append (node.number_str);
-			else if (node.integer != null)
+			else if (node.node_type == NodeType.INTEGER)
 				sb.append (node.integer.to_string());
-			else if (node.boolean != null)
+			else if (node.node_type == NodeType.BOOLEAN)
 				sb.append (node.boolean.to_string());
 			else if (node.array != null)
 				array_to_string (sb, node.array, depth);
@@ -51,14 +51,14 @@ namespace Json {
 		}
 		
 		void object_to_string (StringBuilder sb, Json.Object object, uint depth) {
-			if (object.size == 0) {
+			if (object.length == 0) {
 				sb.append ("{}");
 				return;
 			}
 			sb.append ("{ ");
 			if (pretty)
 				sb.append_c ('\n');
-			for (var i = 0; i < object.size - 1; i++) {
+			for (var i = 0; i < object.length - 1; i++) {
 				if (pretty)
 					for (var j = 0; j < depth + 1; j++)
 						for (var k = 0; k < indent; k++)
@@ -75,7 +75,7 @@ namespace Json {
 				for (var j = 0; j < depth + 1; j++)
 					for (var k = 0; k < indent; k++)
 						sb.append_c (tab ? '\t' : ' ');
-			string key = object.keys[object.size - 1];
+			string key = object.keys[object.length - 1];
 			string_to_string (sb, key);
 			sb.append (" : ");
 			node_to_string (sb, object[key], depth + 1);
@@ -91,14 +91,14 @@ namespace Json {
 		}
 		
 		void array_to_string (StringBuilder sb, Json.Array array, uint depth) {
-			if (array.size == 0) {
+			if (array.length == 0) {
 				sb.append ("[]");
 				return;
 			}
 			sb.append ("[ ");
 			if (pretty)
 				sb.append_c ('\n');
-			for (var i = 0; i < array.size - 1; i++) {
+			for (var i = 0; i < array.length - 1; i++) {
 				if (pretty)
 					for (var j = 0; j < depth + 1; j++)
 						for (var k = 0; k < indent; k++)
@@ -112,7 +112,7 @@ namespace Json {
 				for (var j = 0; j < depth + 1; j++)
 					for (var k = 0; k < indent; k++)
 						sb.append_c (tab ? '\t' : ' ');
-			node_to_string (sb, array[array.size - 1], depth + 1);
+			node_to_string (sb, array[array.length - 1], depth + 1);
 			if (pretty) {
 				sb.append_c ('\n');
 				for (var j = 0; j < depth; j++)

@@ -1,144 +1,4 @@
 namespace Json {
-	public static string string_compress (string s) {
-			string str = s.replace ("\\u", "\\\\u").compress();
-			var sb = new StringBuilder();
-			int i = 0;
-			unichar u;
-			while (str.get_next_char (ref i, out u)) {
-				if (u == '\\') {
-					unichar v;
-					if (!str.get_next_char (ref i, out v)) {
-						sb.append_unichar (u);
-						return sb.str;
-					}
-					if (v == 'u') {
-						string unicode = "0x";
-						unichar a, b, c, d;
-						if (!str.get_next_char (ref i, out a)) {
-							sb.append_unichar ('u');
-							return sb.str;
-						}
-						unicode += a.to_string();
-						if (!str.get_next_char (ref i, out b)) {
-							sb.append_unichar ('u');
-							sb.append_unichar (a);
-							return sb.str;
-						}
-						unicode += b.to_string();
-						if (!str.get_next_char (ref i, out c)) {
-							sb.append_unichar ('u');
-							sb.append_unichar (a);
-							sb.append_unichar (b);
-							return sb.str;
-						}
-						unicode += c.to_string();
-						if (!str.get_next_char (ref i, out d)) {
-							sb.append_unichar ('u');
-							sb.append_unichar (a);
-							sb.append_unichar (b);
-							sb.append_unichar (c);
-							return sb.str;
-						}
-						unicode += d.to_string();
-						int64 n;
-						if (!int64.try_parse (unicode, out n)) {
-							sb.append_unichar ('u');
-							sb.append_unichar (a);
-							sb.append_unichar (b);
-							sb.append_unichar (c);
-							sb.append_unichar (d);
-						}
-						else
-							sb.append_unichar ((unichar)n);
-					}
-					else
-						sb.append_unichar (v);
-				}
-				else
-					sb.append_unichar (u);
-			}
-			return sb.str;
-		}
-	
-	static void bytes_to_byte_array (Value src_value, ref Value dest_value) {
-		var bytes = (Bytes)src_value;
-		var array = new ByteArray.take (bytes.get_data());
-		dest_value.set_boxed (array);
-	}
-
-	static void byte_array_to_bytes (Value src_value, ref Value dest_value) {
-		var array = (ByteArray)src_value;
-		var bytes = new Bytes (array.data);
-		dest_value.set_boxed (bytes);
-	}
-
-	static void string_to_regex (Value src_value, ref Value dest_value) {
-		string str = (string)src_value;
-		Regex? regex = null;
-		try {
-			regex = new Regex (str);
-		} catch {
-			regex = new Regex ("");
-		}
-		dest_value.set_boxed (regex);
-	}
-
-	static void regex_to_string (Value src_value, ref Value dest_value) {
-		Regex regex = (Regex)src_value;
-		dest_value.set_string (regex.get_pattern());
-	}
-
-	static void datetime_to_string (Value src_value, ref Value dest_value) {
-		DateTime dt = (DateTime)src_value;
-		dest_value.set_string (dt.to_string());
-	}
-
-	static void string_to_datetime (Value src_value, ref Value dest_value) {
-		string str = (string)src_value;
-		TimeVal tv = TimeVal();
-		if (tv.from_iso8601 (str))
-			dest_value.set_boxed (new DateTime.from_timeval_local (tv));
-		else
-			dest_value.set_boxed (new DateTime.now_local());
-	}
-
-	static void string_to_bytes (Value src_value, ref Value dest_value) {
-		string str = (string)src_value;
-		Bytes bytes = new Bytes (Base64.decode (str));
-		dest_value.set_boxed (bytes);
-	}
-
-	static void bytes_to_string (Value src_value, ref Value dest_value) {
-		Bytes bytes = (Bytes)src_value;
-		string str = Base64.encode (bytes.get_data());
-		dest_value.set_string (str);
-	}
-
-	static void string_to_byte_array (Value src_value, ref Value dest_value) {
-		string str = (string)src_value;
-		ByteArray array = new ByteArray.take (Base64.decode (str));
-		dest_value.set_boxed (array);
-	}
-
-	static void byte_array_to_string (Value src_value, ref Value dest_value) {
-		ByteArray array = (ByteArray)src_value;
-		string str = Base64.encode (array.data);
-		dest_value.set_string (str);
-	}
-
-	static void value_init() {
-		Value.register_transform_func (typeof (Bytes), typeof (ByteArray), bytes_to_byte_array);
-		Value.register_transform_func (typeof (ByteArray), typeof (Bytes), byte_array_to_bytes);
-		Value.register_transform_func (typeof (string), typeof (Regex), string_to_regex);
-		Value.register_transform_func (typeof (Regex), typeof (string), regex_to_string);
-		Value.register_transform_func (typeof (string), typeof (DateTime), string_to_datetime);
-		Value.register_transform_func (typeof (DateTime), typeof (string), datetime_to_string);
-		Value.register_transform_func (typeof (string), typeof (Bytes), string_to_bytes);
-		Value.register_transform_func (typeof (Bytes), typeof (string), bytes_to_string);
-		Value.register_transform_func (typeof (string), typeof (ByteArray), string_to_byte_array);
-		Value.register_transform_func (typeof (ByteArray), typeof (string), byte_array_to_string);
-	}
-	
 	public enum NodeType {
 		NULL,
 		INTEGER,
@@ -153,19 +13,27 @@ namespace Json {
 	}
 	
 	public class Node : GLib.Object {
-		internal Bytes? binary;
-		internal Regex? regex;
-		internal DateTime? datetime;
-		internal Json.Object? object;
-		internal Json.Array? array;
-		internal string? str;
-		internal string? number_str;
-		internal bool? boolean;
-		internal int64? integer;
+		internal Bytes binary;
+		internal Regex regex;
+		internal DateTime datetime;
+		internal Json.Object object;
+		internal Json.Array array;
+		internal string str;
+		internal string number_str;
+		internal bool boolean;
+		internal int64 integer;
 		internal bool isn;
 		
 		public Node (GLib.Value? value = null) {
-			this.value = value;
+			node_type = NodeType.NULL;
+			if (value == null)
+				isn = true;
+			else
+				set_value_internal (value);
+		}
+		
+		public void write_to (Writer writer) {
+			writer.write_node (this);
 		}
 		
 		public bool equal (Json.Node node) {
@@ -176,6 +44,15 @@ namespace Json {
 			bool a = array == null ? node.array == null : array.equal (node.array);
 			return (b && r && o && d && a && str == node.str && number_str == node.number_str && boolean == node.boolean && 
 				integer == node.integer && isn == node.isn);
+		}
+		
+		public void foreach (Func<Json.Node> func) {
+			if (array != null)
+				array.foreach (func);
+			else if (object != null)
+				object.foreach ((key, val) => {
+					func (val);
+				});
 		}
 		
 		public string to_string() {
@@ -199,7 +76,6 @@ namespace Json {
 		public string as_string() {
 			if (str != null)
 				return str;
-				//return string_from_string (str);
 			return "";
 		}
 		
@@ -223,9 +99,7 @@ namespace Json {
 		}
 		
 		public int64 as_int() {
-			if (integer != null)
-				return integer;
-			return 0;
+			return integer;
 		}
 		
 		public Regex as_regex() {
@@ -269,30 +143,15 @@ namespace Json {
 			else if (index.type() == typeof (ulong))
 				i = (int64)(ulong)index;
 			else return new Json.Node();
-			if (i < 0 || i >= array.size)
+			if (i < 0 || i >= array.length)
 				return new Json.Node();
 			return array[(int)i];
 		}
 		
-		static string char_to_string (unichar u) {
-			if (u < 20) {
-				string s = "\\u";
-				s += "%04X".printf (u);
-				return s;
-			}
-			return u.to_string();
-		}
+		public NodeType node_type { get; private set; }
 		
-		static string string_to_string (string s) {
-			string str = "";
-			int i = 0;
-			unichar u;
-			while (s.get_next_char (ref i, out u))
-				str += char_to_string (u);
-			return str;
-		}
-		
-		public NodeType node_type {
+		/*
+		public NodeType _node_type_ {
 			get {
 				if (isn)
 					return NodeType.NULL;
@@ -317,94 +176,132 @@ namespace Json {
 				return NodeType.NULL;
 			}
 		}
+		*/
 		
-		static bool is_init;
+		void set_value_internal (GLib.Value val) {
+			if (val.type().is_a (typeof (Json.Node))) {
+				var node = (Json.Node)val;
+				node_type = node.node_type;
+				datetime = node.datetime;
+				regex = node.regex;
+				binary = node.binary;
+				object = node.object;
+				array = node.array;
+				boolean = node.boolean;
+				str = node.str;
+				number_str = node.number_str;
+				integer = node.integer;
+				isn = node.isn;
+			}
+			else if (val.type().is_a (typeof (Json.Object))) {
+				object = (Json.Object)val;
+				node_type = NodeType.OBJECT;
+			}
+			else if (val.type().is_a (typeof (Json.Array))) {
+				array = (Json.Array)val;
+				node_type = NodeType.ARRAY;
+			}
+			else if (val.type() == typeof (bool)) {
+				boolean = (bool)val;
+				node_type = NodeType.BOOLEAN;
+			}
+			else if (val.type() == typeof (string)) {
+				str = (string)val;
+				node_type = NodeType.STRING;
+			}
+			else if (val.type() == typeof (double)) {
+				number_str = "%g".printf ((double)val);
+				node_type = NodeType.NUMBER;
+			}
+			else if (val.type() == typeof (float)) {
+				number_str = "%g".printf ((float)val);
+				node_type = NodeType.NUMBER;
+			}
+			else if (val.type() == typeof (int)) {
+				integer = (int64)(int)val;
+				node_type = NodeType.INTEGER;
+			}
+			else if (val.type() == typeof (uint)) {
+				integer = (int64)(uint)val;
+				node_type = NodeType.INTEGER;
+			}
+			else if (val.type() == typeof (int64)) {
+				integer = (int64)val;
+				node_type = NodeType.INTEGER;
+			}
+			else if (val.type() == typeof (uint64)) {
+				integer = (int64)(uint64)val;
+				node_type = NodeType.INTEGER;
+			}
+			else if (val.type() == typeof (long)) {
+				integer = (int64)(long)val;
+				node_type = NodeType.INTEGER;
+			}
+			else if (val.type() == typeof (ulong)) {
+				integer = (int64)(ulong)val;
+				node_type = NodeType.INTEGER;
+			}
+			else if (val.type() == typeof (uchar)) {
+				integer = (int64)(uchar)val;
+				node_type = NodeType.INTEGER;
+			}
+			else if (val.type() == typeof (char)) {
+				integer = (int64)(char)val;
+				node_type = NodeType.INTEGER;
+			}
+			else if (val.type() == typeof (DateTime)) {
+				datetime = (DateTime)val;
+				node_type = NodeType.DATETIME;
+			}
+			else if (val.type() == typeof (Regex)) {
+				regex = (Regex)val;
+				node_type = NodeType.REGEX;
+			}
+			else if (val.type() == typeof (Bytes)) {
+				Bytes bin = (Bytes)val;
+				binary = new Bytes (bin.get_data());
+				node_type = NodeType.BINARY;
+			}
+			else if (val.type() == typeof (ByteArray)) {
+				ByteArray bin = (ByteArray)val;
+				binary = new Bytes (bin.data);
+				node_type = NodeType.BINARY;
+			}
+			else {
+				isn = true;
+			}
+		}
 		
-		public GLib.Value? value {
+		Value val;
+		
+		public GLib.Value value {
 			owned get {
-				if (binary != null)
-					return binary;
-				if (datetime != null)
-					return datetime;
-				if (regex != null)
-					return regex;
-				if (object != null)
-					return object;
-				if (array != null)
-					return array;
-				if (str != null)
-					return str;
-					//return string_from_string (str);
-				if (boolean != null)
-					return boolean;
-				if (number_str != null)
-					return double.parse (number_str);
-				if (integer != null)
+				if (node_type == NodeType.INTEGER) {
 					return integer;
-				return null;
+				}
+				if (node_type == NodeType.BINARY)
+					return binary;
+				if (node_type == NodeType.DATETIME)
+					return datetime;
+				if (node_type == NodeType.REGEX)
+					return regex;
+				if (node_type == NodeType.OBJECT)
+					return object;
+				if (node_type == NodeType.ARRAY)
+					return array;
+				if (node_type == NodeType.STRING)
+					return str;
+				if (node_type == NodeType.BOOLEAN) {
+					return boolean;
+				}
+				if (node_type == NodeType.NUMBER) {
+					return double.parse (number_str);
+				}
+				val = 0;
+				return val;
 			}
 			set {
-				if (!is_init) {
-					value_init();
-					is_init = true;
-				}
-				if (value == null)
-					isn = true;
-				else if (value.type().is_a (typeof (Json.Node))) {
-					var node = (Json.Node)value;
-					datetime = node.datetime;
-					regex = node.regex;
-					binary = node.binary;
-					object = node.object;
-					array = node.array;
-					boolean = node.boolean;
-					str = node.str;
-					number_str = node.number_str;
-					integer = node.integer;
-					isn = node.isn;
-				}
-				else if (value.type().is_a (typeof (Json.Object)))
-					object = (Json.Object)value;
-				else if (value.type().is_a (typeof (Json.Array)))
-					array = (Json.Array)value;
-				else if (value.type() == typeof (bool))
-					boolean = (bool)value;
-				else if (value.type() == typeof (string))
-					str = (string)value;
-				else if (value.type() == typeof (double))
-					number_str = "%g".printf ((double)value);
-				else if (value.type() == typeof (float))
-					number_str = "%g".printf ((float)value);
-				else if (value.type() == typeof (int))
-					integer = (int)value;
-				else if (value.type() == typeof (uint))
-					integer = (uint)value;
-				else if (value.type() == typeof (int64))
-					integer = (int64)value;
-				else if (value.type() == typeof (uint64))
-					integer = (int64)(uint64)value;
-				else if (value.type() == typeof (long))
-					integer = (long)value;
-				else if (value.type() == typeof (ulong))
-					integer = (ulong)value;
-				else if (value.type() == typeof (uchar))
-					integer = (uchar)value;
-				else if (value.type() == typeof (char))
-					str = char_to_string ((unichar)((char)value));
-				else if (value.type() == typeof (DateTime))
-					datetime = (DateTime)value;
-				else if (value.type() == typeof (Regex))
-					regex = (Regex)value;
-				else if (value.type() == typeof (Bytes)) {
-					Bytes bin = (Bytes)value;
-					str = Base64.encode (bin.get_data());
-				}
-				else if (value.type() == typeof (ByteArray)) {
-					ByteArray bin = (ByteArray)value;
-					str = Base64.encode (bin.data);
-				}
-				else
-					isn = true;
+				set_value_internal (value);
 			}
 		}
 	}

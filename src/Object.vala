@@ -1,5 +1,36 @@
 namespace Json {
+	public class Property : GLib.Object {
+		public Property (string str, Json.Node node) {
+			GLib.Object (name : str, value : node);
+		}
+		public Property.val (string str, GLib.Value? val) {
+			GLib.Object (name : str, value : new Json.Node (val));
+		}
+		
+		public string name { get; construct; }
+		public Json.Node value { get; set construct; }
+	}
+	
 	public class Object : GLib.Object {
+		public static Object from_table (HashTable<string, Json.Node> table) {
+			var object = new Object();
+			table.foreach ((key, value) => {
+				object[key] = value;
+			});
+			return object;
+		}
+		
+		public static Object load (Reader reader) {
+			try {
+				var parser = new Parser();
+				parser.load (reader);
+				if (parser.root.node_type == NodeType.OBJECT)
+					return parser.root.object;
+			} catch {
+			}
+			return new Object();
+		}
+		
 		public static Object parse (string json) {
 			var parser = new Json.Parser();
 			try {
@@ -7,7 +38,6 @@ namespace Json {
 				if (parser.root.node_type == NodeType.OBJECT)
 					return parser.root.object;
 			} catch {
-				return new Json.Object();
 			}
 			return new Json.Object();
 		}
@@ -18,6 +48,45 @@ namespace Json {
 		construct {
 			list = new Gee.ArrayList<string>();
 			map = new Gee.HashMap<string, Json.Node>(key => { return str_hash (key); }, (a, b) => { return str_equal (a, b); }, (a, b) => { return a.equal (b); });
+		}
+		
+		public class Iterator {
+			Json.Object obj;
+			int index;
+			
+			public Iterator (Json.Object object) {
+				obj = object;
+				index = -1;
+			}
+			
+			public bool next() {
+				if (index + 1 < obj.length) {
+					index++;
+					return true;
+				}
+				return false;
+			}
+			
+			public Property get() {
+				return obj.properties[index];
+			}
+		}
+		
+		public Iterator iterator() {
+			return new Iterator (this);
+		}
+		
+		public delegate bool FilterFunc (Property prop);
+		
+		public Object filter (FilterFunc func) {
+			var object = new Json.Object();
+			list.foreach (key => {
+				var prop = new Property (key, map[key]);
+				if (func (prop))
+					object[key] = map[key];
+				return true;
+			});
+			return object;
 		}
 		
 		public new Json.Node get (GLib.Value index) {
@@ -44,6 +113,10 @@ namespace Json {
 			if (integer < 0 || integer >= map.size)
 				return new Json.Node();
 			return map[list[(int)integer]];
+		}
+		
+		public Json.Node get_member (string key) {
+			return this[key];
 		}
 		
 		public Json.Object get_object_member (string key) {
@@ -86,6 +159,10 @@ namespace Json {
 			return this[key].as_binary();
 		}
 		
+		public Property get_property (string key) {
+			return new Property (key, this[key]);
+		}
+		
 		public new void set (GLib.Value index, GLib.Value? value) {
 			if (index.type() == typeof (string)) {
 				string key = (string)index;
@@ -112,6 +189,10 @@ namespace Json {
 				return;
 			var key = list[(int)integer];
 			map[key] = new Json.Node (value);
+		}
+		
+		public void set_member (string key, Json.Node node) {
+			this[key] = node;
 		}
 		
 		public void set_object_member (string key, Json.Object object) {
@@ -154,8 +235,12 @@ namespace Json {
 			this[key] = bytes;
 		}
 		
+		public void set_property (Property property) {
+			this[property.name] = property.value;
+		}
+		
 		public bool equal (Json.Object object) {
-			if (object.size != map.size)
+			if (object.length != map.size)
 				return false;
 			for (var i = 0; i < map.size; i++)
 				if (!this[i].equal (object[i]))
@@ -196,15 +281,47 @@ namespace Json {
 			});
 		}
 		
+		public void foreach_property (Func<Property> func) {
+			list.foreach (key => {
+				func (new Property (key, map[key]));
+				return true;
+			});
+		}
+		
 		public string to_string() {
 			var gen = new Generator();
 			gen.root = new Json.Node (this);
 			return gen.to_string();
 		}
 		
+		public void write_to (Writer writer) {
+			writer.write_start_object();
+			for (var i = 0; i < map.size - 1; i++) {
+				writer.write_property_name (list[i]);
+				writer.write_node (map[list[i]]);
+				writer.write_node_delimiter();
+			}
+			if (map.size > 0) {
+				writer.write_property_name (list[list.size - 1]);
+				writer.write_node (map[list[list.size - 1]]);
+			}
+			writer.write_end_object();
+		}
+		
 		public string[] keys {
 			owned get {
 				return list.to_array();
+			}
+		}
+		
+		public Property[] properties {
+			owned get {
+				var array = new Gee.ArrayList<Property>();
+				list.foreach (key => {
+					array.add (new Property (key, map[key]));
+					return true;
+				});
+				return array.to_array();
 			}
 		}
 		
@@ -219,7 +336,7 @@ namespace Json {
 			}
 		}
 		
-		public int size {
+		public int length {
 			get {
 				return map.size;
 			}

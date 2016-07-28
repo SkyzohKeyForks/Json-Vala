@@ -25,6 +25,7 @@ namespace Json {
 		
 		construct {
 			unescape = true;
+			decode_unicode = true;
 		}
 		
 		public void load_from_path (string path, Encoding encoding = Encoding.utf8) throws GLib.Error {
