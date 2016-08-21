@@ -61,6 +61,52 @@ namespace Json {
 			return gen.to_string();
 		}
 		
+		[Experimental]
+		public T as<T>() {
+			if (typeof (T) == typeof (Json.Object))
+				return as_object();
+			if (typeof (T) == typeof (Json.Array))
+				return as_array();
+			if (typeof (T) == typeof (string))
+				return as_string();
+			if (typeof (T) == typeof (bool))
+				return as_boolean();
+			if (typeof (T) == typeof (int))
+				return (int)as_int();
+			if (typeof (T) == typeof (uint))
+				return (uint)as_int();
+			if (typeof (T) == typeof (int64))
+				return as_int();
+			if (typeof (T) == typeof (uint64))
+				return (uint64)as_int();
+			if (typeof (T) == typeof (short))
+				return (short)as_int();
+			if (typeof (T) == typeof (ushort))
+				return (ushort)as_int();
+			if (typeof (T) == typeof (int8))
+				return (int8)as_int();
+			if (typeof (T) == typeof (uint8))
+				return (uint8)as_int();
+			if (typeof (T) == typeof (long))
+				return (long)as_int();
+			if (typeof (T) == typeof (ulong))
+				return (ulong)as_int();
+			if (typeof (T) == typeof (Regex))
+				return as_regex();
+			if (typeof (T) == typeof (DateTime))
+				return as_datetime();
+			if (typeof (T) == typeof (Bytes))
+				return as_binary();
+			if (typeof (T) == typeof (ByteArray))
+				return new ByteArray.take (as_binary().get_data());
+			if (typeof (T) == typeof (string[])) {
+				string[] strv = new string[0];
+				as_array().foreach (node => { strv += node.as_string(); });
+				return strv;
+			}
+			return null;
+		}
+		
 		public Json.Object as_object() {
 			if (object != null)
 				return object;

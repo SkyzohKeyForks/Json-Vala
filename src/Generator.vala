@@ -5,6 +5,10 @@ namespace Json {
 		public bool pretty { get; set; }
 		public Json.Node root { get; set; }
 		
+		construct {
+			indent = 1;
+		}
+		
 		public string to_string() {
 			StringBuilder sb = new StringBuilder();
 			node_to_string (sb, root);

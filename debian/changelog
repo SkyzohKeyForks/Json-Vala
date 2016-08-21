@@ -1,3 +1,10 @@
+json-vala (1.8-2) xenial; urgency=low
+
+  * add Writer class.
+  * fix Node value and node type.
+  
+ -- Yannick Inizan <inizan.yannick@gmail.com>  Sat, 30 Jul 2016 11:22:04 +0200
+
 json-vala (1.7-1) xenial; urgency=low
 
   * Parser : add async functions.

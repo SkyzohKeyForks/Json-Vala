@@ -5,7 +5,7 @@ cmake_policy (VERSION 2.8)
 project (json-vala C)
 
 set (PKG_NAME ${CMAKE_PROJECT_NAME})
-set (PKG_VERSION 1.7)
+set (PKG_VERSION 1.8)
 set (API_VERSION 1.0)
 
 # Used to create GObject introspection files
