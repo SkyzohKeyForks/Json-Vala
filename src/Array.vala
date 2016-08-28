@@ -1,3 +1,5 @@
+using JsonSchema;
+
 namespace Json {
 	public class Array : GLib.Object {
 		public static Array from (GLib.Value[] values) {
@@ -43,6 +45,37 @@ namespace Json {
 			nodes = new Gee.ArrayList<Json.Node>((a, b) => {
 				return a.equal (b);
 			});
+		}
+		
+		[Version (experimental = true)]
+		public void validate (Schema schema) throws GLib.Error {
+			if (!(schema is SchemaArray))
+				throw new SchemaError.INVALID ("current schema isn't array.");
+			var sc = schema as SchemaArray;
+			if (sc.max_items != null && length > sc.max_items)
+				throw new SchemaError.INVALID ("current array is too big.");
+			if (sc.min_items != null && length < sc.min_items)
+				throw new SchemaError.INVALID ("current array is too small.");
+			if (sc.unique_items && length > 1) {
+				for (var i = 0; i < length; i++)
+					for (var j = 0; j < length; j++)
+						if (j != i && this[i].equal (this[j]))
+							throw new SchemaError.INVALID ("current array has equal nodes.");
+			}
+			if (sc.items.type().is_a (typeof (Schema))) {
+				var s = (Schema)sc.items;
+				foreach (var item in this)
+					item.validate (s);
+			}
+			else if (sc.items.type().is_a (typeof (SchemaList))) {
+				var sl = (SchemaList)sc.items;
+				if (sl.size != length)
+					throw new SchemaError.INVALID ("current array doesn't have requested size");
+				for (var i = 0; i < sl.size; i++)
+					this[i].validate (sl[i]);
+			}
+			else
+				throw new SchemaError.INVALID ("invalid type for schema items.");
 		}
 		
 		public void add (GLib.Value? val) {

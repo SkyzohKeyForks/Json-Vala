@@ -1,3 +1,5 @@
+using JsonSchema;
+
 namespace Json {
 	public class Property : GLib.Object {
 		public Property (string str, Json.Node node) {
@@ -48,6 +50,40 @@ namespace Json {
 		construct {
 			list = new Gee.ArrayList<string>();
 			map = new Gee.HashMap<string, Json.Node>(key => { return str_hash (key); }, (a, b) => { return str_equal (a, b); }, (a, b) => { return a.equal (b); });
+		}
+		
+		[Version (experimental = true)]
+		public void validate (Schema schema) throws GLib.Error {
+			if (!(schema is SchemaObject))
+				throw new SchemaError.INVALID ("current schema isn't object.");
+			var sc = schema as SchemaObject;
+			if (sc.max_properties != null && length > sc.max_properties)
+				throw new SchemaError.INVALID ("current object is too big.");
+			if (sc.min_properties != null && length < sc.min_properties)
+				throw new SchemaError.INVALID ("current object is too small.");
+			foreach (var key in sc.required)
+				if (!has_key (key))
+					throw new SchemaError.INVALID ("current object doesn't have required key.");
+			bool ap = false;
+			Schema sap = null;
+			if (sc.additional_properties != null && sc.additional_properties.type() == typeof (bool))
+				ap = (bool)sc.additional_properties;
+			if (sc.additional_properties != null && sc.additional_properties.type().is_a (typeof (Schema)))
+				sap = (Schema)sc.additional_properties;
+			if (sc.properties != null)
+				foreach (var key in sc.properties.get_keys())
+					if (has_key (key))
+						this[key].validate (sc.properties[key]);
+					else if (sap != null || ap == true) {
+						
+					}
+			if (sc.pattern_properties != null)
+				foreach (var rg in sc.pattern_properties.get_keys()) {
+					var regex = new Regex (rg);
+					foreach (string key in keys)
+						if (regex.match (key))
+							this[key].validate (sc.pattern_properties[rg]);
+				}
 		}
 		
 		public class Iterator {

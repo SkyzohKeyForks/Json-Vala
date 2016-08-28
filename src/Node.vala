@@ -1,3 +1,5 @@
+using JsonSchema;
+
 namespace Json {
 	public enum NodeType {
 		NULL,
@@ -30,6 +32,72 @@ namespace Json {
 				isn = true;
 			else
 				set_value_internal (value);
+		}
+		
+		[Version (experimental = true)]
+		public void validate (Schema schema) throws GLib.Error {
+			if (array != null)
+				array.validate (schema);
+			if (object != null)
+				object.validate (schema);
+			if (node_type == NodeType.INTEGER)
+				validate_integer (schema);
+			if (node_type == NodeType.NUMBER)
+				validate_number (schema);
+			if (node_type == NodeType.STRING)
+				validate_string (schema);
+		}
+		
+		static int real_length (string str) {
+			int count = 0;
+			int pos = 0;
+			unichar u;
+			while (str.get_next_char (ref pos, out u))
+				count++;
+			return count;
+		}
+		
+		void validate_string (Schema schema) throws GLib.Error {
+			if (!(schema is SchemaString))
+				throw new SchemaError.INVALID ("current schema isn't string.");
+			var sc = schema as SchemaString;
+			if (sc.pattern != null && !sc.pattern.match (str))
+				throw new SchemaError.INVALID ("current string doesn't match regular expression.");
+			int str_length = real_length (str);
+			if (sc.max_length != null && str_length > sc.max_length)
+				throw new SchemaError.INVALID ("current string length is larger than allowed");
+			if (sc.min_length != null && str_length < sc.min_length)
+				throw new SchemaError.INVALID ("current string length is smaller than allowed");
+		}
+		
+		void validate_integer (Schema schema) throws GLib.Error {
+			if (!(schema is SchemaInteger))
+				throw new SchemaError.INVALID ("current schema isn't integer.");
+			var sc = schema as SchemaInteger;
+			if (sc.multiple_of != null)
+				if (integer % sc.multiple_of != 0)
+					throw new SchemaError.INVALID ("current number isn't a multiple of requested number.");
+			if (sc.maximum != null)
+				if (integer > sc.maximum && sc.exclusive_maximum || integer >= sc.maximum && !sc.exclusive_maximum)
+					throw new SchemaError.INVALID ("current number is outside range.");
+			if (sc.minimum != null)
+				if (integer > sc.minimum && sc.exclusive_minimum || integer >= sc.minimum && !sc.exclusive_minimum)
+					throw new SchemaError.INVALID ("current number is outside range.");
+		}
+		
+		void validate_number (Schema schema) throws GLib.Error {
+			if (!(schema is SchemaNumber))
+				throw new SchemaError.INVALID ("current schema isn't number.");
+			var sc = schema as SchemaNumber;
+			if (sc.multiple_of != null)
+				if (as_double() % sc.multiple_of != 0)
+					throw new SchemaError.INVALID ("current number isn't a multiple of requested number.");
+			if (sc.maximum != null)
+				if (as_double() > sc.maximum && sc.exclusive_maximum || as_double() >= sc.maximum && !sc.exclusive_maximum)
+					throw new SchemaError.INVALID ("current number is outside range.");
+			if (sc.minimum != null)
+				if (as_double() > sc.minimum && sc.exclusive_minimum || as_double() >= sc.minimum && !sc.exclusive_minimum)
+					throw new SchemaError.INVALID ("current number is outside range.");
 		}
 		
 		public void write_to (Writer writer) {

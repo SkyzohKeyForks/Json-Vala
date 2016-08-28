@@ -15,6 +15,11 @@ namespace JsonSchema {
 	}
 	
 	public class Schema : GLib.Object {
+		[Version (experimental = true)]
+		public void validate (Json.Node node) throws GLib.Error {
+			node.validate (this);
+		}
+		
 		string _title;
 		string _description;
 		
@@ -40,7 +45,6 @@ namespace JsonSchema {
 	
 		public SchemaType schema_type { get; set construct; }
 	
-		[Version (experimental = true, experimental_until = "1.6")]
 		public static Schema parse (string data) throws GLib.Error {
 			var object = Json.Object.parse (data);
 			Schema schema = parse_schema (object);
@@ -246,7 +250,12 @@ namespace JsonSchema {
 				object["patternProperties"].as_object().foreach ((name, value) => {
 					if (value.node_type != Json.NodeType.OBJECT)
 						throw new SchemaError.INVALID ("invalid type for current property.");
-					schema.pattern_properties[new Regex (name)] = parse_schema (value.as_object());
+					try {
+						var regex = new Regex (name);
+						schema.pattern_properties[name] = parse_schema (value.as_object());
+					} catch {
+						throw new SchemaError.INVALID ("current key isn't valid Regex.");
+					}
 				});
 			}
 			if (object.has_key ("dependencies")) {

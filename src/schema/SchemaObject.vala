@@ -7,13 +7,13 @@ namespace JsonSchema {
 		construct {
 			props = new HashTable<string, Schema> (str_hash, str_equal);
 			deps = new HashTable<string, GLib.Value?> (str_hash, str_equal);
-			pattern_properties = new HashTable<Regex, Schema>(null, null);
+			pattern_properties = new HashTable<string, Schema>(str_hash, str_equal);
 		}
 		
 		public uint64? max_properties { get; set; }
 		public uint64? min_properties { get; set; }
 		
-		public GLib.Value additional_properties { get; set; }
+		public GLib.Value? additional_properties { get; set; }
 		
 		HashTable<string, GLib.Value?> deps;
 		
@@ -29,7 +29,7 @@ namespace JsonSchema {
 			}
 		}
 		
-		public HashTable<Regex, Schema> pattern_properties { get; set; }
+		public HashTable<string, Schema> pattern_properties { get; set; }
 		
 		HashTable<string, Schema> props;
 		
