@@ -209,11 +209,17 @@ namespace Json {
 		public double as_double() {
 			if (number_str != null)
 				return double.parse (number_str);
+			if (integer != 0)
+				return (double)integer;
 			return 0;
 		}
 		
 		public int64 as_int() {
-			return integer;
+			if (integer != 0)
+				return integer;
+			if (!str_equal (number_str, "0"))
+				return (int64)double.parse (number_str);
+			return 0;
 		}
 		
 		public Regex as_regex() {
@@ -263,34 +269,6 @@ namespace Json {
 		}
 		
 		public NodeType node_type { get; private set; }
-		
-		/*
-		public NodeType _node_type_ {
-			get {
-				if (isn)
-					return NodeType.NULL;
-				if (integer != null)
-					return NodeType.INTEGER;
-				if (number_str != null)
-					return NodeType.NUMBER;
-				if (boolean != null)
-					return NodeType.BOOLEAN;
-				if (str != null)
-					return NodeType.STRING;
-				if (array != null)
-					return NodeType.ARRAY;
-				if (object != null)
-					return NodeType.OBJECT;
-				if (regex != null)
-					return NodeType.REGEX;
-				if (datetime != null)
-					return NodeType.DATETIME;
-				if (binary != null)
-					return NodeType.BINARY;
-				return NodeType.NULL;
-			}
-		}
-		*/
 		
 		void set_value_internal (GLib.Value val) {
 			if (val.type().is_a (typeof (Json.Node))) {
