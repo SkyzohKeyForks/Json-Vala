@@ -138,6 +138,8 @@ namespace Json {
 					while (reader.peek() != 0 && reader.peek() != ',' && reader.peek() != '}')
 						sb.append_unichar (reader.read());
 					string str = sb.str.strip();
+					if (str.length == 0)	
+						throw new ParserError.NULL ("value length is 0.");
 					int64 num; double d;
 					if (int64.try_parse (str, out num))
 						object.set_int_member (key, num);
@@ -188,6 +190,8 @@ namespace Json {
 					while (reader.peek() != 0 && reader.peek() != ',' && reader.peek() != ']')
 						sb.append_unichar (reader.read());
 					string str = sb.str.strip();
+					if (str.length == 0)	
+						throw new ParserError.NULL ("value length is 0.");
 					int64 num; double d;
 					if (int64.try_parse (str, out num))
 						array.add_int_element (num);
