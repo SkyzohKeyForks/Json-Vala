@@ -17,7 +17,11 @@ Discussion and support on IRC channel [#canaldev](http://webchat.freenode.net/?c
 
 On Debian based systems install following packages:
 
-    sudo apt-get install cmake valac libgee-0.8-dev
+    # apt-get install cmake valac libgee-0.8-dev
+    
+On RPM package manager based systems install following packages:
+    
+    # dnf install cmake valac libgee-devel
 
 ### Building ###
  1. `mkdir build && cd build`
